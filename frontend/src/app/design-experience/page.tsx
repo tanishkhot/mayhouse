@@ -41,9 +41,9 @@ const DesignExperienceContent = () => {
     } else {
       setIsLoading(false);
     }
-  }, [searchParams]);
+  }, [searchParams, fetchExperienceData]);
 
-  const fetchExperienceData = async (id: string) => {
+  const fetchExperienceData = useCallback(async (id: string) => {
     try {
       const token = localStorage.getItem('mayhouse_token');
       if (!token) {
@@ -84,7 +84,7 @@ const DesignExperienceContent = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
 
   const handleNext = () => {
     if (step < 3) setStep(step + 1);
