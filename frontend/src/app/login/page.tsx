@@ -10,13 +10,7 @@ const LoginPageContent = () => {
   const sp = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-
-  // If redirected back from OAuth with token (future), handle here.
-  useEffect(() => {
-    const oauthError = sp.get("error");
-    if (oauthError) setError(oauthError);
-  }, [sp]);
+  const [error, setError] = useState<string | null>(sp.get("error"));
 
   const { mutate: login, isPending } = useMutation({
     mutationFn: () => AuthAPI.login({ email, password }),
