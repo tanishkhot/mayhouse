@@ -38,7 +38,7 @@ export default function ExperienceRunDetailPage() {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Experience not found</h1>
-          <p className="text-gray-600 mb-4">The experience you're looking for doesn't exist.</p>
+          <p className="text-gray-600 mb-4">The experience you&apos;re looking for doesn&apos;t exist.</p>
         </div>
       </div>
     );
@@ -103,7 +103,7 @@ export default function ExperienceRunDetailPage() {
 
             {/* Description */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">What you'll do</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">What you&apos;ll do</h2>
               <div className="prose prose-gray max-w-none">
                 <p className="whitespace-pre-line text-gray-700 leading-relaxed">
                   {experience.long_description}
@@ -111,9 +111,9 @@ export default function ExperienceRunDetailPage() {
               </div>
             </div>
 
-            {/* What's included */}
+            {/* What&apos;s included */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">What's included</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">What&apos;s included</h2>
               <ul className="space-y-2">
                 {experience.includes?.map((item: string, index: number) => (
                   <li key={index} className="flex items-start space-x-3">
@@ -234,7 +234,7 @@ export default function ExperienceRunDetailPage() {
               </button>
 
               <p className="text-center text-sm text-gray-500 mt-3">
-                You won't be charged yet
+                You won&apos;t be charged yet
               </p>
             </div>
           </div>
