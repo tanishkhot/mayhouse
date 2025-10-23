@@ -85,7 +85,7 @@ const HostDashboardContent = () => {
     if (activeTab === 'manage') {
       fetchExperiences();
     }
-  }, [filter, activeTab]);
+  }, [filter, activeTab, fetchExperiences]);
   
   // Check if we're editing an experience from URL params
   useEffect(() => {
@@ -96,7 +96,7 @@ const HostDashboardContent = () => {
       setActiveTab('create'); // Switch to create tab for editing
       fetchExperienceData(editId);
     }
-  }, [searchParams]);
+  }, [searchParams, fetchExperienceData]);
 
   // Helper function to get count for each status
   const getStatusCount = (status: string) => {
@@ -104,7 +104,7 @@ const HostDashboardContent = () => {
     return allExperiences.filter(exp => exp.status === status).length;
   };
 
-  const fetchExperiences = async () => {
+  const fetchExperiences = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -133,7 +133,7 @@ const HostDashboardContent = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, setAllExperiences, setExperiences, setLoading, setError]);
 
   const handleViewExperience = (experience: Experience) => {
     setSelectedExperience(experience);
@@ -162,7 +162,7 @@ const HostDashboardContent = () => {
   };
   
   // Experience creation/editing functions
-  const fetchExperienceData = async (id: string) => {
+  const fetchExperienceData = useCallback(async (id: string) => {
     try {
       setIsLoadingExperience(true);
       const token = localStorage.getItem('mayhouse_token');
@@ -202,7 +202,7 @@ const HostDashboardContent = () => {
     } finally {
       setIsLoadingExperience(false);
     }
-  };
+  }, [setFormData, setIsLoadingExperience, setError]);
   
   const handleNext = () => {
     if (step < 3) setStep(step + 1);
