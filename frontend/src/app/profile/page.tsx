@@ -24,19 +24,13 @@ export default function ProfilePage() {
     }
   }, [isError, router]);
 
-  const [form, setForm] = useState({ full_name: "", username: "", phone: "", bio: "", profile_image_url: "" });
-
-  useEffect(() => {
-    if (user) {
-      setForm({
-        full_name: user.full_name || "",
-        username: user.username || "",
-        phone: user.phone || "",
-        bio: (user as { bio?: string }).bio || "",
-        profile_image_url: user.profile_image_url || "",
-      });
-    }
-  }, [user]);
+  const [form, setForm] = useState(() => ({
+    full_name: user?.full_name || "",
+    username: user?.username || "",
+    phone: user?.phone || "",
+    bio: (user as { bio?: string })?.bio || "",
+    profile_image_url: user?.profile_image_url || "",
+  }));
 
   const { mutate: saveProfile, isPending: saving } = useMutation({
     mutationFn: () => AuthAPI.updateMe(form),
