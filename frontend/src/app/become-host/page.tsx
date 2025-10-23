@@ -238,14 +238,12 @@ const BecomeHostPage = () => {
           <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-4 ${statusColors[existingApplication!.status as keyof typeof statusColors]}`}>
             {existingApplication!.status.toUpperCase()}
           </div>
-          <p className="text-gray-600 mb-4">
-            You submitted your host application on {new Date(existingApplication!.applied_at).toLocaleDateString()}
-          </p>
+          You submitted your host application on {new Date(existingApplication!.applied_at).toLocaleDateString()}
+            </p>
           {existingApplication!.status === 'pending' && (
             <p className="text-gray-500 text-sm mb-4">
-              Your application is under review. You'll receive an email once it's processed.
+              Your application is under review. You&apos;ll receive an email once it&apos;s processed.
             </p>
-          )}
           {existingApplication!.admin_notes && (
             <div className="bg-gray-50 p-3 rounded-lg mb-4 text-left">
               <p className="text-sm font-semibold text-gray-700 mb-1">Admin Notes:</p>
@@ -607,7 +605,7 @@ const BecomeHostPage = () => {
                 <span className="text-sm text-gray-700">
                   <strong>Marketing Communications (Optional)</strong>
                   <br />
-                  I'd like to receive updates about hosting opportunities and platform news.
+                  I&apos;d like to receive updates about hosting opportunities and platform news.
                 </span>
               </label>
             </div>
