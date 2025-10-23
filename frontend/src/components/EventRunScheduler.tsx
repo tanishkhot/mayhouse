@@ -231,7 +231,7 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
             </div>
           ) : experiences.length === 0 ? (
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-md">
-              You don't have any approved experiences yet. 
+              You don&apos;t have any approved experiences yet. 
               <a href="#" className="underline ml-1">Create an experience first</a>.
             </div>
           ) : (
@@ -362,8 +362,8 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
             />
           </div>
           <p className="mt-1 text-sm text-gray-500">
-            Leave empty to use the experience's base price
-          </p>
+              Leave empty to use the experience&apos;s base price
+            </p>
         </div>
 
         {/* Meeting Instructions */}
@@ -435,7 +435,7 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
               <li>End time is automatically calculated based on experience duration</li>
               <li>You can have maximum 2 active event runs at any time</li>
               <li>Events cannot end after 10 PM - choose start time accordingly</li>
-              <li>Consider Mumbai's traffic when scheduling start times</li>
+              <li>Consider Mumbai&apos;s traffic when scheduling start times</li>
               <li>Weekend slots (Fri-Sun) tend to book faster</li>
             </ul>
           </div>
