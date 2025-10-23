@@ -195,7 +195,7 @@ const DesignExperienceContent = () => {
                 console.log(`✅ FORM: Found Supabase token in '${key}': ${token.substring(0, 20)}...`);
                 break;
               }
-            } catch (e) {
+            } catch (_e) {
               console.log(`❌ FORM: Could not parse ${key} as JSON`);
             }
           }
