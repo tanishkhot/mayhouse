@@ -17,11 +17,15 @@ async def health_check():
 async def database_health():
     """Database health check."""
     try:
-        # TODO: Add database connection check when we set up Supabase
+        from app.core.database import get_db
+
+        db = get_db()
+        # Simple query to test connection
+        result = db.table("users").select("id").limit(1).execute()
         return {
             "status": "healthy",
-            "database": "not_configured_yet",
-            "message": "Database connection not yet implemented",
+            "database": "connected",
+            "message": "Database connection successful",
         }
     except Exception as e:
         return {"status": "unhealthy", "database": "error", "error": str(e)}

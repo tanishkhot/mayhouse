@@ -1,26 +1,36 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import get_settings
+from app.core.database import init_database
 from app.api.health import router as health_router
+
+settings = get_settings()
 
 # Create FastAPI app
 app = FastAPI(
-    title="Mayhouse Backend",
-    version="0.1.0",
+    title=settings.app_name,
+    version=settings.app_version,
     description="FastAPI backend for Mayhouse travel experiences platform",
+    debug=settings.debug,
 )
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://mayhouse-frontend.vercel.app",  # Production Vercel domain
-        "http://localhost:3000",  # Local development
-        "http://127.0.0.1:3000",  # Local development alternative
-    ],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
 )
+
+
+# Initialize database on startup
+@app.on_event("startup")
+async def startup_event():
+    """Initialize application on startup."""
+    print(f"🚀 Starting {settings.app_name} v{settings.app_version}")
+    init_database()
+
 
 # Include routers
 app.include_router(health_router)
@@ -31,8 +41,8 @@ app.include_router(health_router)
 async def root():
     """Root endpoint."""
     return {
-        "message": "Welcome to Mayhouse Backend",
-        "version": "0.1.0",
+        "message": f"Welcome to {settings.app_name}",
+        "version": settings.app_version,
         "docs": "/docs",
         "health": "/health/",
     }
