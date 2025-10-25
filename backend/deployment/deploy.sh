@@ -141,6 +141,7 @@ docker run -d \
     --name "$CONTAINER_NAME" \
     -p "$PORT:$PORT" \
     --restart unless-stopped \
+    --env-file .env \
     "$IMAGE_NAME"
 
 echo -e "${GREEN}✅ Container started successfully${NC}"
