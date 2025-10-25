@@ -5,6 +5,7 @@ import { ExploreAPI } from "@/lib/api";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Heart, MapPin, Clock, Users, Calendar, Star } from "lucide-react";
+import BookEventButton from "@/components/BookEventButton";
 
 export default function ExperienceRunDetailPage() {
   const params = useParams();
@@ -229,12 +230,13 @@ export default function ExperienceRunDetailPage() {
                 </div>
               </div>
 
-              <button className="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors">
-                Book experience
-              </button>
+              <BookEventButton 
+                eventRunId={parseInt(runId)} 
+                availableSeats={experience.upcoming_sessions?.[0]?.available_spots || 0}
+              />
 
               <p className="text-center text-sm text-gray-500 mt-3">
-                You won&apos;t be charged yet
+                💎 Includes 20% refundable stake
               </p>
             </div>
           </div>
