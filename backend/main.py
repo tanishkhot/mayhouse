@@ -9,6 +9,9 @@ from app.api.host_application import user_router as host_application_user_router
 from app.api.host_application import admin_router as host_application_admin_router
 from app.api.experiences import host_router as experience_host_router
 from app.api.experiences import admin_router as experience_admin_router
+from app.api.event_runs import host_router as event_run_host_router
+from app.api.event_runs import public_router as event_run_public_router
+from app.api.event_runs import admin_router as event_run_admin_router
 
 settings = get_settings()
 
@@ -46,6 +49,9 @@ app.include_router(host_application_user_router)  # Host application user endpoi
 app.include_router(host_application_admin_router)  # Host application admin endpoints
 app.include_router(experience_host_router)  # Experience management host endpoints
 app.include_router(experience_admin_router)  # Experience management admin endpoints
+app.include_router(event_run_host_router)  # Event run management host endpoints
+app.include_router(event_run_public_router)  # Event run public endpoints
+app.include_router(event_run_admin_router)  # Event run admin endpoints
 
 
 # Root endpoint
@@ -63,6 +69,9 @@ async def root():
         "admin_host_applications": "/admin/host-applications",
         "experiences": "/experiences",
         "admin_experiences": "/admin/experiences",
+        "host_event_runs": "/hosts/event-runs",
+        "public_event_runs": "/event-runs",
+        "admin_event_runs": "/admin/event-runs",
     }
 
 

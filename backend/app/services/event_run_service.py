@@ -14,9 +14,8 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from fastapi import HTTPException, status
-from supabase import Client
 
-from app.core.database import get_supabase_client
+from app.core.database import get_service_client
 from app.schemas.event_run import (
     EventRunCreate,
     EventRunUpdate,
@@ -34,8 +33,9 @@ from app.services.experience_service import experience_service
 class EventRunService:
     """Service for managing event runs."""
 
-    def __init__(self, supabase_client: Client = None):
-        self.supabase = supabase_client or get_supabase_client()
+    def _get_service_client(self):
+        """Get database service client."""
+        return get_service_client()
 
     async def create_event_run(
         self, event_run_data: EventRunCreate, host_id: str
@@ -93,9 +93,12 @@ class EventRunService:
             "host_meeting_instructions": event_run_data.host_meeting_instructions,
             "group_pairing_enabled": event_run_data.group_pairing_enabled,
             "status": EventRunStatus.SCHEDULED.value,
+            "created_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat(),
         }
 
-        response = self.supabase.table("event_runs").insert(insert_data).execute()
+        service_client = self._get_service_client()
+        response = service_client.table("event_runs").insert(insert_data).execute()
 
         if not response.data:
             raise HTTPException(
@@ -114,8 +117,9 @@ class EventRunService:
         self, event_run_id: str, include_bookings: bool = True
     ) -> EventRunResponse:
         """Get an event run by ID with optional booking summary."""
+        service_client = self._get_service_client()
         response = (
-            self.supabase.table("event_runs")
+            service_client.table("event_runs")
             .select(
                 """
             *,
@@ -148,8 +152,9 @@ class EventRunService:
         offset: int = 0,
     ) -> List[EventRunSummary]:
         """Get event runs for a specific host."""
+        service_client = self._get_service_client()
         query = (
-            self.supabase.table("event_runs")
+            service_client.table("event_runs")
             .select(
                 """
             *,
@@ -234,10 +239,11 @@ class EventRunService:
                 update_dict[field] = value
 
         if update_dict:
-            update_dict["updated_at"] = datetime.now().isoformat()
+            update_dict["updated_at"] = datetime.utcnow().isoformat()
 
+            service_client = self._get_service_client()
             response = (
-                self.supabase.table("event_runs")
+                service_client.table("event_runs")
                 .update(update_dict)
                 .eq("id", event_run_id)
                 .execute()
@@ -278,8 +284,9 @@ class EventRunService:
             )
 
         # Delete the event run
+        service_client = self._get_service_client()
         response = (
-            self.supabase.table("event_runs").delete().eq("id", event_run_id).execute()
+            service_client.table("event_runs").delete().eq("id", event_run_id).execute()
         )
 
         if not response.data:
@@ -294,8 +301,9 @@ class EventRunService:
         self, filters: EventRunFilterParams
     ) -> List[EventRunSummary]:
         """List available event runs with filtering for public discovery."""
+        service_client = self._get_service_client()
         query = (
-            self.supabase.table("event_runs")
+            service_client.table("event_runs")
             .select(
                 """
             *,
@@ -382,8 +390,9 @@ class EventRunService:
 
     async def get_event_run_stats(self) -> EventRunStats:
         """Get event run statistics for admin dashboard."""
+        service_client = self._get_service_client()
         # Get all event runs
-        response = self.supabase.table("event_runs").select("*").execute()
+        response = service_client.table("event_runs").select("*").execute()
         all_runs = response.data
 
         # Calculate basic counts
@@ -403,9 +412,10 @@ class EventRunService:
             start_time = datetime.fromisoformat(
                 run["start_datetime"].replace("Z", "+00:00")
             )
-            if start_time > datetime.now() and start_time <= datetime.now() + timedelta(
-                days=7
-            ):
+            now = (
+                datetime.now(start_time.tzinfo) if start_time.tzinfo else datetime.now()
+            )
+            if start_time > now and start_time <= now + timedelta(days=7):
                 upcoming_7_days += 1
 
         # Calculate capacity statistics
@@ -413,7 +423,7 @@ class EventRunService:
 
         # Get booking statistics
         booking_response = (
-            self.supabase.table("event_run_bookings")
+            service_client.table("event_run_bookings")
             .select(
                 """
             traveler_count, booking_status
@@ -446,9 +456,10 @@ class EventRunService:
         self, event_run_id: str, max_capacity: int
     ) -> int:
         """Calculate available spots for an event run."""
+        service_client = self._get_service_client()
         # Get confirmed bookings
         response = (
-            self.supabase.table("event_run_bookings")
+            service_client.table("event_run_bookings")
             .select("traveler_count")
             .eq("event_run_id", event_run_id)
             .in_("booking_status", ["confirmed", "experience_completed"])
@@ -462,9 +473,10 @@ class EventRunService:
         self, event_run_id: str, max_capacity: int
     ) -> EventRunBookingSummary:
         """Calculate booking summary for an event run."""
+        service_client = self._get_service_client()
         # Get all bookings for this event run
         response = (
-            self.supabase.table("event_run_bookings")
+            service_client.table("event_run_bookings")
             .select(
                 """
             traveler_count, booking_status
@@ -494,8 +506,9 @@ class EventRunService:
 
     async def get_detailed_bookings(self, event_run_id: str) -> List[dict]:
         """Get detailed booking information for an event run (admin only)."""
+        service_client = self._get_service_client()
         response = (
-            self.supabase.table("event_run_bookings")
+            service_client.table("event_run_bookings")
             .select(
                 """
             id,
@@ -624,11 +637,12 @@ class EventRunService:
         """Update event run status (typically called by system processes)."""
         update_data = {
             "status": new_status.value,
-            "updated_at": datetime.now().isoformat(),
+            "updated_at": datetime.utcnow().isoformat(),
         }
 
+        service_client = self._get_service_client()
         response = (
-            self.supabase.table("event_runs")
+            service_client.table("event_runs")
             .update(update_data)
             .eq("id", event_run_id)
             .execute()
@@ -652,9 +666,10 @@ class EventRunService:
         """Get upcoming event runs for the explore endpoint, starting from now."""
         current_time = datetime.now()
 
+        service_client = self._get_service_client()
         # Build query with rich joins for experience and host data
         query = (
-            self.supabase.table("event_runs")
+            service_client.table("event_runs")
             .select(
                 """
             *,
@@ -748,11 +763,12 @@ class EventRunService:
 
     async def _count_active_event_runs(self, host_id: str) -> int:
         """Count active (scheduled, low_seats, sold_out) event runs for a host."""
+        service_client = self._get_service_client()
         # Count event runs that are considered "active" (not completed or cancelled)
         active_statuses = ["scheduled", "low_seats", "sold_out"]
 
         response = (
-            self.supabase.table("event_runs")
+            service_client.table("event_runs")
             .select(
                 """
             id,
@@ -767,3 +783,7 @@ class EventRunService:
         )
 
         return len(response.data)
+
+
+# Create service instance
+event_run_service = EventRunService()
