@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { checkHostEligibility, submitHostApplication, getMyHostApplication, type EligibilityResponse, type HostApplicationSubmission, type HostApplication } from '@/lib/host-application-api';
 import { AuthenticatedRoute } from '@/components/ProtectedRoute';
+import EIP712PolicySigner from '@/components/EIP712PolicySigner';
+import { useAccount } from 'wagmi';
+import { PolicyAcceptanceRecord } from '@/lib/eip712-policy-api';
 
 const EXPERIENCE_DOMAINS = [
   { value: 'food', label: 'Food & Culinary', icon: '🍲' },
@@ -54,13 +57,15 @@ interface ApplicationFormData {
   };
   languages_spoken: string[];
   special_skills: string;
-  background_check_consent: boolean;
-  terms_accepted: boolean;
   marketing_consent: boolean;
+  // EIP-712 policy acceptances
+  policy_acceptances: PolicyAcceptanceRecord[];
+  policies_signed: boolean;
 }
 
 const BecomeHostPage = () => {
   const router = useRouter();
+  const { address } = useAccount();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [step, setStep] = useState<'checking' | 'ineligible' | 'application' | 'existing' | 'submitted'>('checking');
@@ -85,14 +90,31 @@ const BecomeHostPage = () => {
     },
     languages_spoken: ['english'],
     special_skills: '',
-    background_check_consent: false,
-    terms_accepted: false,
     marketing_consent: false,
+    // EIP-712 policy acceptances
+    policy_acceptances: [],
+    policies_signed: false,
   });
 
   useEffect(() => {
     checkEligibilityAndApplicationStatus();
   }, []);
+
+  // Handle policy signing completion
+  const handlePolicySigningComplete = (acceptanceRecords: PolicyAcceptanceRecord[]) => {
+    console.log('Policy signing completed:', acceptanceRecords);
+    setFormData(prev => ({
+      ...prev,
+      policy_acceptances: acceptanceRecords,
+      policies_signed: acceptanceRecords.length > 0,
+    }));
+  };
+
+  // Handle policy signing errors
+  const handlePolicySigningError = (error: string) => {
+    console.error('Policy signing error:', error);
+    setError(`Policy signing failed: ${error}`);
+  };
 
   const checkEligibilityAndApplicationStatus = async () => {
     try {
@@ -156,11 +178,8 @@ const BecomeHostPage = () => {
       if (!formData.availability.time_preference) {
         throw new Error('Please select a time preference');
       }
-      if (!formData.background_check_consent) {
-        throw new Error('Background check consent is required');
-      }
-      if (!formData.terms_accepted) {
-        throw new Error('You must accept the terms and conditions');
+      if (!formData.policies_signed) {
+        throw new Error('You must sign the required policy agreements');
       }
 
       const application: HostApplicationSubmission = {
@@ -175,9 +194,12 @@ const BecomeHostPage = () => {
         },
         languages_spoken: formData.languages_spoken,
         special_skills: formData.special_skills || undefined,
-        background_check_consent: formData.background_check_consent,
-        terms_accepted: formData.terms_accepted,
+        // EIP-712 policy acceptances
+        background_check_consent: formData.policy_acceptances.some(acc => acc.policy_type === 'background_verification'),
+        terms_accepted: formData.policy_acceptances.some(acc => acc.policy_type === 'terms_conditions'),
         marketing_consent: formData.marketing_consent,
+        // Include policy acceptance records for audit trail
+        policy_acceptances: formData.policy_acceptances,
       };
 
       const result = await submitHostApplication(application);
@@ -238,12 +260,14 @@ const BecomeHostPage = () => {
           <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-4 ${statusColors[existingApplication!.status as keyof typeof statusColors]}`}>
             {existingApplication!.status.toUpperCase()}
           </div>
-          You submitted your host application on {new Date(existingApplication!.applied_at).toLocaleDateString()}
-            </p>
+          <p className="text-gray-600 mb-4">
+            You submitted your host application on {new Date(existingApplication!.applied_at).toLocaleDateString()}
+          </p>
           {existingApplication!.status === 'pending' && (
             <p className="text-gray-500 text-sm mb-4">
               Your application is under review. You&apos;ll receive an email once it&apos;s processed.
             </p>
+          )}
           {existingApplication!.admin_notes && (
             <div className="bg-gray-50 p-3 rounded-lg mb-4 text-left">
               <p className="text-sm font-semibold text-gray-700 mb-1">Admin Notes:</p>
@@ -561,53 +585,33 @@ const BecomeHostPage = () => {
               </div>
             </div>
 
-            {/* Legal Consents */}
-            <div className="bg-gray-50 p-6 rounded-lg space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800">Legal Consents</h3>
-              
-              <label className="flex items-start space-x-3">
-                <input
-                  type="checkbox"
-                  checked={formData.background_check_consent}
-                  onChange={(e) => setFormData(prev => ({ ...prev, background_check_consent: e.target.checked }))}
-                  className="mt-1"
-                  required
-                />
-                <span className="text-sm text-gray-700">
-                  <strong>Background Verification Consent (Required) *</strong>
-                  <br />
-                  I consent to background verification checks as part of the host onboarding process.
-                </span>
-              </label>
+            {/* EIP-712 Policy Signing */}
+            <div className="space-y-6">
+              <EIP712PolicySigner
+                userId={address || 'temp_user_id'} // Use wallet address as user ID
+                context="host_application"
+                requiredPolicies={['terms_conditions', 'background_verification']}
+                onSigningComplete={handlePolicySigningComplete}
+                onError={handlePolicySigningError}
+                className="bg-gray-50 p-6 rounded-lg"
+              />
 
-              <label className="flex items-start space-x-3">
-                <input
-                  type="checkbox"
-                  checked={formData.terms_accepted}
-                  onChange={(e) => setFormData(prev => ({ ...prev, terms_accepted: e.target.checked }))}
-                  className="mt-1"
-                  required
-                />
-                <span className="text-sm text-gray-700">
-                  <strong>Terms & Conditions (Required) *</strong>
-                  <br />
-                  I agree to the Mayhouse Terms & Conditions and Host Agreement.
-                </span>
-              </label>
-
-              <label className="flex items-start space-x-3">
-                <input
-                  type="checkbox"
-                  checked={formData.marketing_consent}
-                  onChange={(e) => setFormData(prev => ({ ...prev, marketing_consent: e.target.checked }))}
-                  className="mt-1"
-                />
-                <span className="text-sm text-gray-700">
-                  <strong>Marketing Communications (Optional)</strong>
-                  <br />
-                  I&apos;d like to receive updates about hosting opportunities and platform news.
-                </span>
-              </label>
+              {/* Marketing Consent (still a simple checkbox) */}
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <label className="flex items-start space-x-3">
+                  <input
+                    type="checkbox"
+                    checked={formData.marketing_consent}
+                    onChange={(e) => setFormData(prev => ({ ...prev, marketing_consent: e.target.checked }))}
+                    className="mt-1"
+                  />
+                  <span className="text-sm text-gray-700">
+                    <strong>Marketing Communications (Optional)</strong>
+                    <br />
+                    I&apos;d like to receive updates about hosting opportunities and platform news.
+                  </span>
+                </label>
+              </div>
             </div>
 
             {/* Submit Button */}

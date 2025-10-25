@@ -22,6 +22,8 @@ export interface HostApplicationSubmission {
   background_check_consent: boolean;
   terms_accepted: boolean;
   marketing_consent?: boolean;
+  // EIP-712 policy acceptances for audit trail
+  policy_acceptances?: any[]; // Will be PolicyAcceptanceRecord[] from eip712-policy-api
 }
 
 export interface HostApplication {
