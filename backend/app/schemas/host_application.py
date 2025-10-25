@@ -105,6 +105,11 @@ class HostApplicationCreate(BaseModel):
         default=False, description="Marketing communications consent"
     )
 
+    # EIP-712 policy acceptances for audit trail
+    policy_acceptances: Optional[List[Dict[str, Any]]] = Field(
+        default=None, description="EIP-712 policy acceptance records"
+    )
+
     @validator("background_check_consent")
     def validate_background_consent(cls, v):
         if not v:
