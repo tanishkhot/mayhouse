@@ -123,6 +123,13 @@ else
     echo -e "${YELLOW}ℹ️  No existing image found${NC}"
 fi
 
+# Clean up unused Docker resources
+echo -e "${YELLOW}🧹 Cleaning up unused Docker resources...${NC}"
+docker system prune -a -f  # Removes ALL unused images, not just dangling ones
+docker volume prune -f     # Removes unused volumes
+docker network prune -f    # Removes unused networks
+echo -e "${GREEN}✅ Docker cleanup completed${NC}"
+
 # Build new image
 echo -e "${YELLOW}🔨 Building new Docker image...${NC}"
 docker build -t "$IMAGE_NAME" .
