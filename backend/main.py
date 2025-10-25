@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.core.database import init_database
 from app.api.health import router as health_router
+from app.api.explore import router as explore_router
 
 settings = get_settings()
 
@@ -34,6 +35,7 @@ async def startup_event():
 
 # Include routers
 app.include_router(health_router)
+app.include_router(explore_router)
 
 
 # Root endpoint
@@ -45,6 +47,7 @@ async def root():
         "version": settings.app_version,
         "docs": "/docs",
         "health": "/health/",
+        "explore": "/explore/",
     }
 
 
