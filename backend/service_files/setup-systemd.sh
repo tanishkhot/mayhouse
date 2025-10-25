@@ -25,21 +25,27 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-# Check if service file exists
-if [[ ! -f "$SERVICE_FILE" ]]; then
-    echo -e "${RED}❌ Service file $SERVICE_FILE not found in current directory${NC}"
+# Check if service file exists in current directory or service_files subdirectory
+if [[ -f "$SERVICE_FILE" ]]; then
+    SERVICE_FILE_PATH="$SERVICE_FILE"
+elif [[ -f "service_files/$SERVICE_FILE" ]]; then
+    SERVICE_FILE_PATH="service_files/$SERVICE_FILE"
+else
+    echo -e "${RED}❌ Service file $SERVICE_FILE not found in current directory or service_files/ subdirectory${NC}"
+    echo -e "${YELLOW}   Current directory: $CURRENT_DIR${NC}"
+    echo -e "${YELLOW}   Looking for: $SERVICE_FILE or service_files/$SERVICE_FILE${NC}"
     exit 1
 fi
 
 echo -e "${YELLOW}📋 Current setup:${NC}"
 echo "   Service name: $SERVICE_NAME"
-echo "   Service file: $SERVICE_FILE"
+echo "   Service file: $SERVICE_FILE_PATH"
 echo "   Current directory: $CURRENT_DIR"
 echo "   Systemd directory: $SYSTEMD_DIR"
 
 # Copy service file to systemd directory
 echo -e "${YELLOW}📁 Installing service file...${NC}"
-cp "$SERVICE_FILE" "$SYSTEMD_DIR/"
+cp "$SERVICE_FILE_PATH" "$SYSTEMD_DIR/"
 
 # Reload systemd daemon
 echo -e "${YELLOW}🔄 Reloading systemd daemon...${NC}"
