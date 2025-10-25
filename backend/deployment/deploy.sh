@@ -54,6 +54,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$(dirname "$SCRIPT_DIR")"
 cd "$BACKEND_DIR"
 
+echo -e "${BLUE}📁 Script directory: $SCRIPT_DIR${NC}"
+echo -e "${BLUE}📁 Backend directory: $BACKEND_DIR${NC}"
+
 echo -e "${BLUE}📁 Working directory: $(pwd)${NC}"
 
 # Check if required files exist
@@ -157,8 +160,10 @@ sudo cp "service_files/$SERVICE_FILE" "/etc/systemd/system/"
 # Make setup script executable
 chmod +x "service_files/$SETUP_SCRIPT"
 
-# Run the setup script
+# Run the setup script from the backend directory (where service files are)
 echo -e "${YELLOW}🔧 Running systemd setup script...${NC}"
+echo -e "${BLUE}📁 Current directory: $(pwd)${NC}"
+echo -e "${BLUE}📁 Service file path: service_files/$SETUP_SCRIPT${NC}"
 sudo "service_files/$SETUP_SCRIPT"
 
 # Reload systemd daemon
