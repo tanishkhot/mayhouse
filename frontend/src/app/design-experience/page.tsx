@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthenticatedRoute } from '@/components/ProtectedRoute';
 import { api } from '@/lib/api';
@@ -31,18 +31,7 @@ const DesignExperienceContent = () => {
     whatToBring: '',
   });
 
-  // Check if we're in edit mode and fetch experience data
-  useEffect(() => {
-    const editId = searchParams.get('edit');
-    if (editId) {
-      setIsEditMode(true);
-      setExperienceId(editId);
-      fetchExperienceData(editId);
-    } else {
-      setIsLoading(false);
-    }
-  }, [searchParams, fetchExperienceData]);
-
+  // Define fetchExperienceData before using it in useEffect
   const fetchExperienceData = useCallback(async (id: string) => {
     try {
       const token = localStorage.getItem('mayhouse_token');
@@ -85,6 +74,18 @@ const DesignExperienceContent = () => {
       setIsLoading(false);
     }
   }, [router]);
+
+  // Check if we're in edit mode and fetch experience data
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId) {
+      setIsEditMode(true);
+      setExperienceId(editId);
+      fetchExperienceData(editId);
+    } else {
+      setIsLoading(false);
+    }
+  }, [searchParams, fetchExperienceData]);
 
   const handleNext = () => {
     if (step < 3) setStep(step + 1);

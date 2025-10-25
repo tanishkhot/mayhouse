@@ -133,19 +133,16 @@ const BecomeHostPage = () => {
         return;
       }
 
-      // If no existing application, check eligibility
-      const eligibilityResult = await checkHostEligibility();
-      setEligibility(eligibilityResult);
-      
-      if (eligibilityResult.eligible) {
-        setStep('application');
-      } else {
-        setStep('ineligible');
-      }
+      // AUTO-APPROVE MODE: Skip eligibility check, everyone can become a host
+      setStep('application');
+      setEligibility({ 
+        eligible: true, 
+        message: 'Welcome! Fill out the form below to become a host.' 
+      });
     } catch (err: unknown) {
-      console.error('Error checking eligibility:', err);
-      setError(err instanceof Error ? err.message : 'Failed to check eligibility. Please try again.');
-      setStep('ineligible');
+      console.error('Error checking status:', err);
+      // Even if there's an error, allow them to proceed
+      setStep('application');
     } finally {
       setLoading(false);
     }
@@ -284,13 +281,24 @@ const BecomeHostPage = () => {
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
           <div className="text-6xl mb-4">🎉</div>
-          <h1 className="text-2xl font-bold mb-4 text-gray-800">Application Submitted!</h1>
+          <h1 className="text-2xl font-bold mb-4 text-green-600">You&apos;re Now a Host!</h1>
           <p className="text-gray-600 mb-4">
-            Thank you for your interest in becoming a Mayhouse host! Your application has been submitted successfully.
+            Congratulations! Your host application has been automatically approved. You can now start creating experiences!
           </p>
-          <p className="text-gray-500 text-sm mb-6">
-            Our team will review your application and get back to you within 2-3 business days.
-          </p>
+          <div className="space-y-3 mt-6">
+            <button
+              onClick={() => router.push('/design-experience')}
+              className="w-full bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors font-semibold"
+            >
+              Create Your First Experience
+            </button>
+            <button
+              onClick={() => router.push('/host-dashboard')}
+              className="w-full bg-gray-200 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+            >
+              Go to Host Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );

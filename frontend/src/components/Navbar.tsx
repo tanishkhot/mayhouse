@@ -65,6 +65,30 @@ export default function Navbar() {
 
             {isAuthenticated ? (
               <>
+                {/* Create Experience Link */}
+                <Link 
+                  href="/design-experience" 
+                  className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 font-semibold transition-colors"
+                >
+                  Create Experience
+                </Link>
+
+                {/* Host Dashboard Link */}
+                <Link 
+                  href="/host-dashboard" 
+                  className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+                >
+                  My Experiences
+                </Link>
+
+                {/* Moderator Dashboard Link */}
+                <Link 
+                  href="/moderator" 
+                  className="text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                >
+                  Moderator
+                </Link>
+
                 {/* Profile Link */}
                 <Link 
                   href="/profile" 

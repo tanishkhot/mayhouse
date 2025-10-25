@@ -4,11 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getHostApplications, reviewHostApplication, getHostApplicationDetails, type HostApplicationSummary, type HostApplicationReview } from '@/lib/admin-api';
 import type { HostApplication } from '@/lib/host-application-api';
-import { AdminOnlyRoute } from '@/components/ProtectedRoute';
+import { AuthenticatedRoute } from '@/components/ProtectedRoute';
 import { AuthAPI, api } from '@/lib/api';
 
-// Define interfaces for admin data
-interface AdminExperience {
+// Define interfaces for moderator data
+interface ModeratorExperience {
   id: string;
   title: string;
   status: 'draft' | 'submitted' | 'approved' | 'rejected';
@@ -27,10 +27,10 @@ interface AdminExperience {
   inclusions: string[];
   traveler_should_bring: string[];
   experience_safety_guidelines: string;
-  admin_feedback?: string;
+  moderator_feedback?: string;
 }
 
-interface AdminEventRun {
+interface ModeratorEventRun {
   id: string;
   experience_id: string;
   experience_title: string;
@@ -66,12 +66,12 @@ interface AdminEventRun {
   group_pairing_enabled: boolean;
 }
 
-const AdminDashboard = () => {
+const ModeratorDashboard = () => {
   const router = useRouter();
   const [applications, setApplications] = useState<HostApplicationSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'applications' | 'experiences' | 'eventruns'>('applications');
+  const [activeTab, setActiveTab] = useState<'applications' | 'experiences' | 'eventruns'>('experiences');
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [selectedApplication, setSelectedApplication] = useState<HostApplicationSummary | HostApplication | null>(null);
   const [reviewing, setReviewing] = useState(false);
@@ -81,13 +81,13 @@ const AdminDashboard = () => {
   const [reviewingApplicationId, setReviewingApplicationId] = useState<string | null>(null);
   
   // Experience management state
-  const [experiences, setExperiences] = useState<AdminExperience[]>([]);
-  const [selectedExperience, setSelectedExperience] = useState<AdminExperience | null>(null);
+  const [experiences, setExperiences] = useState<ModeratorExperience[]>([]);
+  const [selectedExperience, setSelectedExperience] = useState<ModeratorExperience | null>(null);
   const [experienceFilter, setExperienceFilter] = useState<'all' | 'submitted' | 'approved' | 'rejected'>('all');
   
   // Event Runs management state
-  const [eventRuns, setEventRuns] = useState<AdminEventRun[]>([]);
-  const [selectedEventRun, setSelectedEventRun] = useState<AdminEventRun | null>(null);
+  const [eventRuns, setEventRuns] = useState<ModeratorEventRun[]>([]);
+  const [selectedEventRun, setSelectedEventRun] = useState<ModeratorEventRun | null>(null);
   const [eventRunFilter, setEventRunFilter] = useState<'all' | 'scheduled' | 'low_seats' | 'sold_out' | 'completed' | 'cancelled'>('all');
 
   useEffect(() => {
@@ -112,7 +112,7 @@ const AdminDashboard = () => {
     } catch (err: unknown) {
       console.error('Error fetching applications:', err);
       if (err instanceof Error && err.message.includes('Admin access required')) {
-        setError('Admin access required. Please log in as an administrator.');
+        setError('Moderator access required. Please connect your wallet.');
       } else {
         setError(err instanceof Error ? err.message : 'Failed to fetch applications');
       }
@@ -413,7 +413,7 @@ const AdminDashboard = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <div>
-                <h1 className="text-2xl font-bold text-black">Admin Dashboard</h1>
+                <h1 className="text-2xl font-bold text-black">Moderator Dashboard</h1>
                 <p className="text-black">
                   {activeTab === 'applications' ? 'Manage host applications' : 
                    activeTab === 'experiences' ? 'Manage experiences' : 
@@ -492,7 +492,7 @@ const AdminDashboard = () => {
             {error}
             {error.includes('Admin access required') && (
               <div className="mt-2 text-sm text-red-700">
-                Please log in with: admin.new@mayhouse.com / admin123
+                Connect your wallet to access moderator features
               </div>
             )}
           </div>
@@ -1324,8 +1324,8 @@ const AdminDashboard = () => {
         )}
       </div>
     </div>
-    </AdminOnlyRoute>
+    </AuthenticatedRoute>
   );
 };
 
-export default AdminDashboard;
+export default ModeratorDashboard;
