@@ -13,6 +13,7 @@ from app.api.event_runs import host_router as event_run_host_router
 from app.api.event_runs import public_router as event_run_public_router
 from app.api.event_runs import admin_router as event_run_admin_router
 from app.api.legal_policies import router as legal_policies_router
+from app.api.eip712_policy import router as eip712_policy_router
 
 settings = get_settings()
 
@@ -54,6 +55,7 @@ app.include_router(event_run_host_router)  # Event run management host endpoints
 app.include_router(event_run_public_router)  # Event run public endpoints
 app.include_router(event_run_admin_router)  # Event run admin endpoints
 app.include_router(legal_policies_router)  # Legal policies endpoints
+app.include_router(eip712_policy_router)  # EIP-712 policy signing endpoints
 
 
 # Root endpoint
@@ -75,6 +77,7 @@ async def root():
         "public_event_runs": "/event-runs",
         "admin_event_runs": "/admin/event-runs",
         "legal_policies": "/legal",
+        "eip712_policy_signing": "/legal/eip712",
     }
 
 
