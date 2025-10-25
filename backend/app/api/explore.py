@@ -11,7 +11,7 @@ from fastapi import APIRouter, Query, Request, HTTPException, status
 from app.middleware.auth_middleware import get_user_from_request, is_authenticated
 from app.schemas.user import UserResponse
 from app.schemas.event_run import ExploreEventRun
-from app.services.event_run_service import EventRunService
+from app.services.event_run_service import event_run_service
 from app.core.database import get_supabase_client
 
 # Create router with explore prefix
@@ -58,12 +58,8 @@ async def explore_upcoming_experiences(
     Returns:
         List of upcoming event runs with full experience and host details
     """
-    # Initialize service
-    supabase = get_supabase_client()
-    event_run_service = EventRunService(supabase)
-
     try:
-        # Get upcoming event runs
+        # Use the singleton event_run_service instance
         upcoming_runs = await event_run_service.explore_upcoming_event_runs(
             limit=limit, offset=offset, domain=domain, neighborhood=neighborhood
         )

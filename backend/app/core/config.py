@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     google_client_secret: str = ""
     oauth_redirect_uri: str = "http://localhost:8000/auth/oauth/google/callback"
 
+    # Blockchain settings
+    blockchain_rpc_url: str = "https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY"
+    contract_address: str = "0x09aB660CEac220678b42E0e23DebCb1475e1eAD5"
+    platform_private_key: str = ""  # Private key for platform account (for gas)
+    eth_price_inr: str = "200000"  # Current ETH price in INR for conversions
+
     model_config = {
         "env_file": ".env",
         "env_prefix": "",

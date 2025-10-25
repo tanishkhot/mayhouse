@@ -6,7 +6,7 @@ Note: Authentication is temporarily disabled pending metamask integration.
 """
 
 from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, status, Query, Body
+from fastapi import APIRouter, HTTPException, status, Query, Body, Header
 from app.schemas.host_application import (
     HostApplicationCreate,
     HostApplicationResponse,
@@ -16,6 +16,7 @@ from app.schemas.host_application import (
     ApplicationStatus,
 )
 from app.services.host_application_service import host_application_service
+from app.core.jwt_utils import verify_token
 
 # Create router with users prefix for user endpoints
 user_router = APIRouter(prefix="/users", tags=["Host Applications - User"])
@@ -38,15 +39,13 @@ admin_router = APIRouter(prefix="/admin", tags=["Host Applications - Admin"])
 )
 async def submit_host_application(
     application_data: HostApplicationCreate,
-    user_id: str = Body(
-        ..., description="User ID (temporary - will be from auth later)"
-    ),
+    authorization: str = Header(None),
 ) -> HostApplicationResponse:
     """
     Submit a host application.
 
     Requirements:
-    - User must be authenticated (temporarily disabled)
+    - User must be authenticated with JWT token
     - User cannot already be a host
     - User cannot have a pending application
 
@@ -56,6 +55,29 @@ async def submit_host_application(
     - Availability preferences
     - Legal consents and terms acceptance
     """
+    # Extract user_id from JWT token
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid authorization header"
+        )
+    
+    token = authorization.replace("Bearer ", "")
+    payload = verify_token(token)
+    
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+    
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload"
+        )
+    
     return await host_application_service.submit_application(
         user_id=user_id, application_data=application_data
     )
@@ -68,9 +90,7 @@ async def submit_host_application(
     description="Get the current user's host application status",
 )
 async def get_my_host_application(
-    user_id: str = Query(
-        ..., description="User ID (temporary - will be from auth later)"
-    )
+    authorization: str = Header(None),
 ) -> Optional[HostApplicationResponse]:
     """
     Get the current user's host application.
@@ -78,6 +98,29 @@ async def get_my_host_application(
     Returns the most recent application submitted by the user,
     including status, admin feedback, and review information.
     """
+    # Extract user_id from JWT token
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid authorization header"
+        )
+    
+    token = authorization.replace("Bearer ", "")
+    payload = verify_token(token)
+    
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+    
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload"
+        )
+    
     return await host_application_service.get_user_application(user_id)
 
 
@@ -198,9 +241,7 @@ async def get_host_application_stats() -> HostApplicationStats:
     description="Check if current user is eligible to submit a host application and get required legal documents",
 )
 async def check_host_eligibility(
-    user_id: str = Query(
-        ..., description="User ID (temporary - will be from auth later)"
-    )
+    authorization: str = Header(None),
 ) -> dict:
     """
     Check if the current user is eligible to submit a host application.
@@ -210,6 +251,29 @@ async def check_host_eligibility(
     - User doesn't have a pending application
     - Account is in good standing
     """
+    # Extract user_id from JWT token
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid authorization header"
+        )
+    
+    token = authorization.replace("Bearer ", "")
+    payload = verify_token(token)
+    
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+    
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload"
+        )
+    
     # Check if user is already a host
     from app.core.database import get_supabase_client
 

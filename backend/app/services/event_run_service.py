@@ -28,6 +28,7 @@ from app.schemas.event_run import (
     ExploreEventRun,
 )
 from app.services.experience_service import experience_service
+from app.services.blockchain_service import blockchain_service
 
 
 class EventRunService:
@@ -107,6 +108,56 @@ class EventRunService:
             )
 
         created_event_run = response.data[0]
+        event_run_id = created_event_run["id"]
+
+        # Create event on blockchain (async)
+        # Note: Requires host to have wallet_address in users table
+        try:
+            # Get host wallet address from database
+            host_response = (
+                service_client.table("users")
+                .select("wallet_address")
+                .eq("id", host_id)
+                .execute()
+            )
+            
+            host_wallet_address = None
+            if host_response.data and host_response.data[0].get("wallet_address"):
+                host_wallet_address = host_response.data[0]["wallet_address"]
+            
+            if host_wallet_address:
+                # Create event on blockchain
+                blockchain_id, tx_hash = await blockchain_service.create_event_run_onchain(
+                    experience_id=event_run_data.experience_id,
+                    price_inr=Decimal(str(effective_price)),
+                    max_seats=event_run_data.max_capacity,
+                    event_timestamp=event_run_data.start_datetime,
+                    host_wallet_address=host_wallet_address
+                )
+                
+                # Update database with blockchain info
+                service_client.table("event_runs").update({
+                    "blockchain_event_run_id": blockchain_id,
+                    "blockchain_tx_hash": tx_hash,
+                    "blockchain_status": "confirmed"
+                }).eq("id", event_run_id).execute()
+                
+                # Refresh event run data
+                created_event_run["blockchain_event_run_id"] = blockchain_id
+                created_event_run["blockchain_tx_hash"] = tx_hash
+                created_event_run["blockchain_status"] = "confirmed"
+            else:
+                # Host doesn't have wallet - mark as pending
+                service_client.table("event_runs").update({
+                    "blockchain_status": "pending"
+                }).eq("id", event_run_id).execute()
+                
+        except Exception as e:
+            # Log error but don't fail the event creation
+            print(f"Blockchain creation failed: {str(e)}")
+            service_client.table("event_runs").update({
+                "blockchain_status": "failed"
+            }).eq("id", event_run_id).execute()
 
         # Return enriched response
         return await self._build_event_run_response(

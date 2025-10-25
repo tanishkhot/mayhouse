@@ -4,7 +4,7 @@ from app.core.config import get_settings
 from app.core.database import init_database
 from app.api.health import router as health_router
 from app.api.explore import router as explore_router
-from app.api.wallet_auth import router as wallet_auth_router
+from app.api.wallet_auth import router as wallet_auth_router, auth_router
 from app.api.host_application import user_router as host_application_user_router
 from app.api.host_application import admin_router as host_application_admin_router
 from app.api.experiences import host_router as experience_host_router
@@ -14,6 +14,7 @@ from app.api.event_runs import public_router as event_run_public_router
 from app.api.event_runs import admin_router as event_run_admin_router
 from app.api.legal_policies import router as legal_policies_router
 from app.api.eip712_policy import router as eip712_policy_router
+from app.api.blockchain import router as blockchain_router
 
 settings = get_settings()
 
@@ -47,6 +48,7 @@ async def startup_event():
 app.include_router(health_router)
 app.include_router(explore_router)
 app.include_router(wallet_auth_router)  # Wallet authentication endpoints
+app.include_router(auth_router)  # General auth endpoints (/auth/me)
 app.include_router(host_application_user_router)  # Host application user endpoints
 app.include_router(host_application_admin_router)  # Host application admin endpoints
 app.include_router(experience_host_router)  # Experience management host endpoints
@@ -56,6 +58,7 @@ app.include_router(event_run_public_router)  # Event run public endpoints
 app.include_router(event_run_admin_router)  # Event run admin endpoints
 app.include_router(legal_policies_router)  # Legal policies endpoints
 app.include_router(eip712_policy_router)  # EIP-712 policy signing endpoints
+app.include_router(blockchain_router)  # Blockchain operations endpoints
 
 
 # Root endpoint
@@ -78,6 +81,7 @@ async def root():
         "admin_event_runs": "/admin/event-runs",
         "legal_policies": "/legal",
         "eip712_policy_signing": "/legal/eip712",
+        "blockchain": "/blockchain",
     }
 
 

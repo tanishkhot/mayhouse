@@ -69,12 +69,14 @@ class HostApplicationService:
                     detail="User is already a host",
                 )
 
-            # Prepare application data
+            # Prepare application data - AUTO-APPROVE for testing
             application_record = {
                 "user_id": user_id,
                 "application_data": application_data.model_dump(),
-                "status": "pending",
+                "status": "approved",  # Auto-approve immediately
                 "applied_at": datetime.utcnow().isoformat(),
+                "reviewed_at": datetime.utcnow().isoformat(),  # Set reviewed timestamp
+                "admin_notes": "Auto-approved for wallet-based registration",
             }
 
             # Insert application
@@ -89,6 +91,9 @@ class HostApplicationService:
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="Failed to submit application",
                 )
+
+            # Immediately upgrade user to host role
+            await self._upgrade_user_to_host(user_id)
 
             return HostApplicationResponse(**response.data[0])
 

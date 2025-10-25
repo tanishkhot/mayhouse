@@ -44,6 +44,9 @@ class ExperienceService:
         try:
             service_client = self._get_service_client()
 
+            # AUTO-UPGRADE: Check if user needs to be upgraded to host role
+            await self._ensure_user_is_host(host_id)
+
             # Prepare experience record
             experience_record = {
                 "host_id": host_id,
@@ -503,6 +506,45 @@ class ExperienceService:
                 else datetime.utcnow()
             ),
         )
+
+    async def _ensure_user_is_host(self, user_id: str) -> None:
+        """
+        Ensure user has host role. If not, upgrade them automatically.
+        This allows any user to become a host simply by creating an experience.
+        """
+        try:
+            service_client = self._get_service_client()
+            
+            # Check current user role
+            user_response = (
+                service_client.table("users")
+                .select("role")
+                .eq("id", user_id)
+                .execute()
+            )
+            
+            if not user_response.data:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="User not found"
+                )
+            
+            current_role = user_response.data[0].get("role", "user")
+            
+            # If not already a host, upgrade them
+            if current_role != "host":
+                service_client.table("users").update({
+                    "role": "host"
+                }).eq("id", user_id).execute()
+                
+                logger.info(f"Auto-upgraded user {user_id} to host role")
+        
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error checking/upgrading user role: {str(e)}")
+            # Don't block experience creation if role update fails
+            pass
 
 
 # Create service instance

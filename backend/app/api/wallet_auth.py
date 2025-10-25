@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends, Header
 from app.schemas.wallet import (
     WalletNonceRequest,
     WalletNonceResponse,
@@ -11,8 +11,11 @@ from app.services.wallet_service import (
     get_or_create_user,
     create_auth_token,
 )
+from app.core.jwt_utils import verify_token
+from app.core.database import get_service_client
 
 router = APIRouter(prefix="/auth/wallet", tags=["Wallet Authentication"])
+auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 @router.post("/nonce", response_model=WalletNonceResponse)
@@ -80,6 +83,69 @@ async def verify_wallet_signature(request: WalletVerifyRequest):
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Authentication failed: {str(e)}"
+        )
+
+
+@auth_router.get("/me")
+async def get_current_user(authorization: str = Header(None)):
+    """
+    Get current authenticated user info.
+    
+    Requires: Authorization: Bearer <token>
+    """
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    
+    token = authorization.replace("Bearer ", "")
+    
+    try:
+        # Verify JWT token
+        payload = verify_token(token)
+        
+        if not payload:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired token"
+            )
+        
+        user_id = payload.get("sub")
+        
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token"
+            )
+        
+        # Get user from database
+        service_client = get_service_client()
+        response = service_client.table("users").select("*").eq("id", user_id).execute()
+        
+        if not response.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        user = response.data[0]
+        
+        return {
+            "id": user["id"],
+            "wallet_address": user.get("wallet_address"),
+            "full_name": user.get("full_name"),
+            "email": user.get("email"),
+            "role": user.get("role", "user"),
+            "created_at": user.get("created_at"),
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Authentication failed: {str(e)}"
         )
 
