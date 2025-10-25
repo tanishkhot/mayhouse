@@ -12,6 +12,7 @@ from app.api.experiences import admin_router as experience_admin_router
 from app.api.event_runs import host_router as event_run_host_router
 from app.api.event_runs import public_router as event_run_public_router
 from app.api.event_runs import admin_router as event_run_admin_router
+from app.api.legal_policies import router as legal_policies_router
 
 settings = get_settings()
 
@@ -52,6 +53,7 @@ app.include_router(experience_admin_router)  # Experience management admin endpo
 app.include_router(event_run_host_router)  # Event run management host endpoints
 app.include_router(event_run_public_router)  # Event run public endpoints
 app.include_router(event_run_admin_router)  # Event run admin endpoints
+app.include_router(legal_policies_router)  # Legal policies endpoints
 
 
 # Root endpoint
@@ -72,6 +74,7 @@ async def root():
         "host_event_runs": "/hosts/event-runs",
         "public_event_runs": "/event-runs",
         "admin_event_runs": "/admin/event-runs",
+        "legal_policies": "/legal",
     }
 
 
