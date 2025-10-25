@@ -7,6 +7,8 @@ from app.api.explore import router as explore_router
 from app.api.wallet_auth import router as wallet_auth_router
 from app.api.host_application import user_router as host_application_user_router
 from app.api.host_application import admin_router as host_application_admin_router
+from app.api.experiences import host_router as experience_host_router
+from app.api.experiences import admin_router as experience_admin_router
 
 settings = get_settings()
 
@@ -42,6 +44,8 @@ app.include_router(explore_router)
 app.include_router(wallet_auth_router)  # Wallet authentication endpoints
 app.include_router(host_application_user_router)  # Host application user endpoints
 app.include_router(host_application_admin_router)  # Host application admin endpoints
+app.include_router(experience_host_router)  # Experience management host endpoints
+app.include_router(experience_admin_router)  # Experience management admin endpoints
 
 
 # Root endpoint
@@ -57,6 +61,8 @@ async def root():
         "wallet_auth": "/auth/wallet",
         "host_applications": "/users/host-application",
         "admin_host_applications": "/admin/host-applications",
+        "experiences": "/experiences",
+        "admin_experiences": "/admin/experiences",
     }
 
 
