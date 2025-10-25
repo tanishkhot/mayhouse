@@ -1,0 +1,36 @@
+[Unit]
+Description=Mayhouse Backend API Service (ETH Online Hackathon)
+Documentation=https://github.com/tanishkhot/mayhouse
+After=network.target
+Wants=network.target
+
+[Service]
+Type=exec
+User=ec2-user
+Group=ec2-user
+WorkingDirectory=/home/ec2-user/ethonline-hackathon/mayhouse/backend
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+ExecStartPre=-/usr/bin/docker stop mayhouse-backend
+ExecStartPre=-/usr/bin/docker rm mayhouse-backend
+ExecStartPre=/usr/bin/docker build -t mayhouse-backend .
+ExecStart=/usr/bin/docker run --name mayhouse-backend -p 8000:8000 --restart unless-stopped mayhouse-backend
+ExecStop=/usr/bin/docker stop mayhouse-backend
+ExecReload=/usr/bin/docker restart mayhouse-backend
+TimeoutStartSec=300
+TimeoutStopSec=60
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mayhouse-backend
+
+# Security settings
+NoNewPrivileges=false
+PrivateTmp=true
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target
