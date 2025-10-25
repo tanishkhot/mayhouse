@@ -4,6 +4,7 @@ from app.core.config import get_settings
 from app.core.database import init_database
 from app.api.health import router as health_router
 from app.api.explore import router as explore_router
+from app.api.wallet_auth import router as wallet_auth_router
 
 settings = get_settings()
 
@@ -11,7 +12,7 @@ settings = get_settings()
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    description="FastAPI backend for Mayhouse travel experiences platform",
+    description="FastAPI backend for Mayhouse ETH - Web3 enabled travel experiences platform",
     debug=settings.debug,
 )
 
@@ -36,6 +37,7 @@ async def startup_event():
 # Include routers
 app.include_router(health_router)
 app.include_router(explore_router)
+app.include_router(wallet_auth_router)
 
 
 # Root endpoint
