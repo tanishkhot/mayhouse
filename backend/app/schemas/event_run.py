@@ -27,8 +27,8 @@ class EventRunCreate(BaseModel):
     """Schema for creating a new event run."""
 
     experience_id: str = Field(..., description="ID of the approved experience")
-    start_datetime: datetime = Field(..., description="Event start date and time")
-    end_datetime: datetime = Field(..., description="Event end date and time")
+    start_datetime: str = Field(..., description="Event start date and time (ISO format)")
+    end_datetime: str = Field(..., description="Event end date and time (ISO format)")
     max_capacity: int = Field(
         ..., ge=1, le=4, description="Maximum travelers allowed (1-4)"
     )
@@ -42,22 +42,42 @@ class EventRunCreate(BaseModel):
         False, description="Allow solo travelers to be paired"
     )
 
-    @field_validator("end_datetime")
-    @classmethod
-    def end_after_start(cls, v, info):
-        if "start_datetime" in info.data and v <= info.data["start_datetime"]:
-            raise ValueError("End datetime must be after start datetime")
-        return v
-
     @field_validator("start_datetime")
     @classmethod
-    def start_in_future(cls, v):
-        from datetime import timezone
+    def validate_start_datetime(cls, v):
+        try:
+            dt = datetime.fromisoformat(v.replace('Z', '+00:00'))
+            # Get current time - use naive if input is naive, UTC if input has timezone
+            from datetime import timezone, timedelta
+            if dt.tzinfo:
+                now = datetime.now(timezone.utc)
+            else:
+                now = datetime.now()
+            
+            # Allow events up to 5 minutes in the past to account for timezone/clock differences
+            min_time = now - timedelta(minutes=5)
+            if dt < min_time:
+                raise ValueError("Event must be scheduled for a future date")
+            return v
+        except ValueError as e:
+            if "Event must be scheduled" in str(e):
+                raise e
+            raise ValueError(f"Invalid datetime format: {v}. Use ISO format (YYYY-MM-DDTHH:MM:SS)")
 
-        now = datetime.now(timezone.utc) if v.tzinfo else datetime.now()
-        if v <= now:
-            raise ValueError("Event must be scheduled for a future date")
-        return v
+    @field_validator("end_datetime")
+    @classmethod
+    def validate_end_datetime(cls, v, info):
+        try:
+            end_dt = datetime.fromisoformat(v.replace('Z', '+00:00'))
+            if "start_datetime" in info.data:
+                start_dt = datetime.fromisoformat(info.data["start_datetime"].replace('Z', '+00:00'))
+                if end_dt <= start_dt:
+                    raise ValueError("End datetime must be after start datetime")
+            return v
+        except ValueError as e:
+            if "End datetime must be after" in str(e):
+                raise e
+            raise ValueError(f"Invalid datetime format: {v}. Use ISO format (YYYY-MM-DDTHH:MM:SS)")
 
     class Config:
         json_encoders = {datetime: lambda v: v.isoformat(), Decimal: lambda v: float(v)}

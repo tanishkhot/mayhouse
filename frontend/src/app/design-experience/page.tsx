@@ -248,91 +248,71 @@ No valid token found for creating experiences.
       console.log(`✅ FORM: Token length: ${token.length}`);
       console.log(`✅ FORM: Token type: ${typeof token}`);
 
-      // Determine API endpoint and method based on edit mode
-      const apiUrl = isEditMode ? `/api/experiences/${experienceId}` : '/api/experiences';
-      const method = isEditMode ? 'PUT' : 'POST';
+      // Use the api client instead of fetch for proper routing
+      console.log('📤 FORM: Using api client to create experience');
+      console.log('📤 FORM: Experience data:', experienceData);
       
-      console.log(`🌍 FORM: Making ${method} request to ${apiUrl}`);
-
-      const response = await fetch(apiUrl, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(experienceData)
-      });
-
-      console.log('📨 FORM: Response status:', response.status);
-      console.log('📨 FORM: Response ok:', response.ok);
+      let response;
+      if (isEditMode) {
+        response = await api.put(`/experiences/${experienceId}`, experienceData);
+      } else {
+        response = await api.post('/experiences', experienceData);
+      }
       
-      if (response.ok) {
-        const result = await response.json();
-        console.log(`✅ FORM: Experience ${isEditMode ? 'updated' : 'created'} successfully:`, result);
+      console.log('📨 FORM: Response received:', response);
+
+      // Axios response structure
+      const result = response.data;
+      console.log(`✅ FORM: Experience ${isEditMode ? 'updated' : 'created'} successfully:`, result);
         
         if (isEditMode) {
           // For updates, just show success message and redirect
           alert('Experience updated successfully! You can now submit it for review again from your dashboard.');
           router.push('/host-dashboard');
         } else {
-          // For new experiences, handle the submission flow
-          if (submitForReview) {
-            try {
-              const submitResponse = await fetch('/api/experiences/' + result.id + '/submit', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                  submission_notes: 'Ready for admin review',
-                  ready_for_review: true
-                })
-              });
-              
-              if (submitResponse.ok) {
-                alert('Experience created and submitted for review! You can track its status in your dashboard.');
-              } else {
-                alert('Experience created successfully, but failed to submit for review. You can submit it manually from your dashboard.');
-              }
-            } catch (error) {
-              console.error('Failed to submit for review:', error);
-              alert('Experience created successfully, but failed to submit for review. You can submit it manually from your dashboard.');
-            }
-          } else {
-            alert('Experience created successfully! It has been saved as a draft. You can submit it for review from your dashboard.');
-          }
-          
-          router.push('/host-dashboard'); // Navigate to host dashboard
+          // For new experiences - auto-submitted for review
+          alert('Experience created and submitted for moderator review! You can track its status in your dashboard.');
+          router.push('/host-dashboard');
         }
-      } else {
-        const error = await response.json();
-        console.log('❌ FORM: Error response:', error);
-        console.error('Error creating experience:', error);
+    } catch (error: any) {
+      console.log('💥 FORM: Error:', error);
+      console.error('Error creating experience:', error);
+      
+      // Handle axios errors
+      if (error.response) {
+        // Server responded with error status
+        const errorData = error.response.data;
+        console.log('❌ FORM: Error response:', errorData);
         
-        // Handle specific authentication errors
-        if (response.status === 401) {
-          alert('Authentication failed. Please log in again and ensure you have host privileges.');
+        if (error.response.status === 401) {
+          alert('Authentication failed. Please log in again.');
           router.push('/login');
-        } else if (response.status === 403) {
+        } else if (error.response.status === 403) {
           alert('Access denied. You need host privileges to create experiences.');
-        } else if (response.status === 422 && error.detail && error.detail.field_errors) {
-          // Handle validation errors from backend
-          console.log('❌ FORM: Backend validation errors:', error.detail.field_errors);
-          setFieldErrors(error.detail.field_errors);
-          
-          const errorList = error.detail.errors || Object.values(error.detail.field_errors);
-          alert(`Please fix the following validation errors:\n\n${errorList.join('\n')}`);
+        } else if (error.response.status === 422 && errorData.detail) {
+          // Handle validation errors
+          let errorMessage = 'Validation error:\n\n';
+          if (Array.isArray(errorData.detail)) {
+            errorMessage += errorData.detail.map((err: any) => 
+              `${err.loc?.join(' -> ')}: ${err.msg}`
+            ).join('\n');
+          } else if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail;
+          } else {
+            errorMessage = JSON.stringify(errorData.detail, null, 2);
+          }
+          alert(errorMessage);
         } else {
-          // Handle other errors
-          const errorMessage = error.detail?.message || error.detail || error.message || 'Unknown error';
-          alert(`Failed to create experience: ${errorMessage}`);
+          const errorMessage = errorData.detail || errorData.message || 'Failed to create experience';
+          alert(`Error: ${errorMessage}`);
         }
+      } else if (error.request) {
+        // Request made but no response
+        alert('Network error. Please check your connection and try again.');
+      } else {
+        // Something else happened
+        alert(`Error: ${error.message || 'Unknown error occurred'}`);
       }
-    } catch (error) {
-      console.log('💥 FORM: Network/parsing error:', error);
-      console.error('Network error:', error);
-      alert('Network error. Please check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }

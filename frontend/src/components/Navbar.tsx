@@ -81,14 +81,6 @@ export default function Navbar() {
                   My Experiences
                 </Link>
 
-                {/* Moderator Dashboard Link */}
-                <Link 
-                  href="/moderator" 
-                  className="text-purple-600 hover:text-purple-700 font-medium transition-colors"
-                >
-                  Moderator
-                </Link>
-
                 {/* Profile Link */}
                 <Link 
                   href="/profile" 

@@ -191,7 +191,23 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
       
     } catch (err: unknown) {
       console.error('Error creating event run:', err);
-      setError((err as { response?: { data?: { detail?: string } } }).response?.data?.detail || 'Failed to schedule event run. Please try again.');
+      
+      // Handle different error formats
+      let errorMessage = 'Failed to schedule event run. Please try again.';
+      
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosError = err as { response?: { data?: { detail?: string | Array<{ msg: string }> } } };
+        const detail = axiosError.response?.data?.detail;
+        
+        if (typeof detail === 'string') {
+          errorMessage = detail;
+        } else if (Array.isArray(detail)) {
+          // Validation errors array
+          errorMessage = detail.map(e => e.msg).join(', ');
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }

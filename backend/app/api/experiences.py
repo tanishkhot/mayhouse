@@ -7,7 +7,7 @@ Admin endpoints for reviewing and approving experiences.
 
 from typing import List, Optional
 import json
-from fastapi import APIRouter, HTTPException, status, Query, Path, Body
+from fastapi import APIRouter, HTTPException, status, Query, Path, Body, Header
 from pydantic import ValidationError
 from app.schemas.experience import (
     ExperienceCreate,
@@ -21,6 +21,7 @@ from app.schemas.experience import (
 )
 from pydantic import BaseModel
 from app.services.experience_service import experience_service
+from app.core.jwt_utils import verify_token
 
 # Create routers
 host_router = APIRouter(prefix="/experiences", tags=["Experiences - Host"])
@@ -58,16 +59,19 @@ class ExperienceReviewRequest(BaseModel):
     response_model=ExperienceResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create New Experience",
-    description="Create a new experience (starts in draft status). Only approved hosts can create experiences.",
+    description="Create a new experience (auto-submitted for review). User is auto-upgraded to host.",
 )
-async def create_experience(request: ExperienceCreateRequest) -> ExperienceResponse:
+async def create_experience(
+    experience_data: ExperienceCreate,
+    authorization: str = Header(None),
+) -> ExperienceResponse:
     """
     Create a new experience.
 
     Requirements:
-    - User must be authenticated and have host role (temporarily disabled)
-    - Experience starts in 'draft' status
-    - Must be submitted for admin review before going live
+    - User must be authenticated with JWT token
+    - User is automatically upgraded to host role on first experience
+    - Experience is auto-submitted for moderator review
 
     The experience includes:
     - Rich content (title, description, promise, unique elements)
@@ -75,8 +79,31 @@ async def create_experience(request: ExperienceCreateRequest) -> ExperienceRespo
     - Pricing and capacity settings
     - Safety guidelines and accessibility notes
     """
+    # Extract user_id from JWT token
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid authorization header"
+        )
+    
+    token = authorization.replace("Bearer ", "")
+    payload = verify_token(token)
+    
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+    
+    host_id = payload.get("sub")
+    if not host_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload"
+        )
+    
     return await experience_service.create_experience(
-        host_id=request.host_id, experience_data=request.experience_data
+        host_id=host_id, experience_data=experience_data
     )
 
 
@@ -87,9 +114,7 @@ async def create_experience(request: ExperienceCreateRequest) -> ExperienceRespo
     description="Get all experiences created by the current host",
 )
 async def get_my_experiences(
-    host_id: str = Query(
-        ..., description="Host User ID (temporary - will be from auth later)"
-    ),
+    authorization: str = Header(None),
     status_filter: Optional[ExperienceStatus] = Query(
         None, description="Filter by experience status"
     ),
@@ -102,6 +127,29 @@ async def get_my_experiences(
     - Sorted by most recently updated
     - Shows summary information for quick overview
     """
+    # Extract host_id from JWT token
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid authorization header"
+        )
+    
+    token = authorization.replace("Bearer ", "")
+    payload = verify_token(token)
+    
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+    
+    host_id = payload.get("sub")
+    if not host_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload"
+        )
+    
     return await experience_service.get_host_experiences(
         host_id=host_id, status_filter=status_filter
     )
@@ -308,27 +356,52 @@ async def get_experience_for_admin(
 )
 async def review_experience(
     experience_id: str = Path(..., description="Experience ID"),
-    request: ExperienceReviewRequest = Body(...),
+    review_data: ExperienceReview = Body(...),
+    authorization: str = Header(None),
 ) -> ExperienceResponse:
     """
     Review an experience (approve or reject).
 
     Requirements:
+    - User must be authenticated (moderator)
     - Experience must be in 'submitted' status
-    - Admin must provide decision and feedback
+    - Must provide decision and feedback
     - Decision is final and cannot be changed
 
     Process:
     1. Validates experience is ready for review
     2. Updates status to 'approved' or 'rejected'
-    3. Records admin feedback and decision reason
+    3. Records moderator feedback and decision reason
     4. Notifies host of decision
     5. If approved, experience becomes available for booking
     """
+    # Extract admin_user_id from JWT token
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid authorization header"
+        )
+    
+    token = authorization.replace("Bearer ", "")
+    payload = verify_token(token)
+    
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+    
+    admin_user_id = payload.get("sub")
+    if not admin_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload"
+        )
+    
     return await experience_service.review_experience(
         experience_id=experience_id,
-        review_data=request.review_data,
-        admin_user_id=request.admin_user_id,
+        review_data=review_data,
+        admin_user_id=admin_user_id,
     )
 
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthenticatedRoute } from '@/components/ProtectedRoute';
 import EventRunsList from '@/components/EventRunsList';
@@ -81,29 +81,7 @@ const HostDashboardContent = () => {
     whatToBring: '',
   });
 
-  useEffect(() => {
-    if (activeTab === 'manage') {
-      fetchExperiences();
-    }
-  }, [filter, activeTab, fetchExperiences]);
-  
-  // Check if we're editing an experience from URL params
-  useEffect(() => {
-    const editId = searchParams.get('edit');
-    if (editId) {
-      setIsEditMode(true);
-      setExperienceId(editId);
-      setActiveTab('create'); // Switch to create tab for editing
-      fetchExperienceData(editId);
-    }
-  }, [searchParams, fetchExperienceData]);
-
-  // Helper function to get count for each status
-  const getStatusCount = (status: string) => {
-    if (status === 'all') return allExperiences.length;
-    return allExperiences.filter(exp => exp.status === status).length;
-  };
-
+  // Define fetch functions before useEffect
   const fetchExperiences = useCallback(async () => {
     try {
       setLoading(true);
@@ -116,7 +94,7 @@ const HostDashboardContent = () => {
       }
       
       // Always fetch all experiences first for counts
-      const allResponse = await api.get('/experiences');
+      const allResponse = await api.get('/experiences/my');
       const allData = allResponse.data;
       setAllExperiences(allData);
       
@@ -203,6 +181,30 @@ const HostDashboardContent = () => {
       setIsLoadingExperience(false);
     }
   }, [setFormData, setIsLoadingExperience, setError]);
+
+  // Now add useEffects after functions are defined
+  useEffect(() => {
+    if (activeTab === 'manage') {
+      fetchExperiences();
+    }
+  }, [filter, activeTab, fetchExperiences]);
+  
+  // Check if we're editing an experience from URL params
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId) {
+      setIsEditMode(true);
+      setExperienceId(editId);
+      setActiveTab('create'); // Switch to create tab for editing
+      fetchExperienceData(editId);
+    }
+  }, [searchParams, fetchExperienceData]);
+
+  // Helper function to get count for each status
+  const getStatusCount = (status: string) => {
+    if (status === 'all') return allExperiences.length;
+    return allExperiences.filter(exp => exp.status === status).length;
+  };
   
   const handleNext = () => {
     if (step < 3) setStep(step + 1);

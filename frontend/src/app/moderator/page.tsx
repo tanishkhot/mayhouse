@@ -399,7 +399,7 @@ const ModeratorDashboard = () => {
   };
 
   return (
-    <AdminOnlyRoute>
+    <AuthenticatedRoute>
       <style jsx global>{`
         .force-word-break {
           word-break: break-all;

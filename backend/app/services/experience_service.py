@@ -72,7 +72,7 @@ class ExperienceService:
                 "weather_contingency_plan": experience_data.weather_contingency_plan,
                 "photo_sharing_consent_required": experience_data.photo_sharing_consent_required,
                 "experience_safety_guidelines": experience_data.experience_safety_guidelines,
-                "status": ExperienceStatus.DRAFT.value,
+                "status": ExperienceStatus.SUBMITTED.value,  # Auto-submit for moderator review
                 "created_at": datetime.utcnow().isoformat(),
                 "updated_at": datetime.utcnow().isoformat(),
             }

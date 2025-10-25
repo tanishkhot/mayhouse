@@ -11,7 +11,7 @@ from typing import List, Optional
 from datetime import datetime
 from decimal import Decimal
 
-from fastapi import APIRouter, HTTPException, status, Query, Path, Body
+from fastapi import APIRouter, HTTPException, status, Query, Path, Body, Header
 from pydantic import BaseModel
 
 from app.schemas.event_run import (
@@ -24,6 +24,7 @@ from app.schemas.event_run import (
     EventRunFilterParams,
 )
 from app.services.event_run_service import event_run_service
+from app.core.jwt_utils import verify_token
 
 
 # Router setup
@@ -55,7 +56,10 @@ class EventRunUpdateRequest(BaseModel):
     summary="Create Event Run",
     description="Create a new event run for one of your approved experiences",
 )
-async def create_event_run(request: EventRunCreateRequest) -> EventRunResponse:
+async def create_event_run(
+    event_run_data: EventRunCreate,
+    authorization: str = Header(None)
+) -> EventRunResponse:
     """
     Create a new event run for an approved experience.
 
@@ -71,8 +75,31 @@ async def create_event_run(request: EventRunCreateRequest) -> EventRunResponse:
     - Host can add special meeting instructions
     - Maximum 2 active event runs per host
     """
+    # Extract host_id from JWT token
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid authorization header"
+        )
+    
+    token = authorization.replace("Bearer ", "")
+    payload = verify_token(token)
+    
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+    
+    host_id = payload.get("sub")
+    if not host_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload"
+        )
+    
     return await event_run_service.create_event_run(
-        request.event_run_data, request.host_id
+        event_run_data, host_id
     )
 
 
@@ -83,9 +110,7 @@ async def create_event_run(request: EventRunCreateRequest) -> EventRunResponse:
     description="Get all event runs for the authenticated host",
 )
 async def list_host_event_runs(
-    host_id: str = Query(
-        ..., description="Host User ID (temporary - will be from auth later)"
-    ),
+    authorization: str = Header(None),
     status_filter: Optional[EventRunStatus] = Query(
         None, description="Filter by event run status"
     ),
@@ -100,6 +125,29 @@ async def list_host_event_runs(
     - Sorted by start time (most recent first)
     - Shows booking summary and availability
     """
+    # Extract host_id from JWT token
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid authorization header"
+        )
+    
+    token = authorization.replace("Bearer ", "")
+    payload = verify_token(token)
+    
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+    
+    host_id = payload.get("sub")
+    if not host_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload"
+        )
+    
     return await event_run_service.get_host_event_runs(
         host_id=host_id, status_filter=status_filter, limit=limit, offset=offset
     )

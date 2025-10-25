@@ -33,9 +33,9 @@ export type ExperienceResponse = {
 };
 
 export const experienceAPI = {
-  // Get host's experiences
+  // Get host's experiences (JWT authenticated)
   getHostExperiences: (limit: number = 50, offset: number = 0) =>
-    api.get<ExperienceResponse[]>(`/experiences?limit=${limit}&offset=${offset}`).then((r) => r.data),
+    api.get<ExperienceResponse[]>(`/experiences/my?limit=${limit}&offset=${offset}`).then((r) => r.data),
 
   // Get specific experience
   getExperience: (experienceId: string) =>

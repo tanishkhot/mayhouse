@@ -83,8 +83,8 @@ class EventRunService:
         # Create the event run
         insert_data = {
             "experience_id": event_run_data.experience_id,
-            "start_datetime": event_run_data.start_datetime.isoformat(),
-            "end_datetime": event_run_data.end_datetime.isoformat(),
+            "start_datetime": event_run_data.start_datetime,  # Already ISO string
+            "end_datetime": event_run_data.end_datetime,  # Already ISO string
             "max_capacity": event_run_data.max_capacity,
             "special_pricing_inr": (
                 float(event_run_data.special_pricing_inr)
@@ -127,11 +127,14 @@ class EventRunService:
             
             if host_wallet_address:
                 # Create event on blockchain
+                # Convert ISO string to datetime for blockchain service
+                start_dt = datetime.fromisoformat(event_run_data.start_datetime.replace('Z', '+00:00'))
+                
                 blockchain_id, tx_hash = await blockchain_service.create_event_run_onchain(
                     experience_id=event_run_data.experience_id,
                     price_inr=Decimal(str(effective_price)),
                     max_seats=event_run_data.max_capacity,
-                    event_timestamp=event_run_data.start_datetime,
+                    event_timestamp=start_dt,
                     host_wallet_address=host_wallet_address
                 )
                 
