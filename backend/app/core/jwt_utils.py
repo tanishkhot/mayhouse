@@ -7,7 +7,8 @@ for user authentication and authorization.
 
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, Set
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import InvalidTokenError
 import hashlib
 import secrets
 import threading
@@ -75,7 +76,7 @@ def blacklist_token(token: str) -> bool:
             _token_blacklist[token] = float(exp_timestamp)
 
         return True
-    except JWTError:
+    except InvalidTokenError:
         return False
 
 
@@ -147,7 +148,7 @@ def verify_token(token: str) -> Optional[Dict[str, Any]]:
         # Then verify the token signature and expiration
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except JWTError:
+    except InvalidTokenError:
         return None
 
 

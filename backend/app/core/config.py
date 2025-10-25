@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     supabase_anon_key: str = os.getenv("SUPABASE_ANON_KEY", "")
     supabase_service_key: str = os.getenv("SUPABASE_SERVICE_KEY", "")
 
+    # CORS settings
+    cors_origins: list[str] = ["http://localhost:3000", "http://localhost:3001"]
+
     # OAuth settings
     google_client_id: str = os.getenv("GOOGLE_CLIENT_ID", "")
     google_client_secret: str = os.getenv("GOOGLE_CLIENT_SECRET", "")

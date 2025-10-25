@@ -6,8 +6,11 @@ ssh-key.txt.pub
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
+*.pyc
+*.pyo
+*.pyd
 .Python
+*.so
 build/
 develop-eggs/
 dist/

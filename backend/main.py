@@ -4,6 +4,8 @@ from app.core.config import get_settings
 from app.core.database import init_database
 from app.api.health import router as health_router
 from app.api.explore import router as explore_router
+from app.api.host_application import user_router as host_application_user_router
+from app.api.host_application import admin_router as host_application_admin_router
 
 settings = get_settings()
 
@@ -36,6 +38,8 @@ async def startup_event():
 # Include routers
 app.include_router(health_router)
 app.include_router(explore_router)
+app.include_router(host_application_user_router)  # Host application user endpoints
+app.include_router(host_application_admin_router)  # Host application admin endpoints
 
 
 # Root endpoint
@@ -48,6 +52,8 @@ async def root():
         "docs": "/docs",
         "health": "/health/",
         "explore": "/explore/",
+        "host_applications": "/users/host-application",
+        "admin_host_applications": "/admin/host-applications",
     }
 
 
