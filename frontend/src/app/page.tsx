@@ -315,17 +315,15 @@ function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
           </div>
           
           {/* Price */}
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex flex-col">
-              <div className="flex items-baseline gap-2">
-                <PriceDisplay 
-                  priceINR={parseFloat(eventRun.price_inr)}
-                  size="small"
-                  showINR={true}
-                  className="flex flex-col items-start"
-                />
-              </div>
-              <span className="text-gray-500 text-xs mt-0.5">per person</span>
+          <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-col gap-1">
+              <PriceDisplay 
+                priceINR={parseFloat(eventRun.price_inr)}
+                size="small"
+                showINR={true}
+                layout="inline"
+              />
+              <span className="text-gray-500 text-xs">per person</span>
             </div>
             
             {/* Rating placeholder */}

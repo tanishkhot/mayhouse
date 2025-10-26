@@ -197,7 +197,8 @@ export default function ExperienceRunDetailPage() {
                 <PriceDisplay 
                   priceINR={experience.price} 
                   size="large"
-                  className="text-center"
+                  layout="stacked"
+                  className="flex flex-col items-center"
                 />
                 <div className="text-gray-500 mt-2">per person</div>
               </div>
@@ -229,8 +230,9 @@ export default function ExperienceRunDetailPage() {
                         <PriceDisplay 
                           priceINR={experience.price} 
                           size="small"
-                          showINR={false}
-                          className="text-red-500"
+                          showINR={true}
+                          layout="inline"
+                          className="text-sm"
                         />
                       </div>
                     </button>
