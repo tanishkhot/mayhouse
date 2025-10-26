@@ -95,6 +95,7 @@ export function useCreateEventRun() {
       functionName: 'createEventRun',
       args: [experienceId, priceInWei, BigInt(maxSeats), BigInt(eventTimestamp)],
       value: requiredStake,
+      gas: 1000000n, // Explicitly set gas limit to 1M (well within network cap of ~16.7M)
     });
   };
 
@@ -121,6 +122,7 @@ export function useBookEvent() {
       functionName: 'bookEvent',
       args: [BigInt(eventRunId), BigInt(seatCount)],
       value: totalCostInWei,
+      gas: 500000n, // Explicit gas limit for booking
     });
   };
 
@@ -144,6 +146,7 @@ export function useCompleteEvent() {
       abi: MAYHOUSE_CONTRACT_ABI,
       functionName: 'completeEvent',
       args: [BigInt(eventRunId), attendedBookingIds.map(id => BigInt(id))],
+      gas: 1500000n, // Higher gas for completing events (processes multiple bookings)
     });
   };
 
@@ -167,6 +170,7 @@ export function useCancelEvent() {
       abi: MAYHOUSE_CONTRACT_ABI,
       functionName: 'cancelEvent',
       args: [BigInt(eventRunId)],
+      gas: 800000n, // Explicit gas limit for cancellation
     });
   };
 

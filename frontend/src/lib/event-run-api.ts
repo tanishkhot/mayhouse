@@ -92,8 +92,19 @@ export const EventRunAPI = {
   getEventRunDetails: (eventRunId: string) =>
     api.get<EventRunResponse>(`/hosts/event-runs/${eventRunId}`).then((r) => r.data),
 
-  updateEventRun: (eventRunId: string, payload: EventRunUpdate) =>
-    api.put<EventRunResponse>(`/hosts/event-runs/${eventRunId}`, payload).then((r) => r.data),
+  updateEventRun: async (eventRunId: string, payload: EventRunUpdate) => {
+    // Get current user to extract host_id
+    const userResponse = await api.get('/auth/me');
+    const userData = userResponse.data;
+    
+    // Wrap payload in the format backend expects
+    const wrappedPayload = {
+      host_id: userData.id,
+      update_data: payload
+    };
+    
+    return api.put<EventRunResponse>(`/hosts/event-runs/${eventRunId}`, wrappedPayload).then((r) => r.data);
+  },
 
   deleteEventRun: (eventRunId: string) =>
     api.delete<Record<string, string>>(`/hosts/event-runs/${eventRunId}`).then((r) => r.data),
