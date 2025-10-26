@@ -145,6 +145,91 @@ class EventRunService:
         event_run = response.data[0]
         return await self._build_event_run_response(event_run, include_bookings)
 
+    async def get_event_run_details(self, event_run_id: str) -> EventRunResponse:
+        """
+        Get detailed information about a specific event run.
+        
+        Args:
+            event_run_id: UUID of the event run
+            
+        Returns:
+            EventRunResponse with full details including experience and host info
+        """
+        service_client = self._get_service_client()
+        
+        response = (
+            service_client.table("event_runs")
+            .select(
+                """
+            *,
+            experiences!inner (
+                id,
+                title,
+                experience_domain,
+                neighborhood,
+                price_inr,
+                duration_minutes,
+                host_id,
+                users!inner (
+                    id,
+                    full_name,
+                    wallet_address
+                )
+            )
+        """
+            )
+            .eq("id", event_run_id)
+            .execute()
+        )
+        
+        if not response.data or len(response.data) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Event run with ID '{event_run_id}' not found"
+            )
+        
+        run = response.data[0]
+        experience = run["experiences"]
+        host = experience["users"]
+        
+        # Calculate available spots
+        available_spots = await self._calculate_available_spots(
+            run["id"], run["max_capacity"]
+        )
+        
+        # Use special pricing or base price
+        effective_price = run["special_pricing_inr"] or experience["price_inr"]
+        
+        # Build booking summary
+        booking_summary = EventRunBookingSummary(
+            total_bookings=0,  # TODO: Calculate from bookings table
+            confirmed_bookings=0,
+            total_travelers=0,
+            available_spots=available_spots
+        )
+        
+        return EventRunResponse(
+            id=run["id"],
+            experience_id=run["experience_id"],
+            start_datetime=datetime.fromisoformat(run["start_datetime"].replace("Z", "+00:00")),
+            end_datetime=datetime.fromisoformat(run["end_datetime"].replace("Z", "+00:00")),
+            max_capacity=run["max_capacity"],
+            special_pricing_inr=run.get("special_pricing_inr"),
+            status=EventRunStatus(run["status"]),
+            host_meeting_instructions=run.get("host_meeting_instructions"),
+            group_pairing_enabled=run["group_pairing_enabled"],
+            created_at=datetime.fromisoformat(run["created_at"].replace("Z", "+00:00")),
+            updated_at=datetime.fromisoformat(run["updated_at"].replace("Z", "+00:00")),
+            booking_summary=booking_summary,
+            experience_title=experience["title"],
+            experience_domain=experience["experience_domain"],
+            host_name=host["full_name"],
+            host_wallet_address=host.get("wallet_address"),
+            price_inr=Decimal(str(effective_price)),
+            duration_minutes=experience.get("duration_minutes"),
+            neighborhood=experience.get("neighborhood"),
+        )
+
     async def get_host_event_runs(
         self,
         host_id: str,

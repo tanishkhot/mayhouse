@@ -52,7 +52,10 @@ export type EventRunResponse = {
   experience_title?: string | null;
   experience_domain?: string | null;
   host_name?: string | null;
+  host_wallet_address?: string | null;
   price_inr?: number | null;
+  duration_minutes?: number | null;
+  neighborhood?: string | null;
 };
 
 export type EventRunSummary = {

@@ -171,24 +171,33 @@ class EventRunResponse(BaseModel):
     host_meeting_instructions: Optional[str] = Field(
         None, description="Meeting instructions from host"
     )
-    group_pairing_enabled: bool = Field(..., description="Whether pairing is enabled")
-    created_at: datetime = Field(..., description="Creation timestamp")
-    updated_at: datetime = Field(..., description="Last update timestamp")
-
-    # Computed fields
+    group_pairing_enabled: bool = Field(..., description="Whether group pairing is enabled")
+    created_at: datetime = Field(..., description="When event run was created")
+    updated_at: datetime = Field(..., description="When event run was last updated")
+    
+    # Booking summary
     booking_summary: Optional[EventRunBookingSummary] = Field(
         None, description="Booking statistics"
     )
-    detailed_bookings: Optional[List[dict]] = Field(
-        None, description="Detailed booking information (admin only)"
-    )
-
-    # Related data (when included)
+    
+    # Experience info (for convenience)
     experience_title: Optional[str] = Field(None, description="Experience title")
     experience_domain: Optional[str] = Field(None, description="Experience domain")
-    host_name: Optional[str] = Field(None, description="Host full name")
-    price_inr: Optional[Decimal] = Field(
-        None, description="Effective price (base or special)"
+    
+    # Host info
+    host_name: Optional[str] = Field(None, description="Host's full name")
+    host_wallet_address: Optional[str] = Field(
+        None, description="Host's Ethereum wallet address for payments"
+    )
+    
+    # Pricing and details
+    price_inr: Optional[Decimal] = Field(None, description="Effective price in INR")
+    duration_minutes: Optional[int] = Field(None, description="Experience duration in minutes")
+    neighborhood: Optional[str] = Field(None, description="Experience neighborhood")
+
+    # Additional computed fields
+    detailed_bookings: Optional[List[dict]] = Field(
+        None, description="Detailed booking information (admin only)"
     )
 
     class Config:
