@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount } from 'wagmi';
+import { useAccount, useSwitchChain } from 'wagmi';
+import { sepolia } from 'wagmi/chains';
 import { useBookEvent, formatEthValue } from '@/lib/contract';
 import { BlockchainAPI } from '@/lib/blockchain-api';
 
@@ -19,11 +20,13 @@ interface CostData {
 }
 
 export default function BookEventButton({ eventRunId, availableSeats }: BookEventButtonProps) {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
+  const { switchChain } = useSwitchChain();
   const [seatCount, setSeatCount] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [costData, setCostData] = useState<CostData | null>(null);
   const [loadingCost, setLoadingCost] = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
   
   const { bookEvent, isPending, isConfirming, isSuccess, error } = useBookEvent();
 
@@ -51,13 +54,26 @@ export default function BookEventButton({ eventRunId, availableSeats }: BookEven
   }, [eventRunId, seatCount, showModal]);
 
   const handleBook = async () => {
+    setBookingError(null);
+
     if (!isConnected) {
-      alert('Please connect your wallet first');
+      setBookingError('Please connect your wallet first');
+      return;
+    }
+
+    // Check if on correct network
+    if (chain?.id !== sepolia.id) {
+      setBookingError(`Please switch to Sepolia Testnet. You're currently on ${chain?.name || 'Unknown Network'}`);
+      try {
+        await switchChain?.({ chainId: sepolia.id });
+      } catch (err) {
+        console.error('Failed to switch network:', err);
+      }
       return;
     }
 
     if (!costData) {
-      alert('Could not calculate booking cost');
+      setBookingError('Could not calculate booking cost');
       return;
     }
 
@@ -65,13 +81,22 @@ export default function BookEventButton({ eventRunId, availableSeats }: BookEven
       // Convert Wei to ETH string for wagmi
       const totalEth = formatEthValue(BigInt(costData.total_cost_wei));
       
-      // Note: eventRunId here should be blockchain event run ID, not database ID
-      // For now we'll use a placeholder - this needs proper blockchain sync
-      const hash = await bookEvent(0, seatCount, totalEth);
-      console.log('Booking transaction hash:', hash);
+      // TODO: This is a temporary placeholder
+      // Event runs are stored off-chain, so we need a different booking mechanism
+      // For now, we'll show an informative error
+      setBookingError('⚠️ Blockchain booking is not yet integrated. Event runs are currently managed off-chain. Please contact the host directly to book this experience.');
+      
+      // Uncomment when blockchain integration is complete:
+      // const blockchainEventRunId = costData.blockchain_event_run_id;
+      // if (!blockchainEventRunId) {
+      //   throw new Error('Event not synced to blockchain yet');
+      // }
+      // const hash = await bookEvent(blockchainEventRunId, seatCount, totalEth);
+      // console.log('Booking transaction hash:', hash);
     } catch (err: any) {
       console.error('Error booking event:', err);
-      alert(err.message || 'Failed to book event');
+      const errorMessage = err.message || err.reason || 'Failed to book event';
+      setBookingError(errorMessage);
     }
   };
 
@@ -84,10 +109,15 @@ export default function BookEventButton({ eventRunId, availableSeats }: BookEven
     );
   }
 
+  const handleOpenModal = () => {
+    setShowModal(true);
+    setBookingError(null); // Clear any previous errors
+  };
+
   return (
     <>
       <button
-        onClick={() => setShowModal(true)}
+        onClick={handleOpenModal}
         disabled={availableSeats === 0}
         className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
@@ -165,9 +195,25 @@ export default function BookEventButton({ eventRunId, availableSeats }: BookEven
             ) : null}
 
             {/* Error Display */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-red-800 text-sm">
-                <strong>Error:</strong> {error.message}
+            {(bookingError || error) && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 text-red-500 text-xl">⚠️</div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-red-900 mb-1">Booking Error</h4>
+                    <p className="text-sm text-red-800 leading-relaxed">
+                      {bookingError || error?.message}
+                    </p>
+                    {chain && chain.id !== sepolia.id && (
+                      <button
+                        onClick={() => switchChain?.({ chainId: sepolia.id })}
+                        className="mt-3 text-sm font-medium text-red-700 hover:text-red-900 underline"
+                      >
+                        Switch to Sepolia Testnet
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -182,20 +228,35 @@ export default function BookEventButton({ eventRunId, availableSeats }: BookEven
               </button>
               <button
                 onClick={handleBook}
-                disabled={isPending || isConfirming || !isConnected}
+                disabled={isPending || isConfirming || !isConnected || (chain && chain.id !== sepolia.id)}
                 className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 transition-all"
               >
                 {isPending && 'Waiting...'}
                 {isConfirming && 'Confirming...'}
-                {!isPending && !isConfirming && 'Confirm & Pay'}
+                {!isPending && !isConfirming && (chain && chain.id !== sepolia.id ? 'Wrong Network' : 'Confirm & Pay')}
               </button>
             </div>
 
-            {!isConnected && (
-              <p className="text-center text-sm text-red-600 mt-3">
-                Please connect your wallet to book
-              </p>
-            )}
+            {/* Wallet Status */}
+            {!isConnected ? (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4 text-center">
+                <p className="text-sm text-yellow-800">
+                  Please connect your wallet to book
+                </p>
+              </div>
+            ) : chain && chain.id !== sepolia.id ? (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4 text-center">
+                <p className="text-sm text-yellow-800 mb-2">
+                  Wrong network: Connected to {chain.name}
+                </p>
+                <button
+                  onClick={() => switchChain?.({ chainId: sepolia.id })}
+                  className="text-sm font-medium text-yellow-900 underline hover:text-yellow-700"
+                >
+                  Switch to Sepolia Testnet
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       )}
