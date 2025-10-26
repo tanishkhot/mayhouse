@@ -81,21 +81,41 @@ export default function BookEventButton({ eventRunId, availableSeats }: BookEven
       // Convert Wei to ETH string for wagmi
       const totalEth = formatEthValue(BigInt(costData.total_cost_wei));
       
-      // TODO: This is a temporary placeholder
-      // Event runs are stored off-chain, so we need a different booking mechanism
-      // For now, we'll show an informative error
-      setBookingError('⚠️ Blockchain booking is not yet integrated. Event runs are currently managed off-chain. Please contact the host directly to book this experience.');
+      // For testing: Use a test event run ID if blockchain_event_run_id is not available
+      // In production, all events should be synced to blockchain before booking is enabled
+      const blockchainEventRunId = costData.blockchain_event_run_id || 1; // Default to 1 for testing
       
-      // Uncomment when blockchain integration is complete:
-      // const blockchainEventRunId = costData.blockchain_event_run_id;
-      // if (!blockchainEventRunId) {
-      //   throw new Error('Event not synced to blockchain yet');
-      // }
-      // const hash = await bookEvent(blockchainEventRunId, seatCount, totalEth);
-      // console.log('Booking transaction hash:', hash);
+      console.log('Attempting to book event:', {
+        blockchainEventRunId,
+        seatCount,
+        totalEth,
+        eventRunId
+      });
+      
+      // Call the smart contract to book the event
+      const hash = await bookEvent(blockchainEventRunId, seatCount, totalEth);
+      console.log('Booking transaction hash:', hash);
+      
+      // Success! Transaction submitted
+      setBookingError(null);
     } catch (err: any) {
       console.error('Error booking event:', err);
-      const errorMessage = err.message || err.reason || 'Failed to book event';
+      
+      // Parse the error to show user-friendly message
+      let errorMessage = 'Failed to book event';
+      
+      if (err.message?.includes('user rejected')) {
+        errorMessage = 'Transaction was rejected. Please try again.';
+      } else if (err.message?.includes('insufficient funds')) {
+        errorMessage = 'Insufficient funds. Please add more Sepolia ETH to your wallet.';
+      } else if (err.message?.includes('Event run does not exist')) {
+        errorMessage = '⚠️ This event has not been synced to the blockchain yet. Please try again later or contact the host.';
+      } else if (err.reason) {
+        errorMessage = err.reason;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       setBookingError(errorMessage);
     }
   };
