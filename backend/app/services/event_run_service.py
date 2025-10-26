@@ -743,7 +743,9 @@ class EventRunService:
                         break
                 # If no cover photo marked, use the first photo
                 if not cover_photo_url and len(experience["experience_photos"]) > 0:
-                    cover_photo_url = experience["experience_photos"][0].get("photo_url")
+                    cover_photo_url = experience["experience_photos"][0].get(
+                        "photo_url"
+                    )
 
             # Build explore event run object
             explore_run = ExploreEventRun(
@@ -771,7 +773,9 @@ class EventRunService:
                 # Host details
                 host_id=host["id"],
                 host_name=host["full_name"],
-                host_wallet_address=host.get("wallet_address"),  # Include wallet address for payments
+                host_wallet_address=host.get(
+                    "wallet_address"
+                ),  # Include wallet address for payments
                 host_meeting_instructions=run.get("host_meeting_instructions"),
                 group_pairing_enabled=run["group_pairing_enabled"],
             )

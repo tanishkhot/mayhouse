@@ -27,7 +27,9 @@ class EventRunCreate(BaseModel):
     """Schema for creating a new event run."""
 
     experience_id: str = Field(..., description="ID of the approved experience")
-    start_datetime: str = Field(..., description="Event start date and time (ISO format)")
+    start_datetime: str = Field(
+        ..., description="Event start date and time (ISO format)"
+    )
     end_datetime: str = Field(..., description="Event end date and time (ISO format)")
     max_capacity: int = Field(
         ..., ge=1, le=4, description="Maximum travelers allowed (1-4)"
@@ -46,14 +48,15 @@ class EventRunCreate(BaseModel):
     @classmethod
     def validate_start_datetime(cls, v):
         try:
-            dt = datetime.fromisoformat(v.replace('Z', '+00:00'))
+            dt = datetime.fromisoformat(v.replace("Z", "+00:00"))
             # Get current time - use naive if input is naive, UTC if input has timezone
             from datetime import timezone, timedelta
+
             if dt.tzinfo:
                 now = datetime.now(timezone.utc)
             else:
                 now = datetime.now()
-            
+
             # Allow events up to 5 minutes in the past to account for timezone/clock differences
             min_time = now - timedelta(minutes=5)
             if dt < min_time:
@@ -62,22 +65,28 @@ class EventRunCreate(BaseModel):
         except ValueError as e:
             if "Event must be scheduled" in str(e):
                 raise e
-            raise ValueError(f"Invalid datetime format: {v}. Use ISO format (YYYY-MM-DDTHH:MM:SS)")
+            raise ValueError(
+                f"Invalid datetime format: {v}. Use ISO format (YYYY-MM-DDTHH:MM:SS)"
+            )
 
     @field_validator("end_datetime")
     @classmethod
     def validate_end_datetime(cls, v, info):
         try:
-            end_dt = datetime.fromisoformat(v.replace('Z', '+00:00'))
+            end_dt = datetime.fromisoformat(v.replace("Z", "+00:00"))
             if "start_datetime" in info.data:
-                start_dt = datetime.fromisoformat(info.data["start_datetime"].replace('Z', '+00:00'))
+                start_dt = datetime.fromisoformat(
+                    info.data["start_datetime"].replace("Z", "+00:00")
+                )
                 if end_dt <= start_dt:
                     raise ValueError("End datetime must be after start datetime")
             return v
         except ValueError as e:
             if "End datetime must be after" in str(e):
                 raise e
-            raise ValueError(f"Invalid datetime format: {v}. Use ISO format (YYYY-MM-DDTHH:MM:SS)")
+            raise ValueError(
+                f"Invalid datetime format: {v}. Use ISO format (YYYY-MM-DDTHH:MM:SS)"
+            )
 
     class Config:
         json_encoders = {datetime: lambda v: v.isoformat(), Decimal: lambda v: float(v)}
@@ -257,7 +266,9 @@ class ExploreEventRun(BaseModel):
     neighborhood: Optional[str] = Field(None, description="Experience neighborhood")
     meeting_landmark: Optional[str] = Field(None, description="Meeting landmark")
     duration_minutes: int = Field(..., description="Experience duration in minutes")
-    cover_photo_url: Optional[str] = Field(None, description="URL of experience cover photo")
+    cover_photo_url: Optional[str] = Field(
+        None, description="URL of experience cover photo"
+    )
 
     # Host details
     host_id: str = Field(..., description="Host user ID")
