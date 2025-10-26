@@ -72,7 +72,7 @@ class ExperienceService:
                 "weather_contingency_plan": experience_data.weather_contingency_plan,
                 "photo_sharing_consent_required": experience_data.photo_sharing_consent_required,
                 "experience_safety_guidelines": experience_data.experience_safety_guidelines,
-                "status": ExperienceStatus.SUBMITTED.value,  # Auto-submit for moderator review
+                "status": ExperienceStatus.DRAFT.value,  # Always start as draft
                 "created_at": datetime.utcnow().isoformat(),
                 "updated_at": datetime.utcnow().isoformat(),
             }
@@ -514,31 +514,27 @@ class ExperienceService:
         """
         try:
             service_client = self._get_service_client()
-            
+
             # Check current user role
             user_response = (
-                service_client.table("users")
-                .select("role")
-                .eq("id", user_id)
-                .execute()
+                service_client.table("users").select("role").eq("id", user_id).execute()
             )
-            
+
             if not user_response.data:
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="User not found"
+                    status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
                 )
-            
+
             current_role = user_response.data[0].get("role", "user")
-            
+
             # If not already a host, upgrade them
             if current_role != "host":
-                service_client.table("users").update({
-                    "role": "host"
-                }).eq("id", user_id).execute()
-                
+                service_client.table("users").update({"role": "host"}).eq(
+                    "id", user_id
+                ).execute()
+
                 logger.info(f"Auto-upgraded user {user_id} to host role")
-        
+
         except HTTPException:
             raise
         except Exception as e:
