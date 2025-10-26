@@ -5,6 +5,7 @@ import { ExploreAPI, ExploreEventRun, AuthAPI, getAccessToken } from "@/lib/api"
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { useState, useEffect } from "react";
+import PriceDisplay from "@/components/PriceDisplay";
 // import ServerDebug from "@/components/ServerDebug";
 
 type Category = {
@@ -315,11 +316,16 @@ function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
           
           {/* Price */}
           <div className="flex items-center justify-between pt-1">
-            <div>
-              <span className="font-semibold text-gray-900">
-                {formatPrice(eventRun.price_inr)}
-              </span>
-              <span className="text-gray-500 text-sm ml-1">per person</span>
+            <div className="flex flex-col">
+              <div className="flex items-baseline gap-2">
+                <PriceDisplay 
+                  priceINR={parseFloat(eventRun.price_inr)}
+                  size="small"
+                  showINR={true}
+                  className="flex flex-col items-start"
+                />
+              </div>
+              <span className="text-gray-500 text-xs mt-0.5">per person</span>
             </div>
             
             {/* Rating placeholder */}
