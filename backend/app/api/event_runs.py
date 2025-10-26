@@ -254,6 +254,34 @@ async def delete_event_run(
 
 
 @public_router.get(
+    "/{event_run_id}",
+    response_model=EventRunResponse,
+    summary="Get Event Run Details",
+    description="Get detailed information about a specific event run (public access)",
+)
+async def get_event_run_details(
+    event_run_id: str = Path(..., description="Event Run ID"),
+) -> EventRunResponse:
+    """
+    Get detailed information about a specific event run.
+    
+    This endpoint is publicly accessible for viewing event run details.
+    """
+    try:
+        return await event_run_service.get_event_run_details(event_run_id)
+    except Exception as e:
+        if "not found" in str(e).lower():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Event run with ID '{event_run_id}' not found"
+            )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch event run details: {str(e)}"
+        )
+
+
+@public_router.get(
     "",
     response_model=List[EventRunSummary],
     summary="List Available Event Runs",

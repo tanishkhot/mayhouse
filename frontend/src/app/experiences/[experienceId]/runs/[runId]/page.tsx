@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { ExploreAPI } from "@/lib/api";
+import { EventRunAPI } from "@/lib/event-run-api";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Heart, MapPin, Clock, Users, Calendar, Star } from "lucide-react";
@@ -13,11 +14,21 @@ export default function ExperienceRunDetailPage() {
   const experienceId = params.experienceId as string;
   const runId = params.runId as string;
 
-  // For now, fetch experience details (the backend has mock data for exp_001)
-  const { data: experience, isLoading } = useQuery({
-    queryKey: ["experience", experienceId],
-    queryFn: () => ExploreAPI.getExperienceDetails("exp_001"), // Using mock ID
+  // Fetch the specific event run details (includes experience info)
+  const { data: eventRun, isLoading: eventRunLoading, error: eventRunError } = useQuery({
+    queryKey: ["eventRun", runId],
+    queryFn: () => EventRunAPI.getPublicEventRunDetails(runId),
+    enabled: !!runId,
   });
+
+  // Fetch experience details separately for additional info
+  const { data: experience, isLoading: experienceLoading } = useQuery({
+    queryKey: ["experience", experienceId],
+    queryFn: () => ExploreAPI.getExperienceDetails(experienceId),
+    enabled: !!experienceId && experienceId !== 'undefined',
+  });
+
+  const isLoading = eventRunLoading || experienceLoading;
 
   if (isLoading) {
     return (
@@ -35,19 +46,51 @@ export default function ExperienceRunDetailPage() {
     );
   }
 
-  if (!experience) {
+  if (eventRunError || !eventRun) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Experience not found</h1>
-          <p className="text-gray-600 mb-4">The experience you&apos;re looking for doesn&apos;t exist.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Event Run not found</h1>
+          <p className="text-gray-600 mb-4">The event you&apos;re looking for doesn&apos;t exist or has been removed.</p>
+          <Link href="/" className="text-purple-600 hover:text-purple-700 font-medium">
+            ← Back to explore
+          </Link>
         </div>
       </div>
     );
   }
 
+  // Use experience data if available, otherwise use basic info from eventRun
+  const displayData = experience || {
+    title: eventRun.experience_title || "Experience",
+    description: "Experience description",
+    price: eventRun.price_inr,
+    duration: `${Math.floor(eventRun.duration_minutes / 60)}h ${eventRun.duration_minutes % 60}m`,
+    host: {
+      name: eventRun.host_name || "Host",
+      wallet_address: eventRun.host_wallet_address,
+    },
+    upcoming_sessions: [{
+      date: eventRun.start_datetime,
+      available_spots: eventRun.max_capacity, // TODO: Calculate actual available spots
+    }],
+  };
+
   const formatPrice = (price: number) => {
     return `₹${price.toLocaleString('en-IN')}`;
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
@@ -56,7 +99,9 @@ export default function ExperienceRunDetailPage() {
       <header className="sticky top-0 bg-white border-b border-gray-200 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div></div>
+            <Link href="/" className="text-purple-600 hover:text-purple-700 font-medium">
+              ← Back to explore
+            </Link>
             <nav className="flex items-center space-x-4">
               <button className="p-2 rounded-full hover:bg-gray-100">
                 <Heart className="w-5 h-5" />
@@ -71,10 +116,10 @@ export default function ExperienceRunDetailPage() {
         <div className="absolute inset-0 bg-black/30"></div>
         <div className="absolute bottom-6 left-6 text-white">
           <div className="text-sm font-medium bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full mb-3 w-fit">
-            {experience.category}
+            {displayData.category || eventRun.experience_domain}
           </div>
-          <h1 className="text-4xl font-bold mb-2">{experience.title}</h1>
-          <p className="text-lg text-white/90 max-w-2xl">{experience.description}</p>
+          <h1 className="text-4xl font-bold mb-2">{displayData.title}</h1>
+          <p className="text-lg text-white/90 max-w-2xl">{displayData.description}</p>
         </div>
       </div>
 
@@ -87,19 +132,19 @@ export default function ExperienceRunDetailPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="flex items-center space-x-2 text-gray-600">
                 <Clock className="w-5 h-5" />
-                <span>{experience.duration}</span>
+                <span>{displayData.duration || `${Math.floor((eventRun.duration_minutes || 0) / 60)}h ${(eventRun.duration_minutes || 0) % 60}m`}</span>
               </div>
               <div className="flex items-center space-x-2 text-gray-600">
                 <Users className="w-5 h-5" />
-                <span>Max {experience.max_participants} people</span>
+                <span>Max {displayData.max_participants || eventRun.max_capacity} people</span>
               </div>
               <div className="flex items-center space-x-2 text-gray-600">
                 <MapPin className="w-5 h-5" />
-                <span>{experience.location?.area}</span>
+                <span>{displayData.location?.area || eventRun.neighborhood || "Location TBA"}</span>
               </div>
               <div className="flex items-center space-x-2 text-gray-600">
                 <Star className="w-5 h-5" />
-                <span>{experience.rating} ({experience.review_count} reviews)</span>
+                <span>{displayData.rating || "New"} {displayData.review_count ? `(${displayData.review_count} reviews)` : ""}</span>
               </div>
             </div>
 
@@ -108,7 +153,7 @@ export default function ExperienceRunDetailPage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">What you&apos;ll do</h2>
               <div className="prose prose-gray max-w-none">
                 <p className="whitespace-pre-line text-gray-700 leading-relaxed">
-                  {experience.long_description}
+                  {displayData.long_description || displayData.description || "Experience details coming soon."}
                 </p>
               </div>
             </div>
@@ -117,7 +162,7 @@ export default function ExperienceRunDetailPage() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">What&apos;s included</h2>
               <ul className="space-y-2">
-                {experience.includes?.map((item: string, index: number) => (
+                {displayData.includes?.map((item: string, index: number) => (
                   <li key={index} className="flex items-start space-x-3">
                     <svg className="w-5 h-5 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -132,7 +177,7 @@ export default function ExperienceRunDetailPage() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">What to bring</h2>
               <ul className="space-y-2">
-                {experience.what_to_bring?.map((item: string, index: number) => (
+                {displayData.what_to_bring?.map((item: string, index: number) => (
                   <li key={index} className="flex items-start space-x-3">
                     <svg className="w-5 h-5 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -147,15 +192,15 @@ export default function ExperienceRunDetailPage() {
             <div className="border-t border-gray-200 pt-8">
               <div className="flex items-start space-x-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-                  {experience.host?.name?.charAt(0)}
+                  {displayData.host?.name?.charAt(0)}
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">Meet your host, {experience.host?.name}</h3>
-                  <p className="text-gray-600 mt-2">{experience.host?.bio}</p>
+                  <h3 className="text-lg font-semibold text-gray-900">Meet your host, {displayData.host?.name}</h3>
+                  <p className="text-gray-600 mt-2">{displayData.host?.bio || "Experienced local host"}</p>
                   <div className="flex items-center mt-2 space-x-4 text-sm text-gray-500">
-                    <span>{experience.host?.rating} ★ host rating</span>
-                    <span>{experience.host?.experience_count} experiences</span>
-                    <span>Speaks {experience.host?.languages?.join(", ")}</span>
+                    {displayData.host?.rating && <span>{displayData.host.rating} ★ host rating</span>}
+                    {displayData.host?.experience_count && <span>{displayData.host.experience_count} experiences</span>}
+                    {displayData.host?.languages && <span>Speaks {displayData.host.languages.join(", ")}</span>}
                   </div>
                 </div>
               </div>
@@ -164,10 +209,10 @@ export default function ExperienceRunDetailPage() {
             {/* Reviews */}
             <div className="border-t border-gray-200 pt-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                Reviews ({experience.review_count})
+                Reviews ({displayData.review_count || 0})
               </h2>
               <div className="space-y-6">
-                {experience.reviews?.map((review: { user: string; rating: number; date: string; comment: string }, index: number) => (
+                {displayData.reviews?.map((review: { user: string; rating: number; date: string; comment: string }, index: number) => (
                   <div key={index} className="flex space-x-4">
                     <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                       {review.user.charAt(0)}
@@ -195,7 +240,7 @@ export default function ExperienceRunDetailPage() {
             <div className="sticky top-24 bg-white border border-gray-200 rounded-xl p-6 shadow-lg">
               <div className="text-center mb-6">
                 <PriceDisplay 
-                  priceINR={experience.price} 
+                  priceINR={Number(displayData.price)} 
                   size="large"
                   layout="stacked"
                   className="flex flex-col items-center"
@@ -207,7 +252,7 @@ export default function ExperienceRunDetailPage() {
               <div className="mb-6">
                 <h3 className="font-semibold text-gray-900 mb-3">Choose a date</h3>
                 <div className="space-y-2">
-                  {experience.upcoming_sessions?.map((session: { date: string; available_spots: number }, index: number) => (
+                  {displayData.upcoming_sessions?.map((session: { date: string; available_spots: number }, index: number) => (
                     <button
                       key={index}
                       className="w-full p-3 border border-gray-200 rounded-lg hover:border-red-300 hover:bg-red-50 transition-colors text-left"
@@ -228,7 +273,7 @@ export default function ExperienceRunDetailPage() {
                           </div>
                         </div>
                         <PriceDisplay 
-                          priceINR={experience.price} 
+                          priceINR={Number(displayData.price)} 
                           size="small"
                           showINR={true}
                           layout="inline"
@@ -242,10 +287,10 @@ export default function ExperienceRunDetailPage() {
 
               <BookEventButton 
                 eventRunId={runId}
-                availableSeats={experience.upcoming_sessions?.[0]?.available_spots || 0}
-                hostWalletAddress={experience.host?.wallet_address}
-                eventTimestamp={experience.upcoming_sessions?.[0]?.date}
-                priceINR={experience.price}
+                availableSeats={displayData.upcoming_sessions?.[0]?.available_spots || eventRun.max_capacity}
+                hostWalletAddress={displayData.host?.wallet_address || eventRun.host_wallet_address}
+                eventTimestamp={displayData.upcoming_sessions?.[0]?.date || eventRun.start_datetime}
+                priceINR={Number(displayData.price || eventRun.price_inr)}
               />
 
               <p className="text-center text-sm text-gray-500 mt-3">
