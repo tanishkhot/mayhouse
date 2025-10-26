@@ -29,7 +29,7 @@ export default function BookEventButton({
   const [loadingCost, setLoadingCost] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   
-  const { createBooking, isPending, isConfirming, isSuccess, error } = useCreateBooking();
+  const { createBooking, hash, isPending, isConfirming, isSuccess, error } = useCreateBooking();
 
   // Fetch cost from backend API
   useEffect(() => {
@@ -84,12 +84,12 @@ export default function BookEventButton({
     }
 
     try {
-      console.log('Creating booking:', {
+      console.log('[BOOKING] Starting booking process:', {
         eventRunId,
         hostWalletAddress,
         seatCount,
-        priceWei: costData.total_cost_wei - costData.stake_wei,
-        totalCost: costData.total_cost_wei
+        costData,
+        eventTimestamp
       });
       
       // Calculate ticket price in Wei (excluding stake)
@@ -100,6 +100,15 @@ export default function BookEventButton({
         ? Math.floor(new Date(eventTimestamp).getTime() / 1000)
         : Math.floor(Date.now() / 1000) + 86400; // Default to 24h from now
       
+      console.log('[BOOKING] Contract call parameters:', {
+        hostWalletAddress,
+        eventRunId,
+        ticketPriceWei: ticketPriceWei.toString(),
+        seatCount,
+        eventUnixTimestamp,
+        totalValue: costData.total_cost_wei
+      });
+      
       // Call the smart contract to create booking
       const hash = await createBooking(
         hostWalletAddress,
@@ -109,7 +118,7 @@ export default function BookEventButton({
         eventUnixTimestamp
       );
       
-      console.log('Booking transaction hash:', hash);
+      console.log('[BOOKING] Success! Transaction hash:', hash);
       
       // TODO: Record blockchain booking ID in backend
       // await api.post('/bookings/record-blockchain', {
@@ -120,7 +129,13 @@ export default function BookEventButton({
       
       setBookingError(null);
     } catch (err: any) {
-      console.error('Error booking event:', err);
+      console.error('[BOOKING] Error details:', {
+        error: err,
+        message: err.message,
+        code: err.code,
+        reason: err.reason,
+        stack: err.stack
+      });
       
       // Parse the error to show user-friendly message
       let errorMessage = 'Failed to book event';
@@ -141,11 +156,111 @@ export default function BookEventButton({
     }
   };
 
-  if (isSuccess) {
+  // Success modal with transaction details
+  if (isSuccess && hash) {
+    const explorerUrl = `https://sepolia.etherscan.io/tx/${hash}`;
+    
     return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-        <h3 className="text-lg font-semibold text-green-900">Booking Confirmed!</h3>
-        <p className="text-sm text-green-700 mt-1">Your seats are reserved. See you at the event!</p>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
+          {/* Success Header */}
+          <div className="text-center mb-6">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Booking Confirmed!</h3>
+            <p className="text-gray-600">Your transaction has been successfully submitted to the blockchain</p>
+          </div>
+
+          {/* Transaction Details */}
+          <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-3">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Transaction Hash</p>
+              <div className="flex items-center gap-2">
+                <code className="text-sm text-gray-900 font-mono bg-white px-3 py-2 rounded border border-gray-200 flex-1 overflow-x-auto">
+                  {hash}
+                </code>
+                <button
+                  onClick={() => navigator.clipboard.writeText(hash)}
+                  className="p-2 hover:bg-gray-200 rounded transition-colors"
+                  title="Copy transaction hash"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-200">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Status</p>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                  <span className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                  Confirmed
+                </span>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Network</p>
+                <p className="text-sm font-medium text-gray-900">Sepolia Testnet</p>
+              </div>
+            </div>
+
+            {costData && (
+              <div className="pt-3 border-t border-gray-200">
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Booking Details</p>
+                <div className="space-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Seats Booked:</span>
+                    <span className="font-medium text-gray-900">{seatCount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Ticket Price:</span>
+                    <span className="font-medium text-gray-900">₹{costData.total_price_inr.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Refundable Stake:</span>
+                    <span className="font-medium text-purple-600">₹{costData.stake_inr.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between pt-1.5 border-t border-gray-200">
+                    <span className="font-semibold text-gray-900">Total Paid:</span>
+                    <span className="font-bold text-gray-900">₹{costData.total_cost_inr.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            <a
+              href={explorerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full text-center bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
+            >
+              View on Etherscan
+            </a>
+            <button
+              onClick={() => {
+                setShowModal(false);
+                window.location.reload(); // Refresh to show updated bookings
+              }}
+              className="block w-full text-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-900 font-medium"
+            >
+              Close
+            </button>
+          </div>
+
+          {/* Info Message */}
+          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-sm text-blue-800">
+              <span className="font-semibold">Important:</span> Your ₹{costData?.stake_inr.toLocaleString('en-IN') || '200'} stake will be refunded after you attend the event. Don&apos;t forget to check in!
+            </p>
+          </div>
+        </div>
       </div>
     );
   }

@@ -109,20 +109,41 @@ export function useCreateBooking() {
     const stake = (totalTicketPrice * BigInt(20)) / BigInt(100);
     const totalCost = totalTicketPrice + stake;
 
-    return await writeContractAsync({
-      address: BOOKING_CONTRACT_ADDRESS,
-      abi: BOOKING_CONTRACT_ABI,
-      functionName: 'createBooking',
-      args: [
-        hostAddress as `0x${string}`,
-        eventRunRef,
-        ticketPriceInWei,
-        BigInt(seatCount),
-        BigInt(eventTimestamp)
-      ],
-      value: totalCost,
-      gas: BigInt(500000), // Explicit gas limit (well within network cap of 16.7M)
+    console.log('[BOOKING CONTRACT] Creating booking with params:', {
+      contractAddress: BOOKING_CONTRACT_ADDRESS,
+      hostAddress,
+      eventRunRef,
+      ticketPriceInWei: ticketPriceInWei.toString(),
+      seatCount,
+      eventTimestamp,
+      totalTicketPrice: totalTicketPrice.toString(),
+      stake: stake.toString(),
+      totalCost: totalCost.toString(),
+      gasLimit: 500000
     });
+
+    try {
+      const result = await writeContractAsync({
+        address: BOOKING_CONTRACT_ADDRESS,
+        abi: BOOKING_CONTRACT_ABI,
+        functionName: 'createBooking',
+        args: [
+          hostAddress as `0x${string}`,
+          eventRunRef,
+          ticketPriceInWei,
+          BigInt(seatCount),
+          BigInt(eventTimestamp)
+        ],
+        value: totalCost,
+        gas: BigInt(500000), // Explicit gas limit (well within network cap of 16.7M)
+      });
+      
+      console.log('[BOOKING CONTRACT] Transaction submitted:', result);
+      return result;
+    } catch (err) {
+      console.error('[BOOKING CONTRACT] Transaction failed:', err);
+      throw err;
+    }
   };
 
   return {
