@@ -289,7 +289,7 @@ export default function ExperienceRunDetailPage() {
               <BookEventButton 
                 eventRunId={runId}
                 availableSeats={displayData.upcoming_sessions?.[0]?.available_spots || eventRun.max_capacity}
-                hostWalletAddress={displayData.host?.wallet_address || eventRun.host_wallet_address}
+                hostWalletAddress={displayData.host?.wallet_address || eventRun.host_wallet_address || undefined}
                 eventTimestamp={displayData.upcoming_sessions?.[0]?.date || eventRun.start_datetime}
                 priceINR={Number(displayData.price || eventRun.price_inr)}
               />
