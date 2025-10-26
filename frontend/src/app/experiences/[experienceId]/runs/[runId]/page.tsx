@@ -1,17 +1,15 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ExploreAPI } from "@/lib/api";
 import { EventRunAPI } from "@/lib/event-run-api";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Heart, MapPin, Clock, Users, Calendar, Star } from "lucide-react";
+import { Heart, MapPin, Clock, Users, Star } from "lucide-react";
 import BookEventButton from "@/components/BookEventButton";
 import PriceDisplay from "@/components/PriceDisplay";
 
 export default function ExperienceRunDetailPage() {
   const params = useParams();
-  const experienceId = params.experienceId as string;
   const runId = params.runId as string;
 
   // Fetch the specific event run details (includes experience info)
@@ -68,6 +66,10 @@ export default function ExperienceRunDetailPage() {
     host: {
       name: eventRun.host_name || "Host",
       wallet_address: eventRun.host_wallet_address,
+      bio: "Experienced local host",
+      rating: undefined,
+      experience_count: undefined,
+      languages: undefined,
     },
     upcoming_sessions: [{
       date: eventRun.start_datetime,
@@ -78,24 +80,14 @@ export default function ExperienceRunDetailPage() {
       area: eventRun.neighborhood || "Location TBA",
     },
     max_participants: eventRun.max_capacity,
+    rating: undefined,
+    review_count: 0,
+    reviews: undefined,
+    includes: undefined,
+    what_to_bring: undefined,
+    long_description: undefined,
   };
 
-  const formatPrice = (price: number) => {
-    return `₹${price.toLocaleString('en-IN')}`;
-  };
-
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   return (
     <div className="min-h-screen bg-white">
