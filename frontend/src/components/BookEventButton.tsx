@@ -30,6 +30,16 @@ export default function BookEventButton({
   const [bookingError, setBookingError] = useState<string | null>(null);
   
   const { createBooking, hash, isPending, isConfirming, isSuccess, error } = useCreateBooking();
+  
+  // Track if transaction failed after submission
+  const [transactionFailed, setTransactionFailed] = useState(false);
+  
+  // Reset transaction failed state when modal opens
+  useEffect(() => {
+    if (showModal) {
+      setTransactionFailed(false);
+    }
+  }, [showModal]);
 
   // Fetch cost from backend API
   useEffect(() => {
@@ -128,6 +138,7 @@ export default function BookEventButton({
       // });
       
       setBookingError(null);
+      setTransactionFailed(false);
     } catch (err: any) {
       console.error('[BOOKING] Error details:', {
         error: err,
@@ -136,6 +147,8 @@ export default function BookEventButton({
         reason: err.reason,
         stack: err.stack
       });
+      
+      setTransactionFailed(true);
       
       // Parse the error to show user-friendly message
       let errorMessage = 'Failed to book event';
@@ -146,6 +159,8 @@ export default function BookEventButton({
         errorMessage = 'Insufficient funds. Please add more Sepolia ETH to your wallet.';
       } else if (err.message?.includes('Invalid host')) {
         errorMessage = 'Invalid host wallet address. Please contact support.';
+      } else if (err.message?.includes('undefined') || err.message?.includes('contract')) {
+        errorMessage = 'Booking contract not deployed. Please contact support.';
       } else if (err.reason) {
         errorMessage = err.reason;
       } else if (err.message) {
@@ -386,12 +401,13 @@ export default function BookEventButton({
               </button>
               <button
                 onClick={handleBook}
-                disabled={isPending || isConfirming || !isConnected || (chain && chain.id !== sepolia.id)}
+                disabled={(isPending || (isConfirming && !transactionFailed)) || !isConnected || (chain && chain.id !== sepolia.id)}
                 className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 transition-all"
               >
-                {isPending && 'Waiting...'}
-                {isConfirming && 'Confirming...'}
-                {!isPending && !isConfirming && (chain && chain.id !== sepolia.id ? 'Wrong Network' : 'Confirm & Pay')}
+                {isPending && !transactionFailed && 'Waiting...'}
+                {isConfirming && !transactionFailed && 'Confirming...'}
+                {transactionFailed && 'Try Again'}
+                {!isPending && !isConfirming && !transactionFailed && (chain && chain.id !== sepolia.id ? 'Wrong Network' : 'Confirm & Pay')}
               </button>
             </div>
 
