@@ -169,12 +169,7 @@ class EventRunService:
                 neighborhood,
                 price_inr,
                 duration_minutes,
-                host_id,
-                users!inner (
-                    id,
-                    full_name,
-                    wallet_address
-                )
+                host_id
             )
         """
             )
@@ -190,7 +185,16 @@ class EventRunService:
         
         run = response.data[0]
         experience = run["experiences"]
-        host = experience["users"]
+        
+        # Fetch host details separately
+        host_response = (
+            service_client.table("users")
+            .select("id, full_name, wallet_address")
+            .eq("id", experience["host_id"])
+            .execute()
+        )
+        
+        host = host_response.data[0] if host_response.data else {}
         
         # Calculate available spots
         available_spots = await self._calculate_available_spots(
@@ -221,9 +225,9 @@ class EventRunService:
             created_at=datetime.fromisoformat(run["created_at"].replace("Z", "+00:00")),
             updated_at=datetime.fromisoformat(run["updated_at"].replace("Z", "+00:00")),
             booking_summary=booking_summary,
-            experience_title=experience["title"],
-            experience_domain=experience["experience_domain"],
-            host_name=host["full_name"],
+            experience_title=experience.get("title"),
+            experience_domain=experience.get("experience_domain"),
+            host_name=host.get("full_name"),
             host_wallet_address=host.get("wallet_address"),
             price_inr=Decimal(str(effective_price)),
             duration_minutes=experience.get("duration_minutes"),
