@@ -689,6 +689,10 @@ class EventRunService:
                 users!experiences_host_id_fkey (
                     id,
                     full_name
+                ),
+                experience_photos!experience_photos_experience_id_fkey (
+                    photo_url,
+                    is_cover_photo
                 )
             )
         """
@@ -729,6 +733,18 @@ class EventRunService:
             # Calculate effective price (special pricing overrides base price)
             effective_price = run["special_pricing_inr"] or experience["price_inr"]
 
+            # Get cover photo URL
+            cover_photo_url = None
+            if experience.get("experience_photos"):
+                # Find the cover photo
+                for photo in experience["experience_photos"]:
+                    if photo.get("is_cover_photo"):
+                        cover_photo_url = photo.get("photo_url")
+                        break
+                # If no cover photo marked, use the first photo
+                if not cover_photo_url and len(experience["experience_photos"]) > 0:
+                    cover_photo_url = experience["experience_photos"][0].get("photo_url")
+
             # Build explore event run object
             explore_run = ExploreEventRun(
                 id=run["id"],
@@ -751,6 +767,7 @@ class EventRunService:
                 neighborhood=experience.get("neighborhood"),
                 meeting_landmark=experience.get("meeting_landmark"),
                 duration_minutes=experience["duration_minutes"],
+                cover_photo_url=cover_photo_url,
                 # Host details
                 host_id=host["id"],
                 host_name=host["full_name"],

@@ -170,16 +170,17 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
       setSubmitting(true);
       setError('');
 
-      // Construct date-time strings
-      const startDateTime = `${selectedDate}T${startTime}:00`;
-      const endDateTime = `${selectedDate}T${endTime}:00`;
+      // Construct date-time strings in ISO format with timezone
+      // Assuming local timezone, convert to ISO string
+      const startDateTime = new Date(`${selectedDate}T${startTime}:00`).toISOString();
+      const endDateTime = new Date(`${selectedDate}T${endTime}:00`).toISOString();
 
       const eventRunData: EventRunCreate = {
         experience_id: selectedExperience,
         start_datetime: startDateTime,
         end_datetime: endDateTime,
         max_capacity: maxCapacity,
-        special_pricing_inr: specialPricing ? parseFloat(specialPricing) : null,
+        special_pricing_inr: specialPricing && specialPricing.trim() ? parseFloat(specialPricing) : null,
         host_meeting_instructions: meetingInstructions.trim() || null,
         group_pairing_enabled: groupPairingEnabled
       };

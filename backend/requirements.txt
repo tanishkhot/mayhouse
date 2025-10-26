@@ -12,4 +12,5 @@ web3==7.6.0
 hexbytes>=1.2.0
 eip712>=0.1.0
 requests>=2.31.0
+python-multipart==0.0.9
 

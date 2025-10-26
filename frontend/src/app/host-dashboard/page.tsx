@@ -125,17 +125,27 @@ const HostDashboardContent = () => {
         return;
       }
 
+      // Get current user to extract host_id
+      const userResponse = await api.get('/auth/me');
+      const userData = userResponse.data;
+
+      // Submit with correct payload structure matching backend schema
       await api.post(`/experiences/${experienceId}/submit`, {
-        submission_notes: 'Ready for admin review',
-        ready_for_review: true
+        host_id: userData.id,
+        submission_data: {
+          submission_notes: 'Ready for admin review',
+          ready_for_review: true
+        }
       });
 
       // Refresh the experiences list
       fetchExperiences();
       setSelectedExperience(null);
+      alert('Experience submitted for review successfully!');
     } catch (err: unknown) {
       console.error('Error submitting experience:', err);
       setError(err instanceof Error ? err.message : 'Failed to submit experience');
+      alert('Failed to submit experience. Please try again.');
     }
   };
   

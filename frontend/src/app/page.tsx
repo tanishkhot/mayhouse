@@ -251,9 +251,23 @@ function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
       className="group cursor-pointer"
     >
       <div className="relative mb-3">
-        {/* Placeholder image with gradient */}
-        <div className="h-64 rounded-xl bg-gradient-to-br from-red-400 to-pink-600 relative overflow-hidden">
-          <div className="absolute inset-0 bg-black/20"></div>
+        {/* Cover Photo or Gradient Placeholder */}
+        <div className="h-64 rounded-xl relative overflow-hidden">
+          {eventRun.cover_photo_url ? (
+            <>
+              <img 
+                src={eventRun.cover_photo_url} 
+                alt={eventRun.experience_title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+            </>
+          ) : (
+            <>
+              <div className="w-full h-full bg-gradient-to-br from-red-400 to-pink-600"></div>
+              <div className="absolute inset-0 bg-black/20"></div>
+            </>
+          )}
           <div className="absolute bottom-4 left-4 text-white">
             <div className="text-xs font-medium bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full mb-2 w-fit">
               {eventRun.experience_domain}

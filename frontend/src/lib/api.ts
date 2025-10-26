@@ -218,6 +218,7 @@ export type ExploreEventRun = {
   neighborhood?: string | null;
   meeting_landmark?: string | null;
   duration_minutes: number;
+  cover_photo_url?: string | null;
   host_id: string;
   host_name: string;
   host_meeting_instructions?: string | null;

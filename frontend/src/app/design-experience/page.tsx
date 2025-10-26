@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { HostOnlyRoute } from '@/components/ProtectedRoute';
 import { api } from '@/lib/api';
+import { ExperiencePhotoUpload } from '@/components/ExperiencePhotoUpload';
 
 const DesignExperienceContent = () => {
   const router = useRouter();
@@ -30,6 +31,8 @@ const DesignExperienceContent = () => {
     whatToKnow: '',
     whatToBring: '',
   });
+  const [createdExperienceId, setCreatedExperienceId] = useState<string | null>(null);
+  const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
 
   // Define fetchExperienceData before using it in useEffect
   const fetchExperienceData = useCallback(async (id: string) => {
@@ -88,11 +91,56 @@ const DesignExperienceContent = () => {
   }, [searchParams, fetchExperienceData]);
 
   const handleNext = () => {
-    if (step < 3) setStep(step + 1);
+    if (step < 4) setStep(step + 1);
   };
 
   const handleBack = () => {
     if (step > 1) setStep(step - 1);
+  };
+
+  const handleSubmitForReview = async () => {
+    const expId = createdExperienceId || experienceId;
+    
+    if (!expId) {
+      alert('No experience found to submit. Please save your experience first.');
+      return;
+    }
+
+    setIsSubmittingForReview(true);
+
+    try {
+      console.log('📤 Submitting experience for review...');
+      
+      // Get current user to extract host_id
+      const userResponse = await api.get('/auth/me');
+      const userData = userResponse.data;
+      console.log('👤 User data:', { id: userData.id, role: userData.role });
+      
+      // Submit with correct payload structure
+      const submitPayload = {
+        host_id: userData.id,
+        submission_data: {
+          submission_notes: 'Ready for admin review',
+          ready_for_review: true
+        }
+      };
+      
+      console.log('📤 Submission payload:', submitPayload);
+      
+      const submitResponse = await api.post(`/experiences/${expId}/submit`, submitPayload);
+      console.log('✅ Submission successful:', submitResponse.data);
+      
+      alert('Experience submitted for review! You can track its status in your dashboard.');
+      router.push('/host-dashboard');
+    } catch (error: any) {
+      console.error('❌ Submission failed:', error);
+      console.error('❌ Error response:', error.response?.data);
+      
+      const errorMessage = error.response?.data?.detail || 'Failed to submit for review. Please try again.';
+      alert(`Error: ${errorMessage}`);
+    } finally {
+      setIsSubmittingForReview(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -265,46 +313,20 @@ No valid token found for creating experiences.
       const result = response.data;
       console.log(`✅ FORM: Experience ${isEditMode ? 'updated' : 'created'} successfully:`, result);
         
+        // Store the created experience ID for photo upload
+        if (!isEditMode && result.id) {
+          setCreatedExperienceId(result.id);
+          // Move to photo upload step
+          setStep(4);
+        }
+        
         if (isEditMode) {
           // For updates, just show success message and redirect
           alert('Experience updated successfully! You can now submit it for review again from your dashboard.');
           router.push('/host-dashboard');
         } else {
-          // For new experiences, handle submission if checkbox is checked
-          if (submitForReview) {
-            try {
-              console.log('📤 FORM: Submitting experience for review...');
-              
-              // Get current user to extract host_id
-              const userResponse = await api.get('/auth/me');
-              const userData = userResponse.data;
-              console.log('👤 FORM: User data:', { id: userData.id, role: userData.role });
-              
-              // Submit with correct payload structure
-              const submitPayload = {
-                host_id: userData.id,
-                submission_data: {
-                  submission_notes: 'Ready for admin review',
-                  ready_for_review: true
-                }
-              };
-              
-              console.log('📤 FORM: Submission payload:', submitPayload);
-              
-              const submitResponse = await api.post(`/experiences/${result.id}/submit`, submitPayload);
-              console.log('✅ FORM: Submission successful:', submitResponse.data);
-              
-              alert('Experience created and submitted for review! You can track its status in your dashboard.');
-            } catch (submitError: any) {
-              console.error('❌ FORM: Submission failed:', submitError);
-              console.error('❌ FORM: Submission error response:', submitError.response?.data);
-              alert('Experience created successfully, but failed to submit for review. You can submit it manually from your dashboard.');
-            }
-          } else {
-            alert('Experience created successfully! It has been saved as a draft. You can submit it for review from your dashboard.');
-          }
-          
-          router.push('/host-dashboard');
+          // For new experiences, don't redirect yet - let them upload photos
+          // Submission will be handled from the dashboard
         }
     } catch (error: any) {
       console.log('💥 FORM: Error:', error);
@@ -459,7 +481,7 @@ No valid token found for creating experiences.
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-4">
-                {[1, 2, 3].map((num) => (
+                {[1, 2, 3, 4].map((num) => (
                   <div
                     key={num}
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
@@ -472,12 +494,12 @@ No valid token found for creating experiences.
                   </div>
                 ))}
               </div>
-              <span className="text-sm text-black">Step {step} of 3</span>
+              <span className="text-sm text-black">Step {step} of 4</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className="bg-red-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(step / 3) * 100}%` }}
+                style={{ width: `${(step / 4) * 100}%` }}
               ></div>
             </div>
           </div>
@@ -556,8 +578,8 @@ No valid token found for creating experiences.
                     </label>
                     <input
                       type="number"
-                      value={formData.duration}
-                      onChange={(e) => updateFormData('duration', parseInt(e.target.value))}
+                      value={formData.duration || ''}
+                      onChange={(e) => updateFormData('duration', parseInt(e.target.value) || 30)}
                       min="30"
                       max="480"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-red-500 focus:border-red-500"
@@ -579,8 +601,8 @@ No valid token found for creating experiences.
                     </label>
                     <input
                       type="number"
-                      value={formData.maxCapacity}
-                      onChange={(e) => updateFormData('maxCapacity', parseInt(e.target.value))}
+                      value={formData.maxCapacity || ''}
+                      onChange={(e) => updateFormData('maxCapacity', parseInt(e.target.value) || 1)}
                       min="1"
                       max="4"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-red-500 focus:border-red-500"
@@ -703,24 +725,63 @@ No valid token found for creating experiences.
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-red-500 focus:border-red-500"
                   />
                 </div>
+              </div>
+            )}
 
-                {/* Submit for Review Option - Only show for new experiences */}
-                {!isEditMode && (
-                  <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="checkbox"
-                        id="submitForReview"
-                        checked={submitForReview}
-                        onChange={(e) => setSubmitForReview(e.target.checked)}
-                        className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
-                      />
-                      <label htmlFor="submitForReview" className="text-sm font-medium text-blue-800">
-                        Submit for admin review immediately after creation
-                      </label>
+            {step === 4 && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-black mb-6">Photos & Final Review</h2>
+                
+                {/* Photo Upload Section */}
+                <div className="mb-8">
+                  {(createdExperienceId || experienceId) ? (
+                    <ExperiencePhotoUpload 
+                      experienceId={createdExperienceId || experienceId || ''}
+                      maxPhotos={10}
+                    />
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                      <p className="text-sm text-gray-600 mb-4">
+                        Please save your experience first to upload photos
+                      </p>
+                      <button
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                        className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSubmitting ? 'Saving Experience...' : 'Save Experience'}
+                      </button>
                     </div>
-                    <p className="text-xs text-blue-700 mt-2 ml-7">
-                      If checked, your experience will be automatically submitted for admin approval. Otherwise, it will be saved as a draft that you can submit later.
+                  )}
+                </div>
+
+                {/* Submit for Review Section - Only show for new experiences */}
+                {!isEditMode && (createdExperienceId || experienceId) && (
+                  <div className="border border-green-200 rounded-lg p-6 bg-green-50">
+                    <h3 className="text-lg font-semibold text-green-900 mb-3">
+                      Ready to Submit?
+                    </h3>
+                    <p className="text-sm text-green-800 mb-4">
+                      Your experience has been created and photos have been uploaded! You can now submit it for admin review, or save it as a draft and submit later from your dashboard.
+                    </p>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleSubmitForReview}
+                        disabled={isSubmittingForReview}
+                        className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                      >
+                        {isSubmittingForReview ? 'Submitting...' : '✓ Submit for Review'}
+                      </button>
+                      <button
+                        onClick={() => router.push('/host-dashboard')}
+                        disabled={isSubmittingForReview}
+                        className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                      >
+                        Save as Draft
+                      </button>
+                    </div>
+                    <p className="text-xs text-green-700 mt-3">
+                      💡 Tip: Once submitted, your experience will be reviewed by our team. You'll be notified of the decision.
                     </p>
                   </div>
                 )}
@@ -729,7 +790,7 @@ No valid token found for creating experiences.
                 {isEditMode && (
                   <div className="border border-orange-200 rounded-lg p-4 bg-orange-50">
                     <div className="flex items-center space-x-3">
-                      <div className="w-4 h-4 bg-orange-400 rounded-full flex-shrink-0"></div>
+                      <div className="w-4 h-4 bg-orange-400 rounded-full shrink-0"></div>
                       <div>
                         <p className="text-sm font-medium text-orange-800">
                           Editing Experience
@@ -773,17 +834,34 @@ No valid token found for creating experiences.
                 >
                   Next
                 </button>
-              ) : (
+              ) : step === 3 ? (
                 <button
-                  onClick={handleSubmit}
+                  onClick={() => {
+                    // If experience is already created, just go to next step
+                    if (createdExperienceId || experienceId) {
+                      handleNext();
+                    } else {
+                      // Otherwise, create the experience first
+                      handleSubmit();
+                    }
+                  }}
                   disabled={isSubmitting}
                   className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting 
                     ? (isEditMode ? 'Updating Experience...' : 'Creating Experience...') 
-                    : (isEditMode ? 'Update Experience' : 'Create Experience')
+                    : 'Continue to Photos'
                   }
                 </button>
+              ) : (
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => router.push('/host-dashboard')}
+                    className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                  >
+                    ← Back to Dashboard
+                  </button>
+                </div>
               )}
             </div>
           </div>

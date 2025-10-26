@@ -257,6 +257,7 @@ class ExploreEventRun(BaseModel):
     neighborhood: Optional[str] = Field(None, description="Experience neighborhood")
     meeting_landmark: Optional[str] = Field(None, description="Meeting landmark")
     duration_minutes: int = Field(..., description="Experience duration in minutes")
+    cover_photo_url: Optional[str] = Field(None, description="URL of experience cover photo")
 
     # Host details
     host_id: str = Field(..., description="Host user ID")

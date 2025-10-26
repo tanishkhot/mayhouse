@@ -15,6 +15,7 @@ from app.api.event_runs import admin_router as event_run_admin_router
 from app.api.legal_policies import router as legal_policies_router
 from app.api.eip712_policy import router as eip712_policy_router
 from app.api.blockchain import router as blockchain_router
+from app.api.experience_photos import router as experience_photos_router
 
 settings = get_settings()
 
@@ -59,6 +60,7 @@ app.include_router(event_run_admin_router)  # Event run admin endpoints
 app.include_router(legal_policies_router)  # Legal policies endpoints
 app.include_router(eip712_policy_router)  # EIP-712 policy signing endpoints
 app.include_router(blockchain_router)  # Blockchain operations endpoints
+app.include_router(experience_photos_router)  # Experience photos endpoints
 
 
 # Root endpoint
