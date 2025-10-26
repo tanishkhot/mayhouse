@@ -1,10 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ExploreAPI, ExploreEventRun, AuthAPI, getAccessToken } from "@/lib/api";
+import { ExploreAPI, ExploreEventRun } from "@/lib/api";
 import Link from "next/link";
 import { Heart } from "lucide-react";
-import { useState, useEffect } from "react";
 import PriceDisplay from "@/components/PriceDisplay";
 // import ServerDebug from "@/components/ServerDebug";
 
@@ -17,34 +16,6 @@ type Category = {
 };
 
 export default function ExplorePage() {
-  // Authentication state for personalized greeting
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState<string | null>(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-  
-  // Check authentication status and get user data
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      const token = getAccessToken();
-      if (token) {
-        try {
-          const user = await AuthAPI.me();
-          setIsAuthenticated(true);
-          setUsername(user.username || user.email || 'User');
-        } catch (error) {
-          setIsAuthenticated(false);
-          setUsername(null);
-        }
-      } else {
-        setIsAuthenticated(false);
-        setUsername(null);
-      }
-      setLoadingUser(false);
-    };
-
-    checkAuthStatus();
-  }, []);
-  
   const { data: eventRuns = [], isLoading: eventsLoading } = useQuery({
     queryKey: ["explore"], // Removed filter dependencies for now
     queryFn: () => ExploreAPI.getUpcomingExperiences({
@@ -117,22 +88,6 @@ export default function ExplorePage() {
         </div>
       </div>
       */}
-      
-      {/* Personalized Greeting for Logged-in Users */}
-      {!loadingUser && isAuthenticated && username && (
-        <div className="bg-gradient-to-r from-red-50 to-orange-50 py-6">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Hi {username}!
-              </h1>
-              <p className="text-lg text-gray-600">
-                Discover amazing local experiences in Mumbai
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
       
       {/* Filters - Commented out for now */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
