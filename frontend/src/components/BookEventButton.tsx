@@ -11,7 +11,7 @@ interface BookEventButtonProps {
   availableSeats: number;
   hostWalletAddress?: string; // Host's wallet address (from database)
   eventTimestamp?: string; // Event start time
-  priceINR: number; // Price in INR
+  priceINR?: number; // Price in INR (optional for legacy components)
 }
 
 export default function BookEventButton({ 
@@ -19,7 +19,7 @@ export default function BookEventButton({
   availableSeats, 
   hostWalletAddress,
   eventTimestamp,
-  priceINR: _priceINR 
+  priceINR = 0 // Default to 0 for legacy components
 }: BookEventButtonProps) {
   const { isConnected, chain } = useAccount();
   const { switchChain } = useSwitchChain();
