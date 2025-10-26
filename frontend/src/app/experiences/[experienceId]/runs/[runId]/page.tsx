@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Heart, MapPin, Clock, Users, Calendar, Star } from "lucide-react";
 import BookEventButton from "@/components/BookEventButton";
+import PriceDisplay from "@/components/PriceDisplay";
 
 export default function ExperienceRunDetailPage() {
   const params = useParams();
@@ -193,8 +194,12 @@ export default function ExperienceRunDetailPage() {
           <div className="lg:col-span-1">
             <div className="sticky top-24 bg-white border border-gray-200 rounded-xl p-6 shadow-lg">
               <div className="text-center mb-6">
-                <div className="text-3xl font-bold text-gray-900">{formatPrice(experience.price)}</div>
-                <div className="text-gray-500">per person</div>
+                <PriceDisplay 
+                  priceINR={experience.price} 
+                  size="large"
+                  className="text-center"
+                />
+                <div className="text-gray-500 mt-2">per person</div>
               </div>
 
               {/* Available dates */}
@@ -221,9 +226,12 @@ export default function ExperienceRunDetailPage() {
                             {session.available_spots} spots available
                           </div>
                         </div>
-                        <div className="text-red-500">
-                          {formatPrice(experience.price)}
-                        </div>
+                        <PriceDisplay 
+                          priceINR={experience.price} 
+                          size="small"
+                          showINR={false}
+                          className="text-red-500"
+                        />
                       </div>
                     </button>
                   ))}
