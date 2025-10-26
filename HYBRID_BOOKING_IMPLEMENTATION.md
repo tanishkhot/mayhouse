@@ -3,6 +3,7 @@
 ## Overview
 
 Implemented a hybrid system where:
+
 - ✅ Event runs stay **OFF-CHAIN** in database (Postgres/Supabase)
 - ✅ Bookings create **ON-CHAIN** transactions for payment + stake
 - ✅ Smart contract uses event run **UUID references** (not on-chain IDs)
@@ -15,6 +16,7 @@ Implemented a hybrid system where:
 **Location**: `/contracts/contracts/MayhouseBooking.sol`
 
 **Key Features**:
+
 - No need for on-chain event runs
 - Uses `string eventRunRef` (UUID from database)
 - Handles payment + 20% refundable stake
@@ -22,6 +24,7 @@ Implemented a hybrid system where:
 - Platform fee (5%) and stake management (20%)
 
 **Main Functions**:
+
 ```solidity
 function createBooking(
     address _host,
@@ -39,11 +42,13 @@ function cancelBooking(uint256 _bookingId)   // Cancel before event
 ### 2. Frontend Integration
 
 **New File**: `/frontend/src/lib/booking-contract.ts`
+
 - Simplified ABI for MayhouseBooking
 - React hooks: `useCreateBooking`, `useCalculateBookingCost`
 - No need for event run IDs!
 
 **Updated**: `/frontend/src/components/BookEventButton.tsx`
+
 - Uses `createBooking` instead of `bookEvent`
 - Passes event run UUID as reference
 - Requires host wallet address from database
@@ -79,39 +84,46 @@ Smart contract:
 ## Deployment Steps
 
 ### 1. Free Up Disk Space (Required!)
+
 ```bash
 df -h  # Check disk usage
 # Clean node_modules, caches, Docker images, etc.
 ```
 
 ### 2. Compile Contract
+
 ```bash
 cd /Users/maverick/ethonline-hackathon/mayhouse/contracts
 npx hardhat compile
 ```
 
 ### 3. Deploy to Sepolia
+
 ```bash
 npx hardhat run scripts/deploy-booking.js --network sepolia
 ```
 
 Expected output:
+
 ```
 ✅ MayhouseBooking deployed to: 0x...
    - Platform Fee: 5%
    - Stake Percentage: 20%
-   
+
 📝 Save this address to your frontend .env:
    NEXT_PUBLIC_BOOKING_CONTRACT_ADDRESS=0x...
 ```
 
 ### 4. Update Frontend Environment
+
 Add to `/frontend/.env.local`:
+
 ```bash
 NEXT_PUBLIC_BOOKING_CONTRACT_ADDRESS=0xYOUR_DEPLOYED_ADDRESS
 ```
 
 ### 5. Verify on Etherscan (Optional)
+
 ```bash
 npx hardhat verify --network sepolia 0xYOUR_ADDRESS YOUR_PLATFORM_WALLET
 ```
@@ -121,6 +133,7 @@ npx hardhat verify --network sepolia 0xYOUR_ADDRESS YOUR_PLATFORM_WALLET
 ### Required Database Columns
 
 Add to `event_runs` or create `blockchain_bookings` table:
+
 ```sql
 -- Option A: Add to event_runs
 ALTER TABLE event_runs ADD COLUMN blockchain_bookings JSONB;
@@ -144,14 +157,17 @@ CREATE TABLE blockchain_bookings (
 ### API Endpoints Needed
 
 1. **POST `/bookings/record-blockchain`**
+
    - Records blockchain booking ID after successful transaction
    - Links event run UUID ↔ blockchain booking ID
 
 2. **GET `/bookings/blockchain-status/:eventRunId`**
+
    - Returns all blockchain bookings for an event run
    - Used by host to mark attendance
 
 3. **POST `/bookings/complete/:blockchainBookingId`**
+
    - Host marks booking as complete
    - Calls smart contract `completeBooking()`
 
@@ -162,12 +178,14 @@ CREATE TABLE blockchain_bookings (
 ## Testing
 
 ### Local Testing
+
 1. Navigate to: `http://localhost:3000/test-contract`
 2. DO NOT create event runs on blockchain
 3. Use the explore page to book real event runs
 4. Event runs are in database only!
 
 ### What to Test
+
 - ✅ Book an event with Sepolia ETH
 - ✅ Check MetaMask shows correct payment + stake
 - ✅ Transaction succeeds
@@ -176,13 +194,13 @@ CREATE TABLE blockchain_bookings (
 
 ## Key Differences from Old System
 
-| Aspect | Old System | New System (Hybrid) |
-|--------|-----------|---------------------|
-| Event Runs | On-chain | Off-chain (database) ✅ |
-| Bookings | On-chain with event run ID | On-chain with UUID reference ✅ |
-| Host Stake | Required when creating event | Not needed (no on-chain events) ✅ |
-| Event Run Counter | Smart contract counter | Database auto-increment ✅ |
-| Flexibility | Limited (blockchain immutable) | High (database editable) ✅ |
+| Aspect            | Old System                     | New System (Hybrid)                |
+| ----------------- | ------------------------------ | ---------------------------------- |
+| Event Runs        | On-chain                       | Off-chain (database) ✅            |
+| Bookings          | On-chain with event run ID     | On-chain with UUID reference ✅    |
+| Host Stake        | Required when creating event   | Not needed (no on-chain events) ✅ |
+| Event Run Counter | Smart contract counter         | Database auto-increment ✅         |
+| Flexibility       | Limited (blockchain immutable) | High (database editable) ✅        |
 
 ## Benefits
 
@@ -216,4 +234,3 @@ CREATE TABLE blockchain_bookings (
 - This approach is more gas-efficient and flexible
 - Backend integration is straightforward
 - No migration needed - fresh start with new contract
-
