@@ -241,8 +241,11 @@ export default function ExperienceRunDetailPage() {
               </div>
 
               <BookEventButton 
-                eventRunId={runId} 
+                eventRunId={runId}
                 availableSeats={experience.upcoming_sessions?.[0]?.available_spots || 0}
+                hostWalletAddress={experience.host?.wallet_address}
+                eventTimestamp={experience.upcoming_sessions?.[0]?.date}
+                priceINR={experience.price}
               />
 
               <p className="text-center text-sm text-gray-500 mt-3">

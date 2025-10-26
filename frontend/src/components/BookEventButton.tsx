@@ -3,32 +3,33 @@
 import { useState, useEffect } from 'react';
 import { useAccount, useSwitchChain } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
-import { useBookEvent, formatEthValue } from '@/lib/contract';
+import { useCreateBooking, formatEthValue } from '@/lib/booking-contract';
 import { BlockchainAPI } from '@/lib/blockchain-api';
 
 interface BookEventButtonProps {
   eventRunId: string;  // Database ID (UUID)
   availableSeats: number;
+  hostWalletAddress?: string; // Host's wallet address (from database)
+  eventTimestamp?: string; // Event start time
+  priceINR: number; // Price in INR
 }
 
-interface CostData {
-  total_price_inr: number;
-  stake_inr: number;
-  total_cost_inr: number;
-  stake_wei: number;
-  total_cost_wei: number;
-}
-
-export default function BookEventButton({ eventRunId, availableSeats }: BookEventButtonProps) {
-  const { address, isConnected, chain } = useAccount();
+export default function BookEventButton({ 
+  eventRunId, 
+  availableSeats, 
+  hostWalletAddress,
+  eventTimestamp,
+  priceINR: _priceINR 
+}: BookEventButtonProps) {
+  const { isConnected, chain } = useAccount();
   const { switchChain } = useSwitchChain();
   const [seatCount, setSeatCount] = useState(1);
   const [showModal, setShowModal] = useState(false);
-  const [costData, setCostData] = useState<CostData | null>(null);
+  const [costData, setCostData] = useState<any>(null);
   const [loadingCost, setLoadingCost] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   
-  const { bookEvent, isPending, isConfirming, isSuccess, error } = useBookEvent();
+  const { createBooking, isPending, isConfirming, isSuccess, error } = useCreateBooking();
 
   // Fetch cost from backend API
   useEffect(() => {
@@ -77,26 +78,46 @@ export default function BookEventButton({ eventRunId, availableSeats }: BookEven
       return;
     }
 
+    if (!hostWalletAddress) {
+      setBookingError('Host wallet address not found. Please contact support.');
+      return;
+    }
+
     try {
-      // Convert Wei to ETH string for wagmi
-      const totalEth = formatEthValue(BigInt(costData.total_cost_wei));
-      
-      // For testing: Use a test event run ID if blockchain_event_run_id is not available
-      // In production, all events should be synced to blockchain before booking is enabled
-      const blockchainEventRunId = costData.blockchain_event_run_id || 1; // Default to 1 for testing
-      
-      console.log('Attempting to book event:', {
-        blockchainEventRunId,
+      console.log('Creating booking:', {
+        eventRunId,
+        hostWalletAddress,
         seatCount,
-        totalEth,
-        eventRunId
+        priceWei: costData.total_cost_wei - costData.stake_wei,
+        totalCost: costData.total_cost_wei
       });
       
-      // Call the smart contract to book the event
-      const hash = await bookEvent(blockchainEventRunId, seatCount, totalEth);
+      // Calculate ticket price in Wei (excluding stake)
+      const ticketPriceWei = BigInt(costData.total_cost_wei - costData.stake_wei);
+      
+      // Convert event timestamp to Unix timestamp
+      const eventUnixTimestamp = eventTimestamp 
+        ? Math.floor(new Date(eventTimestamp).getTime() / 1000)
+        : Math.floor(Date.now() / 1000) + 86400; // Default to 24h from now
+      
+      // Call the smart contract to create booking
+      const hash = await createBooking(
+        hostWalletAddress,
+        eventRunId, // Use UUID as reference
+        ticketPriceWei,
+        seatCount,
+        eventUnixTimestamp
+      );
+      
       console.log('Booking transaction hash:', hash);
       
-      // Success! Transaction submitted
+      // TODO: Record blockchain booking ID in backend
+      // await api.post('/bookings/record-blockchain', {
+      //   event_run_id: eventRunId,
+      //   transaction_hash: hash,
+      //   user_address: address
+      // });
+      
       setBookingError(null);
     } catch (err: any) {
       console.error('Error booking event:', err);
@@ -108,8 +129,8 @@ export default function BookEventButton({ eventRunId, availableSeats }: BookEven
         errorMessage = 'Transaction was rejected. Please try again.';
       } else if (err.message?.includes('insufficient funds')) {
         errorMessage = 'Insufficient funds. Please add more Sepolia ETH to your wallet.';
-      } else if (err.message?.includes('Event run does not exist')) {
-        errorMessage = '⚠️ This event has not been synced to the blockchain yet. Please try again later or contact the host.';
+      } else if (err.message?.includes('Invalid host')) {
+        errorMessage = 'Invalid host wallet address. Please contact support.';
       } else if (err.reason) {
         errorMessage = err.reason;
       } else if (err.message) {
