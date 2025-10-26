@@ -262,6 +262,9 @@ class ExploreEventRun(BaseModel):
     # Host details
     host_id: str = Field(..., description="Host user ID")
     host_name: str = Field(..., description="Host full name")
+    host_wallet_address: Optional[str] = Field(
+        None, description="Host's Ethereum wallet address for payments"
+    )
     host_meeting_instructions: Optional[str] = Field(
         None, description="Meeting instructions from host"
     )
