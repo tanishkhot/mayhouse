@@ -67,9 +67,9 @@ export default function ExperienceRunDetailPage() {
       name: eventRun.host_name || "Host",
       wallet_address: eventRun.host_wallet_address,
       bio: "Experienced local host",
-      rating: undefined,
-      experience_count: undefined,
-      languages: undefined,
+      rating: undefined as number | undefined,
+      experience_count: undefined as number | undefined,
+      languages: undefined as string[] | undefined,
     },
     upcoming_sessions: [{
       date: eventRun.start_datetime,
@@ -80,12 +80,12 @@ export default function ExperienceRunDetailPage() {
       area: eventRun.neighborhood || "Location TBA",
     },
     max_participants: eventRun.max_capacity,
-    rating: undefined,
+    rating: undefined as number | undefined,
     review_count: 0,
-    reviews: undefined,
-    includes: undefined,
-    what_to_bring: undefined,
-    long_description: undefined,
+    reviews: undefined as Array<{ user: string; rating: number; date: string; comment: string }> | undefined,
+    includes: undefined as string[] | undefined,
+    what_to_bring: undefined as string[] | undefined,
+    long_description: undefined as string | undefined,
   };
 
 
