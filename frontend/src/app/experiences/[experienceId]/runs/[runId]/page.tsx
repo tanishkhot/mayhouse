@@ -239,7 +239,7 @@ export default function ExperienceRunDetailPage() {
               </div>
 
               <BookEventButton 
-                eventRunId={parseInt(runId)} 
+                eventRunId={runId} 
                 availableSeats={experience.upcoming_sessions?.[0]?.available_spots || 0}
               />
 

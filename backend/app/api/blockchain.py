@@ -177,12 +177,6 @@ async def calculate_booking_cost(request: BookingCostRequest) -> BookingCostResp
     event_run = response.data[0]
     blockchain_event_run_id = event_run.get("blockchain_event_run_id")
 
-    if not blockchain_event_run_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Event not yet synced to blockchain",
-        )
-
     # Get price (special pricing or base price)
     price_per_seat_inr = Decimal(
         str(
@@ -196,25 +190,15 @@ async def calculate_booking_cost(request: BookingCostRequest) -> BookingCostResp
     stake_inr = total_price_inr * Decimal("0.20")  # 20% stake
     total_cost_inr = total_price_inr + stake_inr
 
-    # Calculate costs in Wei
+    # Calculate costs in Wei (convert from INR)
     price_per_seat_wei = blockchain_service.convert_inr_to_wei(price_per_seat_inr)
-
-    # Get exact cost from blockchain
-    try:
-        payment_wei, stake_wei, total_wei = (
-            await blockchain_service.calculate_booking_cost(
-                blockchain_event_run_id, request.seat_count
-            )
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to calculate cost from blockchain: {str(e)}",
-        )
+    total_price_wei = blockchain_service.convert_inr_to_wei(total_price_inr)
+    stake_wei = blockchain_service.convert_inr_to_wei(stake_inr)
+    total_cost_wei = blockchain_service.convert_inr_to_wei(total_cost_inr)
 
     return BookingCostResponse(
         event_run_id=request.event_run_id,
-        blockchain_event_run_id=blockchain_event_run_id,
+        blockchain_event_run_id=blockchain_event_run_id or 0,  # 0 if not synced
         seat_count=request.seat_count,
         price_per_seat_inr=price_per_seat_inr,
         total_price_inr=total_price_inr,
@@ -222,7 +206,7 @@ async def calculate_booking_cost(request: BookingCostRequest) -> BookingCostResp
         total_cost_inr=total_cost_inr,
         price_per_seat_wei=price_per_seat_wei,
         stake_wei=stake_wei,
-        total_cost_wei=total_wei,
+        total_cost_wei=total_cost_wei,
     )
 
 
