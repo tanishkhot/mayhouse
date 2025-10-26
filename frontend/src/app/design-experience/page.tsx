@@ -270,8 +270,40 @@ No valid token found for creating experiences.
           alert('Experience updated successfully! You can now submit it for review again from your dashboard.');
           router.push('/host-dashboard');
         } else {
-          // For new experiences - auto-submitted for review
-          alert('Experience created and submitted for moderator review! You can track its status in your dashboard.');
+          // For new experiences, handle submission if checkbox is checked
+          if (submitForReview) {
+            try {
+              console.log('📤 FORM: Submitting experience for review...');
+              
+              // Get current user to extract host_id
+              const userResponse = await api.get('/auth/me');
+              const userData = userResponse.data;
+              console.log('👤 FORM: User data:', { id: userData.id, role: userData.role });
+              
+              // Submit with correct payload structure
+              const submitPayload = {
+                host_id: userData.id,
+                submission_data: {
+                  submission_notes: 'Ready for admin review',
+                  ready_for_review: true
+                }
+              };
+              
+              console.log('📤 FORM: Submission payload:', submitPayload);
+              
+              const submitResponse = await api.post(`/experiences/${result.id}/submit`, submitPayload);
+              console.log('✅ FORM: Submission successful:', submitResponse.data);
+              
+              alert('Experience created and submitted for review! You can track its status in your dashboard.');
+            } catch (submitError: any) {
+              console.error('❌ FORM: Submission failed:', submitError);
+              console.error('❌ FORM: Submission error response:', submitError.response?.data);
+              alert('Experience created successfully, but failed to submit for review. You can submit it manually from your dashboard.');
+            }
+          } else {
+            alert('Experience created successfully! It has been saved as a draft. You can submit it for review from your dashboard.');
+          }
+          
           router.push('/host-dashboard');
         }
     } catch (error: any) {
