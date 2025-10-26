@@ -94,10 +94,7 @@ export default function ExperienceRunDetailPage() {
       {/* Header */}
       <header className="sticky top-0 bg-white border-b border-gray-200 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="text-purple-600 hover:text-purple-700 font-medium">
-              ← Back to explore
-            </Link>
+          <div className="flex items-center justify-end h-16">
             <nav className="flex items-center space-x-4">
               <button className="p-2 rounded-full hover:bg-gray-100">
                 <Heart className="w-5 h-5" />

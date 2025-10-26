@@ -6,11 +6,13 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import React, { useState, useEffect } from 'react';
 import { getAccessToken, clearAuthData } from '@/lib/api';
+import { Menu, X } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
   const { address, isConnected } = useAccount();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   // Hide navbar on auth pages
   const hideNavbar = pathname === '/login' || pathname === '/signup';
@@ -60,41 +62,51 @@ export default function Navbar() {
           <nav className="flex items-center space-x-4">
             {isAuthenticated ? (
               <>
-                {/* Create Experience Link */}
-                <Link 
-                  href="/design-experience" 
-                  className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 font-semibold transition-colors"
-                >
-                  Create Experience
-                </Link>
+                {/* Wallet Button */}
+                <ConnectButton 
+                  showBalance={false}
+                  chainStatus="icon"
+                  accountStatus={{
+                    smallScreen: 'avatar',
+                    largeScreen: 'full',
+                  }}
+                />
 
-                {/* Host Dashboard Link */}
-                <Link 
-                  href="/host-dashboard" 
-                  className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+                {/* Hamburger Menu Button */}
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  aria-label="Menu"
                 >
-                  My Experiences
-                </Link>
+                  {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                </button>
 
-                {/* Profile Link */}
-                <Link 
-                  href="/profile" 
-                  className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
-                >
-                  Profile
-                </Link>
-
-                {/* Wallet Info & Disconnect */}
-                <div className="flex items-center space-x-3">
-                  <ConnectButton 
-                    showBalance={false}
-                    chainStatus="icon"
-                    accountStatus={{
-                      smallScreen: 'avatar',
-                      largeScreen: 'full',
-                    }}
-                  />
-                </div>
+                {/* Dropdown Menu */}
+                {isMenuOpen && (
+                  <div className="absolute right-4 top-16 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                    <Link 
+                      href="/design-experience"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 font-medium transition-colors"
+                    >
+                      🎨 Create Experience
+                    </Link>
+                    <Link 
+                      href="/host-dashboard"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+                    >
+                      📋 My Experiences
+                    </Link>
+                    <Link 
+                      href="/profile"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+                    >
+                      👤 Profile
+                    </Link>
+                  </div>
+                )}
               </>
             ) : (
               <>
