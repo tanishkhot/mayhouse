@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { AuthenticatedRoute } from '@/components/ProtectedRoute';
+import { HostOnlyRoute } from '@/components/ProtectedRoute';
 import EventRunsList from '@/components/EventRunsList';
 import EventRunScheduler from '@/components/EventRunScheduler';
 import { api } from '@/lib/api';
@@ -1102,13 +1102,13 @@ const HostDashboardContent = () => {
 
 const HostDashboard = () => {
   return (
-    <AuthenticatedRoute>
+    <HostOnlyRoute>
       <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-500"></div>
       </div>}>
         <HostDashboardContent />
       </Suspense>
-    </AuthenticatedRoute>
+    </HostOnlyRoute>
   );
 };
 

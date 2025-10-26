@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getHostApplications, reviewHostApplication, getHostApplicationDetails, type HostApplicationSummary, type HostApplicationReview } from '@/lib/admin-api';
 import type { HostApplication } from '@/lib/host-application-api';
-import { AuthenticatedRoute } from '@/components/ProtectedRoute';
+import { AdminOnlyRoute } from '@/components/ProtectedRoute';
 import { AuthAPI, api } from '@/lib/api';
 
 // Define interfaces for moderator data
@@ -399,7 +399,7 @@ const ModeratorDashboard = () => {
   };
 
   return (
-    <AuthenticatedRoute>
+    <AdminOnlyRoute>
       <style jsx global>{`
         .force-word-break {
           word-break: break-all;
@@ -1324,7 +1324,7 @@ const ModeratorDashboard = () => {
         )}
       </div>
     </div>
-    </AuthenticatedRoute>
+    </AdminOnlyRoute>
   );
 };
 
