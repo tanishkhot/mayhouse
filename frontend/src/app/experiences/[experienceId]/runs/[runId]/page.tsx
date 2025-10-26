@@ -65,7 +65,9 @@ export default function ExperienceRunDetailPage() {
     title: eventRun.experience_title || "Experience",
     description: "Experience description",
     price: eventRun.price_inr,
-    duration: `${Math.floor(eventRun.duration_minutes / 60)}h ${eventRun.duration_minutes % 60}m`,
+    duration: eventRun.duration_minutes 
+      ? `${Math.floor(eventRun.duration_minutes / 60)}h ${eventRun.duration_minutes % 60}m`
+      : "Duration TBA",
     host: {
       name: eventRun.host_name || "Host",
       wallet_address: eventRun.host_wallet_address,
@@ -132,7 +134,12 @@ export default function ExperienceRunDetailPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="flex items-center space-x-2 text-gray-600">
                 <Clock className="w-5 h-5" />
-                <span>{displayData.duration || `${Math.floor((eventRun.duration_minutes || 0) / 60)}h ${(eventRun.duration_minutes || 0) % 60}m`}</span>
+                <span>
+                  {displayData.duration || 
+                   (eventRun.duration_minutes 
+                     ? `${Math.floor(eventRun.duration_minutes / 60)}h ${eventRun.duration_minutes % 60}m`
+                     : "Duration TBA")}
+                </span>
               </div>
               <div className="flex items-center space-x-2 text-gray-600">
                 <Users className="w-5 h-5" />
