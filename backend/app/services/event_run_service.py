@@ -148,15 +148,15 @@ class EventRunService:
     async def get_event_run_details(self, event_run_id: str) -> EventRunResponse:
         """
         Get detailed information about a specific event run.
-        
+
         Args:
             event_run_id: UUID of the event run
-            
+
         Returns:
             EventRunResponse with full details including experience and host info
         """
         service_client = self._get_service_client()
-        
+
         response = (
             service_client.table("event_runs")
             .select(
@@ -176,16 +176,16 @@ class EventRunService:
             .eq("id", event_run_id)
             .execute()
         )
-        
+
         if not response.data or len(response.data) == 0:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Event run with ID '{event_run_id}' not found"
+                detail=f"Event run with ID '{event_run_id}' not found",
             )
-        
+
         run = response.data[0]
         experience = run["experiences"]
-        
+
         # Fetch host details separately
         host_response = (
             service_client.table("users")
@@ -193,30 +193,34 @@ class EventRunService:
             .eq("id", experience["host_id"])
             .execute()
         )
-        
+
         host = host_response.data[0] if host_response.data else {}
-        
+
         # Calculate available spots
         available_spots = await self._calculate_available_spots(
             run["id"], run["max_capacity"]
         )
-        
+
         # Use special pricing or base price
         effective_price = run["special_pricing_inr"] or experience["price_inr"]
-        
+
         # Build booking summary
         booking_summary = EventRunBookingSummary(
             total_bookings=0,  # TODO: Calculate from bookings table
             confirmed_bookings=0,
             total_travelers=0,
-            available_spots=available_spots
+            available_spots=available_spots,
         )
-        
+
         return EventRunResponse(
             id=run["id"],
             experience_id=run["experience_id"],
-            start_datetime=datetime.fromisoformat(run["start_datetime"].replace("Z", "+00:00")),
-            end_datetime=datetime.fromisoformat(run["end_datetime"].replace("Z", "+00:00")),
+            start_datetime=datetime.fromisoformat(
+                run["start_datetime"].replace("Z", "+00:00")
+            ),
+            end_datetime=datetime.fromisoformat(
+                run["end_datetime"].replace("Z", "+00:00")
+            ),
             max_capacity=run["max_capacity"],
             special_pricing_inr=run.get("special_pricing_inr"),
             status=EventRunStatus(run["status"]),

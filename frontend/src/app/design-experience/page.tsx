@@ -286,19 +286,19 @@ No valid token found for creating experiences.
 Check the browser console for detailed token search results.`;
         
         alert(errorMessage);
-        console.log('❌ FORM: No valid token found, cannot proceed');
-        console.log('❌ FORM: Available localStorage keys:', allStorageKeys);
+        console.log('FORM: No valid token found, cannot proceed');
+        console.log('FORM: Available localStorage keys:', allStorageKeys);
         // router.push('/login'); // Commented out for testing
         return;
       }
       
-      console.log(`✅ FORM: Using token from '${tokenSource}': ${token.substring(0, 20)}...`);
-      console.log(`✅ FORM: Token length: ${token.length}`);
-      console.log(`✅ FORM: Token type: ${typeof token}`);
+      console.log(`FORM: Using token from '${tokenSource}': ${token.substring(0, 20)}...`);
+      console.log(`FORM: Token length: ${token.length}`);
+      console.log(`FORM: Token type: ${typeof token}`);
 
       // Use the api client instead of fetch for proper routing
-      console.log('📤 FORM: Using api client to create experience');
-      console.log('📤 FORM: Experience data:', experienceData);
+      console.log('FORM: Using api client to create experience');
+      console.log('FORM: Experience data:', experienceData);
       
       let response;
       if (isEditMode) {

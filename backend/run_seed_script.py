@@ -37,7 +37,7 @@ try:
     print("   - 1 Host user: María González (BuenosAiresGuide247)")
     print("")
     print("🎉 Refresh your frontend to see Buenos Aires experiences!")
-    
+
 except Exception as e:
     print(f"❌ Error: {e}")
     print("")
@@ -46,4 +46,3 @@ except Exception as e:
     print("   2. Open SQL Editor")
     print("   3. Paste contents of database/seed_buenos_aires_experiences.sql")
     print("   4. Click Run")
-
