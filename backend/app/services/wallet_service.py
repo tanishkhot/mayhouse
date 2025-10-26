@@ -6,6 +6,7 @@ from eth_account.messages import encode_defunct
 from web3 import Web3
 from app.core.database import get_db, get_service_client
 from app.core.jwt_utils import create_access_token
+from app.utils.username_generator import generate_elegant_username
 
 # In-memory nonce storage (use Redis in production)
 _nonce_store: Dict[str, Dict[str, Any]] = {}
@@ -112,9 +113,13 @@ async def get_or_create_user(wallet_address: str) -> Dict[str, Any]:
             # User exists, return it
             return result.data[0]
         
+        # Generate elegant username for new user
+        username = generate_elegant_username(supabase)
+        
         # Create new user
         new_user = {
             "wallet_address": wallet_address,
+            "username": username,
             "role": "user",
             "full_name": f"User {wallet_address[:6]}...{wallet_address[-4:]}",
             "created_at": datetime.utcnow().isoformat(),
