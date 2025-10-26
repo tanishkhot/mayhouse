@@ -19,16 +19,13 @@ export default function ExperienceRunDetailPage() {
     queryKey: ["eventRun", runId],
     queryFn: () => EventRunAPI.getPublicEventRunDetails(runId),
     enabled: !!runId,
+    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
   });
 
-  // Fetch experience details separately for additional info
-  const { data: experience, isLoading: experienceLoading } = useQuery({
-    queryKey: ["experience", experienceId],
-    queryFn: () => ExploreAPI.getExperienceDetails(experienceId),
-    enabled: !!experienceId && experienceId !== 'undefined',
-  });
-
-  const isLoading = eventRunLoading || experienceLoading;
+  // Note: We get all needed data from eventRun now, no need for separate experience fetch
+  // The explore API only has mock data for exp_001 anyway
+  
+  const isLoading = eventRunLoading;
 
   if (isLoading) {
     return (
@@ -60,10 +57,10 @@ export default function ExperienceRunDetailPage() {
     );
   }
 
-  // Use experience data if available, otherwise use basic info from eventRun
-  const displayData = experience || {
+  // Build display data from eventRun (includes all needed fields)
+  const displayData = {
     title: eventRun.experience_title || "Experience",
-    description: "Experience description",
+    description: "Discover an amazing local experience", // Generic description
     price: eventRun.price_inr,
     duration: eventRun.duration_minutes 
       ? `${Math.floor(eventRun.duration_minutes / 60)}h ${eventRun.duration_minutes % 60}m`
@@ -74,8 +71,13 @@ export default function ExperienceRunDetailPage() {
     },
     upcoming_sessions: [{
       date: eventRun.start_datetime,
-      available_spots: eventRun.max_capacity, // TODO: Calculate actual available spots
+      available_spots: eventRun.booking_summary?.available_spots || eventRun.max_capacity,
     }],
+    category: eventRun.experience_domain,
+    location: {
+      area: eventRun.neighborhood || "Location TBA",
+    },
+    max_participants: eventRun.max_capacity,
   };
 
   const formatPrice = (price: number) => {

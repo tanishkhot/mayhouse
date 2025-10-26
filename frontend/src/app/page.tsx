@@ -51,7 +51,9 @@ export default function ExplorePage() {
       // domain: selectedDomain,
       // neighborhood: selectedNeighborhood,
       limit: 50
-    })
+    }),
+    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
   
   // Categories and neighborhoods commented out for now

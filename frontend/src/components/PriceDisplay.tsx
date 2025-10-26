@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { convertINRtoETH, formatETH, formatINR } from "@/lib/blockchain-api";
+import { formatETH, formatINR } from "@/lib/blockchain-api";
+import { useINRtoETH } from "@/hooks/useETHPrice";
 
 interface PriceDisplayProps {
   priceINR: number;
@@ -13,7 +13,7 @@ interface PriceDisplayProps {
 
 /**
  * Component to display price in both ETH and INR
- * Fetches live conversion rates
+ * Uses cached ETH price for instant conversion
  */
 export default function PriceDisplay({
   priceINR,
@@ -22,27 +22,7 @@ export default function PriceDisplay({
   size = "medium",
   layout = "stacked",
 }: PriceDisplayProps) {
-  const [priceETH, setPriceETH] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchConversion = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const eth = await convertINRtoETH(priceINR);
-        setPriceETH(eth);
-      } catch (err) {
-        console.error("Failed to convert INR to ETH:", err);
-        setError("Failed to fetch price");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchConversion();
-  }, [priceINR]);
+  const priceETH = useINRtoETH(priceINR);
 
   const sizeClasses = {
     small: {
@@ -66,28 +46,6 @@ export default function PriceDisplay({
     // Remove the " ETH" suffix and format nicely
     return ethString.replace(' ETH', '');
   };
-
-  if (isLoading) {
-    return (
-      <div className={`animate-pulse ${className}`}>
-        <div className="h-6 bg-gray-200 rounded w-28 mb-1"></div>
-        {showINR && <div className="h-4 bg-gray-200 rounded w-20"></div>}
-      </div>
-    );
-  }
-
-  if (error || priceETH === null) {
-    return (
-      <div className={className}>
-        <div className={sizeClasses[size].eth}>{formatINR(priceINR)}</div>
-        {showINR && (
-          <div className={`${sizeClasses[size].inr} text-gray-500`}>
-            ETH price unavailable
-          </div>
-        )}
-      </div>
-    );
-  }
 
   // Inline format: "0.005 ETH / ₹1,000"
   if (layout === "inline") {
