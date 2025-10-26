@@ -57,8 +57,7 @@ class EventRunUpdateRequest(BaseModel):
     description="Create a new event run for one of your approved experiences",
 )
 async def create_event_run(
-    event_run_data: EventRunCreate,
-    authorization: str = Header(None)
+    event_run_data: EventRunCreate, authorization: str = Header(None)
 ) -> EventRunResponse:
     """
     Create a new event run for an approved experience.
@@ -79,28 +78,24 @@ async def create_event_run(
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing or invalid authorization header"
+            detail="Missing or invalid authorization header",
         )
-    
+
     token = authorization.replace("Bearer ", "")
     payload = verify_token(token)
-    
+
     if not payload:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token"
         )
-    
+
     host_id = payload.get("sub")
     if not host_id:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token payload"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
         )
-    
-    return await event_run_service.create_event_run(
-        event_run_data, host_id
-    )
+
+    return await event_run_service.create_event_run(event_run_data, host_id)
 
 
 @host_router.get(
@@ -129,25 +124,23 @@ async def list_host_event_runs(
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing or invalid authorization header"
+            detail="Missing or invalid authorization header",
         )
-    
+
     token = authorization.replace("Bearer ", "")
     payload = verify_token(token)
-    
+
     if not payload:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token"
         )
-    
+
     host_id = payload.get("sub")
     if not host_id:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token payload"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
         )
-    
+
     return await event_run_service.get_host_event_runs(
         host_id=host_id, status_filter=status_filter, limit=limit, offset=offset
     )
@@ -264,7 +257,7 @@ async def get_event_run_details(
 ) -> EventRunResponse:
     """
     Get detailed information about a specific event run.
-    
+
     This endpoint is publicly accessible for viewing event run details.
     """
     try:
@@ -273,11 +266,11 @@ async def get_event_run_details(
         if "not found" in str(e).lower():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Event run with ID '{event_run_id}' not found"
+                detail=f"Event run with ID '{event_run_id}' not found",
             )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch event run details: {str(e)}"
+            detail=f"Failed to fetch event run details: {str(e)}",
         )
 
 
