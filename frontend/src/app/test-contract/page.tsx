@@ -39,7 +39,7 @@ export default function TestContractPage() {
               Please connect your wallet to interact with the smart contract
             </p>
             <p className="text-sm text-yellow-600">
-              Make sure you're on <strong>Sepolia Testnet</strong> and have test ETH
+              Make sure you&apos;re on <strong>Sepolia Testnet</strong> and have test ETH
             </p>
           </div>
         )}
@@ -96,7 +96,7 @@ export default function TestContractPage() {
                 <h3 className="font-semibold text-blue-900 mb-2">👨‍💼 Host: Create Event</h3>
                 <p className="text-sm text-blue-700">
                   As a host, create an event and stake 20% of the total event value. 
-                  You'll get your stake back after completing the event.
+                  You&apos;ll get your stake back after completing the event.
                 </p>
               </div>
               <CreateEventForm experienceId="test-experience-1" />
@@ -109,7 +109,7 @@ export default function TestContractPage() {
                 <h3 className="font-semibold text-blue-900 mb-2">🎫 User: Book Event</h3>
                 <p className="text-sm text-blue-700">
                   Browse all available events and book by paying the ticket price + 20% stake. 
-                  You'll get your stake back after attending.
+                  You&apos;ll get your stake back after attending.
                 </p>
               </div>
               
@@ -122,7 +122,7 @@ export default function TestContractPage() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <h3 className="font-semibold text-blue-900 mb-2">👨‍💼 Host Dashboard</h3>
                 <p className="text-sm text-blue-700">
-                  View all events you've created. Complete events to get paid and return 
+                  View all events you&apos;ve created. Complete events to get paid and return 
                   stakes to attendees.
                 </p>
               </div>
@@ -135,7 +135,7 @@ export default function TestContractPage() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <h3 className="font-semibold text-blue-900 mb-2">📋 Your Bookings</h3>
                 <p className="text-sm text-blue-700">
-                  View all events you've booked. Track your stakes and attendance status.
+                  View all events you&apos;ve booked. Track your stakes and attendance status.
                 </p>
               </div>
               <UserBookings />

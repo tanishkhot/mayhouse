@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { 
   useGetHostEvents, 
@@ -50,7 +50,7 @@ export default function HostDashboard() {
       <div className="text-center py-12">
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md mx-auto">
           <p className="text-gray-800 font-semibold mb-2">No events found</p>
-          <p className="text-sm text-gray-600 mb-4">You haven't created any events yet</p>
+          <p className="text-sm text-gray-600 mb-4">You haven&apos;t created any events yet</p>
           <div className="text-left text-xs text-gray-500 bg-white p-3 rounded border border-gray-200">
             <p className="font-mono mb-1">Connected: {address?.substring(0, 10)}...{address?.substring(38)}</p>
             <p className="font-mono">Contract: 0x09aB6...1eAD5</p>
@@ -71,13 +71,16 @@ export default function HostDashboard() {
 }
 
 function EventCard({ eventRunId }: { eventRunId: number }) {
+  // Get current time once using lazy initialization (avoids calling Date.now during render)
+  const [currentTime] = React.useState(() => Date.now());
+  
   const { data: eventData, isLoading, refetch: refetchEvent } = useGetEventRun(eventRunId);
   const { data: bookingIds, refetch: refetchBookings } = useGetEventBookings(eventRunId);
   const { completeEvent, isPending: isCompleting } = useCompleteEvent();
   const { cancelEvent, isPending: isCancelling } = useCancelEvent();
   
-  const [showCompleteModal, setShowCompleteModal] = useState(false);
-  const [attendedBookings, setAttendedBookings] = useState<number[]>([]);
+  const [showCompleteModal, setShowCompleteModal] = React.useState(false);
+  const [attendedBookings, setAttendedBookings] = React.useState<number[]>([]);
 
   if (isLoading || !eventData) {
     return (
@@ -92,6 +95,9 @@ function EventCard({ eventRunId }: { eventRunId: number }) {
   const statusLabels = ['Created', 'Active', 'Full', 'Completed', 'Cancelled'];
   const statusColors = ['gray', 'blue', 'yellow', 'green', 'red'];
   const statusColor = statusColors[event.status] || 'gray';
+
+  // Check if event is in the future (using time captured at component initialization)
+  const isEventInFuture = Number(event.eventTimestamp) * 1000 > currentTime;
 
   const handleComplete = async () => {
     if (!bookingIds || bookingIds.length === 0) {
@@ -173,7 +179,7 @@ function EventCard({ eventRunId }: { eventRunId: number }) {
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
           <p className="text-sm text-blue-800">
-            <strong>💰 Expected Payout:</strong> {formatEthValue(event.pricePerSeat * event.seatsBooked)} ETH
+            <strong>💰 Expected Payout:</strong> {formatEthValue(BigInt(event.pricePerSeat) * BigInt(event.seatsBooked))} ETH
           </p>
           <p className="text-xs text-blue-600 mt-1">
             (Plus your {formatEthValue(event.hostStake)} ETH stake back)
@@ -196,9 +202,9 @@ function EventCard({ eventRunId }: { eventRunId: number }) {
         {(event.status === EventStatus.Active || event.status === EventStatus.Full) && (
           <>
             {/* Check if event time has passed */}
-            {Number(event.eventTimestamp) * 1000 > Date.now() && (
+            {isEventInFuture && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-sm text-yellow-800">
-                <p className="font-semibold">⏰ Event hasn't occurred yet</p>
+                <p className="font-semibold">⏰ Event hasn&apos;t occurred yet</p>
                 <p className="text-xs mt-1">
                   You can complete the event after {new Date(Number(event.eventTimestamp) * 1000).toLocaleString()}
                 </p>
@@ -212,11 +218,11 @@ function EventCard({ eventRunId }: { eventRunId: number }) {
                   isCompleting || 
                   !bookingIds || 
                   bookingIds.length === 0 || 
-                  Number(event.eventTimestamp) * 1000 > Date.now()
+                  isEventInFuture
                 }
                 className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 title={
-                  Number(event.eventTimestamp) * 1000 > Date.now()
+                  isEventInFuture
                     ? 'Event has not occurred yet'
                     : 'Complete event'
                 }

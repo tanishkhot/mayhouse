@@ -159,7 +159,7 @@ export default function BookEventButton({ eventRunId, availableSeats }: BookEven
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  * You'll get your ₹{costData.stake_inr.toLocaleString('en-IN')} stake back after attending the event
+                  * You&apos;ll get your ₹{costData.stake_inr.toLocaleString('en-IN')} stake back after attending the event
                 </p>
               </div>
             ) : null}

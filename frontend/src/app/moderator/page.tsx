@@ -6,6 +6,7 @@ import { getHostApplications, reviewHostApplication, getHostApplicationDetails, 
 import type { HostApplication } from '@/lib/host-application-api';
 import { AdminOnlyRoute } from '@/components/ProtectedRoute';
 import { AuthAPI, api } from '@/lib/api';
+import type { EventRunSummary } from '@/lib/event-run-api';
 
 // Define interfaces for moderator data
 interface ModeratorExperience {
@@ -28,6 +29,7 @@ interface ModeratorExperience {
   traveler_should_bring: string[];
   experience_safety_guidelines: string;
   moderator_feedback?: string;
+  admin_feedback?: string;
 }
 
 interface ModeratorEventRun {
@@ -86,8 +88,9 @@ const ModeratorDashboard = () => {
   const [experienceFilter, setExperienceFilter] = useState<'all' | 'submitted' | 'approved' | 'rejected'>('all');
   
   // Event Runs management state
-  const [eventRuns, setEventRuns] = useState<ModeratorEventRun[]>([]);
-  const [selectedEventRun, setSelectedEventRun] = useState<ModeratorEventRun | null>(null);
+  // Using any for now as admin API may return additional fields
+  const [eventRuns, setEventRuns] = useState<any[]>([]);
+  const [selectedEventRun, setSelectedEventRun] = useState<any | null>(null);
   const [eventRunFilter, setEventRunFilter] = useState<'all' | 'scheduled' | 'low_seats' | 'sold_out' | 'completed' | 'cancelled'>('all');
 
   useEffect(() => {
@@ -157,7 +160,7 @@ const ModeratorDashboard = () => {
       
       const statusParam = eventRunFilter === 'all' ? '' : `?status_filter=${eventRunFilter}`;
       const response = await api.get(`/admin/event-runs${statusParam}`);
-      const data = response.data as AdminEventRun[];
+      const data = response.data as any[];
       // Sort by start datetime - most recent first
       const sortedRuns = data.sort((a, b) => {
         return new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime();

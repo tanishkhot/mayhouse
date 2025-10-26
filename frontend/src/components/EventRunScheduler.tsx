@@ -510,7 +510,7 @@ Do you want to proceed with the staking?
             </h3>
             <div className="text-sm text-yellow-800 space-y-2">
               <p>
-                To create this event run, you'll need to stake cryptocurrency as a commitment guarantee.
+                To create this event run, you&apos;ll need to stake cryptocurrency as a commitment guarantee.
               </p>
               {(() => {
                 const experience = experiences.find(exp => exp.id === selectedExperience);

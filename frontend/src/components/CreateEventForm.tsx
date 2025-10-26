@@ -108,7 +108,7 @@ export default function CreateEventForm({ experienceId }: { experienceId: string
           <div className="space-y-1 text-sm text-purple-700">
             <p>Total Event Value: <strong>{(parseFloat(pricePerSeat) * maxSeats).toFixed(4)} ETH</strong></p>
             <p>Your Stake (20%): <strong>{requiredStakeEth} ETH</strong></p>
-            <p className="text-xs mt-2">You'll get your stake back after the event completes.</p>
+            <p className="text-xs mt-2">You&apos;ll get your stake back after the event completes.</p>
           </div>
         </div>
 

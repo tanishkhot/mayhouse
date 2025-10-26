@@ -40,7 +40,7 @@ export default function UserBookings() {
       <div className="text-center py-12">
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md mx-auto">
           <p className="text-gray-800 font-semibold mb-2">No bookings found</p>
-          <p className="text-sm text-gray-600 mb-4">You haven't made any bookings yet</p>
+          <p className="text-sm text-gray-600 mb-4">You haven&apos;t made any bookings yet</p>
           <div className="text-left text-xs text-gray-500 bg-white p-3 rounded border border-gray-200">
             <p className="font-mono mb-1">Connected: {address?.substring(0, 10)}...{address?.substring(38)}</p>
             <p className="font-mono">Contract: 0x09aB6...1eAD5</p>
@@ -115,7 +115,7 @@ function BookingCard({ bookingId }: { bookingId: number }) {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
           <p className="font-semibold">📅 Upcoming Event</p>
           <p className="text-xs mt-1">
-            Make sure to attend! You'll get your {formatEthValue(booking.userStake)} ETH stake back.
+            Make sure to attend! You&apos;ll get your {formatEthValue(booking.userStake)} ETH stake back.
           </p>
         </div>
       )}

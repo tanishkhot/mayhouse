@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getAccessToken, clearAuthData } from '@/lib/api';
 
 export default function Navbar() {
@@ -18,7 +18,10 @@ export default function Navbar() {
   useEffect(() => {
     // Check if user has valid token
     const token = getAccessToken();
-    setIsAuthenticated(!!token && isConnected);
+    // Use startTransition for non-blocking state updates
+    React.startTransition(() => {
+      setIsAuthenticated(!!token && isConnected);
+    });
   }, [isConnected, pathname]);
 
   const handleDisconnect = () => {

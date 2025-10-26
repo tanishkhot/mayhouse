@@ -1,5 +1,4 @@
 import { api } from './api';
-import { Decimal } from 'decimal.js';
 
 // Blockchain API Types
 export interface BookingCostRequest {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { useGetEventRun, formatEthValue, EventStatus } from '@/lib/contract';
 import BookEventButton from './BookEventButton';
@@ -17,10 +17,13 @@ export default function AllEventsListing() {
   // In production, you'd want the contract to emit events or have a getter
   useEffect(() => {
     if (isConnected) {
-      // For now, we'll just show events 1-10 and let individual cards handle errors
-      // A better approach would be to have the contract emit all event IDs
-      setValidEventIds(Array.from({ length: MAX_EVENTS_TO_CHECK }, (_, i) => i + 1));
-      setIsScanning(false);
+      // Use startTransition for non-blocking state updates
+      React.startTransition(() => {
+        // For now, we'll just show events 1-10 and let individual cards handle errors
+        // A better approach would be to have the contract emit all event IDs
+        setValidEventIds(Array.from({ length: MAX_EVENTS_TO_CHECK }, (_, i) => i + 1));
+        setIsScanning(false);
+      });
     }
   }, [isConnected]);
 
@@ -58,6 +61,9 @@ export default function AllEventsListing() {
 }
 
 function EventListingCard({ eventRunId }: { eventRunId: number }) {
+  // Get current time once using lazy initialization (avoids calling Date.now during render)
+  const [currentTime] = React.useState(() => Date.now());
+  
   const { data: eventData, isLoading, error } = useGetEventRun(eventRunId);
   const { address: userAddress } = useAccount();
 
@@ -84,7 +90,10 @@ function EventListingCard({ eventRunId }: { eventRunId: number }) {
   
   const availableSeats = Number(event.maxSeats) - Number(event.seatsBooked);
   const isHost = userAddress?.toLowerCase() === event.host.toLowerCase();
-  const isPast = Number(event.eventTimestamp) * 1000 < Date.now();
+  
+  // Check if event is in the past (using time captured at component initialization)
+  const isPast = Number(event.eventTimestamp) * 1000 < currentTime;
+  
   const canBook = event.status === EventStatus.Active && !isPast && !isHost && availableSeats > 0;
 
   return (
@@ -127,8 +136,8 @@ function EventListingCard({ eventRunId }: { eventRunId: number }) {
       {/* Status Messages */}
       {isHost && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-800">
-          <p className="font-semibold">👨‍💼 You're the host of this event</p>
-          <p className="text-xs mt-1">Go to "Host Dashboard" to manage this event</p>
+          <p className="font-semibold">👨‍💼 You&apos;re the host of this event</p>
+          <p className="text-xs mt-1">Go to &quot;Host Dashboard&quot; to manage this event</p>
         </div>
       )}
 
@@ -171,7 +180,7 @@ function EventListingCard({ eventRunId }: { eventRunId: number }) {
       {/* Book Button */}
       {canBook ? (
         <BookEventButton 
-          eventRunId={eventRunId} 
+          eventRunId={eventRunId.toString()} 
           availableSeats={availableSeats}
         />
       ) : (

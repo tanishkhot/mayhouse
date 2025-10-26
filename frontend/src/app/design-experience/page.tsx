@@ -781,7 +781,7 @@ No valid token found for creating experiences.
                       </button>
                     </div>
                     <p className="text-xs text-green-700 mt-3">
-                      💡 Tip: Once submitted, your experience will be reviewed by our team. You'll be notified of the decision.
+                      💡 Tip: Once submitted, your experience will be reviewed by our team. You&apos;ll be notified of the decision.
                     </p>
                   </div>
                 )}
