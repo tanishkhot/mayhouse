@@ -108,7 +108,7 @@ export default function LoginPage() {
                               type="button"
                               className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg"
                             >
-                              🦊 Connect Wallet
+                              Connect Wallet
                             </button>
                           );
                         }
@@ -120,7 +120,7 @@ export default function LoginPage() {
                               type="button"
                               className="w-full bg-red-500 text-white py-4 px-6 rounded-xl font-semibold hover:bg-red-600 transition-colors"
                             >
-                              ⚠️ Wrong network
+                              Wrong network
                             </button>
                           );
                         }
@@ -200,15 +200,21 @@ export default function LoginPage() {
           {/* Info Section */}
           <div className="pt-6 border-t border-gray-200 space-y-3">
             <div className="flex items-start space-x-2 text-sm text-gray-600">
-              <span className="text-purple-600 font-bold">✓</span>
+              <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
               <p>Secure authentication using your Ethereum wallet</p>
             </div>
             <div className="flex items-start space-x-2 text-sm text-gray-600">
-              <span className="text-purple-600 font-bold">✓</span>
+              <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
               <p>No passwords needed - your wallet is your identity</p>
             </div>
             <div className="flex items-start space-x-2 text-sm text-gray-600">
-              <span className="text-purple-600 font-bold">✓</span>
+              <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
               <p>Book experiences with crypto payments</p>
             </div>
           </div>

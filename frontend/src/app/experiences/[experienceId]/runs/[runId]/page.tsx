@@ -292,7 +292,7 @@ export default function ExperienceRunDetailPage() {
               />
 
               <p className="text-center text-sm text-gray-500 mt-3">
-                💎 Includes 20% refundable stake
+                Includes 20% refundable stake
               </p>
             </div>
           </div>

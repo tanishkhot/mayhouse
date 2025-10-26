@@ -52,7 +52,7 @@ export default function UserBookings() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold mb-4">Your Bookings</h2>
+      <h2 className="text-2xl font-bold mb-4 text-gray-900">Your Bookings</h2>
       {(bookingIds as readonly bigint[]).map((bookingId) => (
         <BookingCard key={bookingId.toString()} bookingId={Number(bookingId)} />
       ))}
@@ -74,17 +74,25 @@ function BookingCard({ bookingId }: { bookingId: number }) {
 
   const booking = bookingData as any;
   const statusLabels = ['Active', 'Completed', 'No Show', 'Cancelled'];
-  const statusColors = ['blue', 'green', 'red', 'gray'];
-  const statusColor = statusColors[booking.status] || 'gray';
+  
+  const getStatusClasses = (status: number) => {
+    switch(status) {
+      case 0: return 'bg-blue-100 text-blue-800';
+      case 1: return 'bg-green-100 text-green-800';
+      case 2: return 'bg-red-100 text-red-800';
+      case 3: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="text-xl font-bold">Booking #{bookingId}</h3>
+          <h3 className="text-xl font-bold text-gray-900">Booking #{bookingId}</h3>
           <p className="text-gray-600 text-sm">Event Run #{booking.eventRunId.toString()}</p>
         </div>
-        <span className={`px-3 py-1 rounded-full text-sm font-semibold bg-${statusColor}-100 text-${statusColor}-800`}>
+        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusClasses(booking.status)}`}>
           {statusLabels[booking.status]}
         </span>
       </div>
@@ -92,11 +100,11 @@ function BookingCard({ bookingId }: { bookingId: number }) {
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
           <p className="text-sm text-gray-600">Seats Booked</p>
-          <p className="font-semibold">{booking.seatCount.toString()}</p>
+          <p className="font-semibold text-gray-900">{booking.seatCount.toString()}</p>
         </div>
         <div>
           <p className="text-sm text-gray-600">Payment</p>
-          <p className="font-semibold">{formatEthValue(booking.totalPayment)} ETH</p>
+          <p className="font-semibold text-gray-900">{formatEthValue(booking.totalPayment)} ETH</p>
         </div>
         <div>
           <p className="text-sm text-gray-600">Your Stake</p>
@@ -104,7 +112,7 @@ function BookingCard({ bookingId }: { bookingId: number }) {
         </div>
         <div>
           <p className="text-sm text-gray-600">Booked At</p>
-          <p className="font-semibold">
+          <p className="font-semibold text-gray-900">
             {new Date(Number(booking.bookedAt) * 1000).toLocaleDateString()}
           </p>
         </div>
@@ -113,7 +121,7 @@ function BookingCard({ bookingId }: { bookingId: number }) {
       {/* Status Messages */}
       {booking.status === BookingStatus.Active && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
-          <p className="font-semibold">📅 Upcoming Event</p>
+          <p className="font-semibold">Upcoming Event</p>
           <p className="text-xs mt-1">
             Make sure to attend! You&apos;ll get your {formatEthValue(booking.userStake)} ETH stake back.
           </p>
@@ -122,7 +130,7 @@ function BookingCard({ bookingId }: { bookingId: number }) {
 
       {booking.status === BookingStatus.Completed && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800">
-          <p className="font-semibold">✅ Event Completed</p>
+          <p className="font-semibold">Event Completed</p>
           <p className="text-xs mt-1">
             Your {formatEthValue(booking.userStake)} ETH stake has been returned. Thanks for attending!
           </p>
@@ -131,7 +139,7 @@ function BookingCard({ bookingId }: { bookingId: number }) {
 
       {booking.status === BookingStatus.NoShow && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
-          <p className="font-semibold">❌ No Show</p>
+          <p className="font-semibold">No Show</p>
           <p className="text-xs mt-1">
             You missed this event. Your {formatEthValue(booking.userStake)} ETH stake was forfeited.
           </p>

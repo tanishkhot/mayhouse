@@ -45,7 +45,7 @@ export default function CreateEventForm({ experienceId }: { experienceId: string
   if (isSuccess) {
     return (
       <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-        <h3 className="text-lg font-semibold text-green-900 mb-2">✅ Event Created Successfully!</h3>
+        <h3 className="text-lg font-semibold text-green-900 mb-2">Event Created Successfully!</h3>
         <p className="text-green-700">Your event has been created on the blockchain.</p>
         <p className="text-sm text-green-600 mt-2">Your stake of {requiredStakeEth} ETH is now locked.</p>
       </div>
@@ -54,7 +54,7 @@ export default function CreateEventForm({ experienceId }: { experienceId: string
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
-      <h2 className="text-2xl font-bold mb-6">Create Event Run (On-Chain)</h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-900">Create Event Run (On-Chain)</h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Price Per Seat */}
@@ -67,7 +67,7 @@ export default function CreateEventForm({ experienceId }: { experienceId: string
             step="0.001"
             value={pricePerSeat}
             onChange={(e) => setPricePerSeat(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             required
           />
         </div>
@@ -83,7 +83,7 @@ export default function CreateEventForm({ experienceId }: { experienceId: string
             max="100"
             value={maxSeats}
             onChange={(e) => setMaxSeats(parseInt(e.target.value))}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             required
           />
         </div>
@@ -97,7 +97,7 @@ export default function CreateEventForm({ experienceId }: { experienceId: string
             type="datetime-local"
             value={eventDate}
             onChange={(e) => setEventDate(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             required
           />
         </div>

@@ -283,7 +283,7 @@ No valid token found for creating experiences.
 - Please log in as a host user
 - Or add ?debug=true to test the API flow
 
-💡 Check the browser console for detailed token search results.`;
+Check the browser console for detailed token search results.`;
         
         alert(errorMessage);
         console.log('❌ FORM: No valid token found, cannot proceed');
@@ -770,7 +770,7 @@ No valid token found for creating experiences.
                         disabled={isSubmittingForReview}
                         className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                       >
-                        {isSubmittingForReview ? 'Submitting...' : '✓ Submit for Review'}
+                        {isSubmittingForReview ? 'Submitting...' : 'Submit for Review'}
                       </button>
                       <button
                         onClick={() => router.push('/host-dashboard')}
@@ -781,7 +781,7 @@ No valid token found for creating experiences.
                       </button>
                     </div>
                     <p className="text-xs text-green-700 mt-3">
-                      💡 Tip: Once submitted, your experience will be reviewed by our team. You&apos;ll be notified of the decision.
+                      Tip: Once submitted, your experience will be reviewed by our team. You&apos;ll be notified of the decision.
                     </p>
                   </div>
                 )}

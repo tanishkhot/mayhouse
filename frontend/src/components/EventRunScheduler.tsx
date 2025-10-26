@@ -199,14 +199,14 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
 
       // Show staking confirmation to user
       const confirmMessage = `
-🔐 BLOCKCHAIN STAKING REQUIRED
+BLOCKCHAIN STAKING REQUIRED
 
 To create this event run, you need to stake:
-💰 ${requiredStakeInETH} ETH (25% of ${totalValueInETH.toFixed(6)} ETH total)
+${requiredStakeInETH} ETH (25% of ${totalValueInETH.toFixed(6)} ETH total)
 
 This stake will be:
-✅ Returned if you complete the experience
-✅ Forfeited if you cancel or no-show
+- Returned if you complete the experience
+- Forfeited if you cancel or no-show
 
 Price per seat: ₹${priceInINR} (${priceInETH} ETH)
 Max capacity: ${maxCapacity} travelers
@@ -221,7 +221,7 @@ Do you want to proceed with the staking?
       }
 
       // Step 1: Create event run on blockchain (requires staking)
-      setError('⏳ Creating event run on blockchain... Please confirm the transaction in your wallet.');
+      setError('Creating event run on blockchain... Please confirm the transaction in your wallet.');
       
       await createEventRunOnChain(
         selectedExperience,
@@ -231,7 +231,7 @@ Do you want to proceed with the staking?
       );
 
       // Step 2: Wait for blockchain confirmation
-      setError('⏳ Waiting for blockchain confirmation...');
+      setError('Waiting for blockchain confirmation...');
       
       // The transaction will be confirmed automatically by the hook
       // We'll check isSuccess in the useEffect below
@@ -268,7 +268,7 @@ Do you want to proceed with the staking?
       await EventRunAPI.createEventRun(eventRunData);
       
       setError('');
-      alert('✅ Event run created successfully! Your stake has been locked on the blockchain.');
+      alert('Event run created successfully! Your stake has been locked on the blockchain.');
       
       // Success - call parent success handler
       onSuccess?.();
@@ -307,8 +307,11 @@ Do you want to proceed with the staking?
           <button
             onClick={onCancel}
             className="text-gray-500 hover:text-gray-700"
+            aria-label="Close"
           >
-            ✕
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         )}
       </div>
@@ -504,8 +507,7 @@ Do you want to proceed with the staking?
         {/* Staking Requirements Display */}
         {selectedExperience && maxCapacity > 0 && (
           <div className="border-2 border-yellow-300 rounded-lg p-4 bg-yellow-50 mt-6">
-            <h3 className="text-lg font-semibold text-yellow-900 mb-2 flex items-center">
-              <span className="mr-2">🔐</span>
+            <h3 className="text-lg font-semibold text-yellow-900 mb-2">
               Blockchain Staking Required
             </h3>
             <div className="text-sm text-yellow-800 space-y-2">
@@ -529,8 +531,8 @@ Do you want to proceed with the staking?
                       (25% of {totalValueInETH.toFixed(6)} ETH total value)
                     </p>
                     <div className="mt-2 text-xs space-y-1">
-                      <p>✅ Stake returned when you complete the experience</p>
-                      <p>❌ Stake forfeited if you cancel or no-show</p>
+                      <p>• Stake returned when you complete the experience</p>
+                      <p>• Stake forfeited if you cancel or no-show</p>
                     </div>
                   </div>
                 );
@@ -564,7 +566,9 @@ Do you want to proceed with the staking?
       {/* Info box */}
       <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-start space-x-2">
-          <div className="text-blue-500 text-xl">💡</div>
+          <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+          </svg>
           <div className="text-sm text-blue-800">
             <p className="font-medium mb-1">Scheduling Tips</p>
             <ul className="list-disc list-inside space-y-1 text-blue-700">

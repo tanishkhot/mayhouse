@@ -144,7 +144,7 @@ export default function BookEventButton({
   if (isSuccess) {
     return (
       <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-        <h3 className="text-lg font-semibold text-green-900">✅ Booking Confirmed!</h3>
+        <h3 className="text-lg font-semibold text-green-900">Booking Confirmed!</h3>
         <p className="text-sm text-green-700 mt-1">Your seats are reserved. See you at the event!</p>
       </div>
     );
@@ -239,7 +239,9 @@ export default function BookEventButton({
             {(bookingError || error) && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                 <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 text-red-500 text-xl">⚠️</div>
+                  <svg className="w-6 h-6 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
                   <div className="flex-1">
                     <h4 className="font-semibold text-red-900 mb-1">Booking Error</h4>
                     <p className="text-sm text-red-800 leading-relaxed">

@@ -89,21 +89,21 @@ export default function Navbar() {
                       onClick={() => setIsMenuOpen(false)}
                       className="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 font-medium transition-colors"
                     >
-                      🎨 Create Experience
+                      Create Experience
                     </Link>
                     <Link 
                       href="/host-dashboard"
                       onClick={() => setIsMenuOpen(false)}
                       className="block px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-colors"
                     >
-                      📋 My Experiences
+                      My Experiences
                     </Link>
                     <Link 
                       href="/profile"
                       onClick={() => setIsMenuOpen(false)}
                       className="block px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-colors"
                     >
-                      👤 Profile
+                      Profile
                     </Link>
                   </div>
                 )}
