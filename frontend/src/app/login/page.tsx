@@ -47,12 +47,9 @@ export default function LoginPage() {
       console.log('Authentication successful!');
       setAccessToken(authResponse.access_token);
       
-      // Redirect based on role
-      if (authResponse.user.role === 'admin') {
-        router.replace('/admin');
-      } else {
-        router.replace('/');
-      }
+      // Always redirect to homepage after login
+      // Users can navigate to admin/host pages from navbar
+      router.replace('/');
     } catch (err: any) {
       console.error('Authentication error:', err);
       setError(err.response?.data?.detail || err.message || 'Authentication failed');
