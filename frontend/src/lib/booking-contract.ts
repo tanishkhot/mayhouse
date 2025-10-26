@@ -121,6 +121,7 @@ export function useCreateBooking() {
         BigInt(eventTimestamp)
       ],
       value: totalCost,
+      gas: BigInt(500000), // Explicit gas limit (well within network cap of 16.7M)
     });
   };
 
