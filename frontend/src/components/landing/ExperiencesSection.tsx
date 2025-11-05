@@ -1,16 +1,115 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { ExploreAPI, ExploreEventRun } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Heart, Users, Clock, Shield, Star } from 'lucide-react';
-import { ImageWithFallback } from './ImageWithFallback';
+import { ExperienceCard } from './ExperienceCard';
 import Link from 'next/link';
-import PriceDisplay from '@/components/PriceDisplay';
+
+const experiences = [
+  {
+    id: '1',
+    title: 'Hidden Stories of the Gothic Quarter',
+    host: {
+      name: 'Maria Garcia',
+      verified: true,
+    },
+    image: 'https://images.unsplash.com/photo-1761666520000-def67e58766e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxuZWlnaGJvcmhvb2QlMjB3YWxraW5nJTIwdG91cnxlbnwxfHx8fDE3NjIzNjE1NzB8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+    category: 'Culture',
+    duration: '3 hours',
+    groupSize: '6-8 people',
+    price: 45,
+    rating: 4.9,
+    reviews: 127,
+    location: 'Barcelona, Spain',
+    tags: ['History', 'Walking', 'Local insights'],
+  },
+  {
+    id: '2',
+    title: 'Authentic Vietnamese Street Food Journey',
+    host: {
+      name: 'Linh Nguyen',
+      verified: true,
+    },
+    image: 'https://images.unsplash.com/photo-1760049869567-e4ae462306f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjdWx0dXJhbCUyMGZvb2QlMjBleHBlcmllbmNlfGVufDF8fHx8MTc2MjM2MTU3MHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+    category: 'Food',
+    duration: '4 hours',
+    groupSize: '4-6 people',
+    price: 38,
+    rating: 5.0,
+    reviews: 89,
+    location: 'Hanoi, Vietnam',
+    tags: ['Culinary', 'Street food', 'Family recipes'],
+  },
+  {
+    id: '3',
+    title: 'Traditional Pottery Workshop with Local Artisan',
+    host: {
+      name: 'Yuki Tanaka',
+      verified: true,
+    },
+    image: 'https://images.unsplash.com/photo-1500472141701-084e6fa44840?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhcnRpc2FuJTIwd29ya3Nob3B8ZW58MXx8fHwxNzYyMzYxNTcwfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+    category: 'Arts',
+    duration: '2.5 hours',
+    groupSize: '3-5 people',
+    price: 65,
+    rating: 4.8,
+    reviews: 54,
+    location: 'Kyoto, Japan',
+    tags: ['Hands-on', 'Traditional craft', 'Artisan'],
+  },
+  {
+    id: '4',
+    title: "Storyteller's Walk Through Harlem Heritage",
+    host: {
+      name: 'Marcus Johnson',
+      verified: true,
+    },
+    image: 'https://images.unsplash.com/photo-1666617181888-40d6e700ba62?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx1cmJhbiUyMHN0b3J5dGVsbGluZ3xlbnwxfHx8fDE3NjIzNjE1NzF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+    category: 'Culture',
+    duration: '2 hours',
+    groupSize: '5-8 people',
+    price: 40,
+    rating: 4.9,
+    reviews: 92,
+    location: 'New York, USA',
+    tags: ['History', 'Music', 'Civil rights'],
+  },
+  {
+    id: '5',
+    title: 'Dawn Market Tour & Cooking Class',
+    host: {
+      name: 'Priya Sharma',
+      verified: true,
+    },
+    image: 'https://images.unsplash.com/photo-1743485753975-3175a37b2e80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhdXRoZW50aWMlMjBsb2NhbCUyMG1hcmtldHxlbnwxfHx8fDE3NjIzNjE1NzF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+    category: 'Food',
+    duration: '5 hours',
+    groupSize: '4-6 people',
+    price: 55,
+    rating: 5.0,
+    reviews: 108,
+    location: 'Jaipur, India',
+    tags: ['Early morning', 'Cooking', 'Market'],
+  },
+  {
+    id: '6',
+    title: 'Community Garden & Urban Farming Experience',
+    host: {
+      name: 'Sophie Martin',
+      verified: true,
+    },
+    image: 'https://images.unsplash.com/photo-1625246433906-6cfa33544b31?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21tdW5pdHklMjBnYXRoZXJpbmd8ZW58MXx8fHwxNzYyMzUwNzk2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+    category: 'Nature',
+    duration: '3 hours',
+    groupSize: '6-10 people',
+    price: 35,
+    rating: 4.7,
+    reviews: 43,
+    location: 'Paris, France',
+    tags: ['Sustainability', 'Hands-on', 'Community'],
+  },
+];
 
 const categories = ['All', 'Culture', 'Food', 'Arts', 'Nature'];
 
@@ -21,28 +120,9 @@ interface ExperiencesSectionProps {
 export function ExperiencesSection({ onExperienceSelect }: ExperiencesSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const { data: eventRuns = [], isLoading } = useQuery({
-    queryKey: ['explore'],
-    queryFn: () => ExploreAPI.getUpcomingExperiences({ limit: 6 }),
-    staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
-
-  const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes} min`;
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    if (remainingMinutes === 0) return `${hours} hr${hours > 1 ? 's' : ''}`;
-    return `${hours}h ${remainingMinutes}m`;
-  };
-
-  // Filter experiences (you can enhance this based on actual category data)
-  const filteredExperiences = selectedCategory === 'All' 
-    ? eventRuns 
-    : eventRuns.filter((exp) => {
-        // This is a placeholder - adjust based on your actual category structure
-        return true; // For now, show all
-      });
+  const filteredExperiences = experiences.filter(
+    (exp) => selectedCategory === 'All' || exp.category === selectedCategory
+  );
 
   return (
     <section id="experiences" className="py-20 lg:py-32 bg-gradient-to-b from-white to-orange-50/30">
@@ -69,90 +149,15 @@ export function ExperiencesSection({ onExperienceSelect }: ExperiencesSectionPro
           </Tabs>
         </div>
 
-        {isLoading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="overflow-hidden">
-                <div className="w-full aspect-[4/3] bg-gray-200 animate-pulse" />
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {filteredExperiences.slice(0, 6).map((experience) => (
-                <Card 
-                  key={experience.id}
-                  className="group overflow-hidden cursor-pointer hover:shadow-xl transition-shadow"
-                >
-                  <div className="relative">
-                    <ImageWithFallback
-                      src={experience.experience?.image_url || 'https://images.unsplash.com/photo-1568492650629-3dfa9b007cbf?w=800'}
-                      alt={experience.experience?.title || 'Experience'}
-                      className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <button className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center hover:bg-white transition-colors">
-                      <Heart className="h-5 w-5" />
-                    </button>
-                    <Badge className="absolute bottom-3 left-3 bg-white/90 backdrop-blur text-foreground hover:bg-white">
-                      {experience.experience?.domain || 'Experience'}
-                    </Badge>
-                  </div>
-
-                  <div className="p-4 space-y-4">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm text-muted-foreground">{experience.neighborhood || experience.experience?.location}</p>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-orange-400 text-orange-400" />
-                          <span className="text-sm">4.9</span>
-                        </div>
-                      </div>
-                      <Link href={`/experiences/${experience.experience_id}/runs/${experience.id}`}>
-                        <h3 className="line-clamp-2 mb-3 font-semibold hover:text-orange-600 transition-colors">
-                          {experience.experience?.title || 'Experience'}
-                        </h3>
-                      </Link>
-                      
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-rose-500 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1">
-                            <p className="text-sm truncate">{experience.experience?.host_name || 'Host'}</p>
-                            <Shield className="h-3 w-3 text-blue-500 flex-shrink-0" />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          <span>{formatDuration(experience.experience?.duration_minutes || 120)}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          <span>{experience.max_participants || '6-8'} people</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-3 border-t">
-                      <div>
-                        <PriceDisplay amount={experience.price_per_person || '0'} />
-                        <span className="text-sm text-muted-foreground"> per person</span>
-                      </div>
-                      <Link href={`/experiences/${experience.experience_id}/runs/${experience.id}`}>
-                        <Button size="sm" className="bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700">
-                          Book now
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </>
-        )}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {filteredExperiences.map((experience) => (
+            <ExperienceCard
+              key={experience.id}
+              {...experience}
+              onSelect={onExperienceSelect}
+            />
+          ))}
+        </div>
 
         <div className="text-center">
           <Link href="/explore">
@@ -165,4 +170,3 @@ export function ExperiencesSection({ onExperienceSelect }: ExperiencesSectionPro
     </section>
   );
 }
-
