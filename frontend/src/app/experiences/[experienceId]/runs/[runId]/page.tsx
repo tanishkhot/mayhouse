@@ -47,7 +47,7 @@ export default function ExperienceRunDetailPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Event Run not found</h1>
           <p className="text-gray-600 mb-4">The event you&apos;re looking for doesn&apos;t exist or has been removed.</p>
-          <Link href="/" className="text-purple-600 hover:text-purple-700 font-medium">
+          <Link href="/" className="text-orange-600 hover:text-orange-700 font-medium">
             ← Back to explore
           </Link>
         </div>
@@ -189,7 +189,7 @@ export default function ExperienceRunDetailPage() {
             {/* Host */}
             <div className="border-t border-gray-200 pt-8">
               <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-rose-500 rounded-full flex items-center justify-center text-white font-semibold">
                   {displayData.host?.name?.charAt(0)}
                 </div>
                 <div className="flex-1">
@@ -212,7 +212,7 @@ export default function ExperienceRunDetailPage() {
               <div className="space-y-6">
                 {displayData.reviews?.map((review: { user: string; rating: number; date: string; comment: string }, index: number) => (
                   <div key={index} className="flex space-x-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                    <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-rose-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                       {review.user.charAt(0)}
                     </div>
                     <div className="flex-1">

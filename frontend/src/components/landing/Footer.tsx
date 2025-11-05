@@ -31,8 +31,8 @@ export function Footer() {
           <div>
             <h4 className="mb-4 font-semibold">Trust & Safety</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
-              <li><Link href="/host/homes#how-it-works" className="hover:text-foreground transition-colors">How we verify hosts</Link></li>
-              <li><Link href="/host/homes#hosts" className="hover:text-foreground transition-colors">Blockchain reputation</Link></li>
+              <li><Link href="/host/experiences#how-it-works" className="hover:text-foreground transition-colors">How we verify hosts</Link></li>
+              <li><Link href="/host/experiences#hosts" className="hover:text-foreground transition-colors">Blockchain reputation</Link></li>
               <li><a href="#" className="hover:text-foreground transition-colors">Cancellation policy</a></li>
               <li><a href="#" className="hover:text-foreground transition-colors">Safety guidelines</a></li>
             </ul>
@@ -54,7 +54,7 @@ export function Footer() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-400 to-rose-500">
               <span className="text-white font-bold">M</span>
             </div>
-            <Link href="/host/homes" className="text-xl font-semibold">
+            <Link href="/host/experiences" className="text-xl font-semibold">
               Mayhouse
             </Link>
           </div>

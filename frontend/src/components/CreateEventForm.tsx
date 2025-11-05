@@ -67,7 +67,7 @@ export default function CreateEventForm({ experienceId }: { experienceId: string
             step="0.001"
             value={pricePerSeat}
             onChange={(e) => setPricePerSeat(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             required
           />
         </div>
@@ -83,7 +83,7 @@ export default function CreateEventForm({ experienceId }: { experienceId: string
             max="100"
             value={maxSeats}
             onChange={(e) => setMaxSeats(parseInt(e.target.value))}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             required
           />
         </div>
@@ -97,15 +97,15 @@ export default function CreateEventForm({ experienceId }: { experienceId: string
             type="datetime-local"
             value={eventDate}
             onChange={(e) => setEventDate(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             required
           />
         </div>
 
         {/* Stake Info */}
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-          <h3 className="font-semibold text-purple-900 mb-2">💎 Stake Required</h3>
-          <div className="space-y-1 text-sm text-purple-700">
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+          <h3 className="font-semibold text-orange-900 mb-2">💎 Stake Required</h3>
+          <div className="space-y-1 text-sm text-orange-700">
             <p>Total Event Value: <strong>{(parseFloat(pricePerSeat) * maxSeats).toFixed(4)} ETH</strong></p>
             <p>Your Stake (20%): <strong>{requiredStakeEth} ETH</strong></p>
             <p className="text-xs mt-2">You&apos;ll get your stake back after the event completes.</p>
@@ -123,7 +123,7 @@ export default function CreateEventForm({ experienceId }: { experienceId: string
         <button
           type="submit"
           disabled={isPending || isConfirming || !isConnected}
-          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          className="w-full bg-gradient-to-r from-orange-500 to-rose-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-orange-600 hover:to-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           {isPending && 'Waiting for approval...'}
           {isConfirming && 'Creating event on blockchain...'}

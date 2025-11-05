@@ -237,7 +237,7 @@ export default function BookEventButton({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Refundable Stake:</span>
-                    <span className="font-medium text-purple-600">₹{costData.stake_inr.toLocaleString('en-IN')}</span>
+                    <span className="font-medium text-orange-600">₹{costData.stake_inr.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="flex justify-between pt-1.5 border-t border-gray-200">
                     <span className="font-semibold text-gray-900">Total Paid:</span>
@@ -254,7 +254,7 @@ export default function BookEventButton({
               href={explorerUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full text-center bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
+              className="block w-full text-center bg-gradient-to-r from-orange-500 to-rose-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-orange-600 hover:to-rose-700 transition-all"
             >
               View on Etherscan
             </a>
@@ -270,8 +270,8 @@ export default function BookEventButton({
           </div>
 
           {/* Info Message */}
-          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="text-sm text-blue-800">
+          <div className="mt-4 bg-orange-50 border border-orange-200 rounded-lg p-3">
+            <p className="text-sm text-orange-800">
               <span className="font-semibold">Important:</span> Your ₹{costData?.stake_inr.toLocaleString('en-IN') || '200'} stake will be refunded after you attend the event. Don&apos;t forget to check in!
             </p>
           </div>
@@ -290,7 +290,7 @@ export default function BookEventButton({
       <button
         onClick={handleOpenModal}
         disabled={availableSeats === 0}
-        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        className="w-full bg-gradient-to-r from-orange-500 to-rose-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-orange-600 hover:to-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         {availableSeats === 0 ? 'Sold Out' : 'Book Now'}
       </button>
@@ -309,7 +309,7 @@ export default function BookEventButton({
               <select
                 value={seatCount}
                 onChange={(e) => setSeatCount(parseInt(e.target.value))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-gray-900 bg-white"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-gray-900 bg-white"
               >
                 {Array.from({ length: Math.min(availableSeats, 4) }, (_, i) => i + 1).map((n) => (
                   <option key={n} value={n}>
@@ -340,7 +340,7 @@ export default function BookEventButton({
                 <div className="flex justify-between">
                   <span className="text-gray-600">Refundable Stake (20%):</span>
                   <div className="text-right">
-                    <div className="font-semibold text-purple-600">
+                    <div className="font-semibold text-orange-600">
                       ₹{costData.stake_inr.toLocaleString('en-IN')}
                     </div>
                     <div className="text-xs text-gray-500">
@@ -354,7 +354,7 @@ export default function BookEventButton({
                     <div className="font-bold text-lg text-gray-900">
                       ₹{costData.total_cost_inr.toLocaleString('en-IN')}
                     </div>
-                    <div className="text-xs text-purple-600 font-semibold">
+                    <div className="text-xs text-orange-600 font-semibold">
                       {formatEthValue(BigInt(costData.total_cost_wei))} ETH
                     </div>
                   </div>
@@ -402,7 +402,7 @@ export default function BookEventButton({
               <button
                 onClick={handleBook}
                 disabled={(isPending || (isConfirming && !transactionFailed)) || !isConnected || (chain && chain.id !== sepolia.id)}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 transition-all"
+                className="flex-1 bg-gradient-to-r from-orange-500 to-rose-600 text-white py-2 px-4 rounded-lg font-semibold hover:from-orange-600 hover:to-rose-700 disabled:opacity-50 transition-all"
               >
                 {isPending && !transactionFailed && 'Waiting...'}
                 {isConfirming && !transactionFailed && 'Confirming...'}

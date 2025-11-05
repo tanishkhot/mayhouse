@@ -28,7 +28,7 @@ export default function HostDashboard() {
   if (isLoading) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
         <p className="text-gray-600">Loading your events...</p>
       </div>
     );
@@ -167,7 +167,7 @@ function EventCard({ eventRunId }: { eventRunId: number }) {
           </div>
           <div>
             <p className="text-sm text-gray-600">Your Stake</p>
-            <p className="font-semibold text-purple-600">{formatEthValue(event.hostStake)} ETH</p>
+            <p className="font-semibold text-orange-600">{formatEthValue(event.hostStake)} ETH</p>
           </div>
           <div>
             <p className="text-sm text-gray-600">Event Date</p>

@@ -12,11 +12,11 @@ export default function TestContractPage() {
   const [activeTab, setActiveTab] = useState<'create' | 'book' | 'host' | 'user'>('create');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-rose-50 py-12">
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-500 to-rose-600 bg-clip-text text-transparent mb-4">
             Smart Contract Testing
           </h1>
           <p className="text-gray-600">
@@ -50,7 +50,7 @@ export default function TestContractPage() {
             onClick={() => setActiveTab('create')}
             className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
               activeTab === 'create'
-                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                ? 'bg-gradient-to-r from-orange-500 to-rose-600 text-white'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -60,7 +60,7 @@ export default function TestContractPage() {
             onClick={() => setActiveTab('book')}
             className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
               activeTab === 'book'
-                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                ? 'bg-gradient-to-r from-orange-500 to-rose-600 text-white'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -70,7 +70,7 @@ export default function TestContractPage() {
             onClick={() => setActiveTab('host')}
             className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
               activeTab === 'host'
-                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                ? 'bg-gradient-to-r from-orange-500 to-rose-600 text-white'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -80,7 +80,7 @@ export default function TestContractPage() {
             onClick={() => setActiveTab('user')}
             className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
               activeTab === 'user'
-                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                ? 'bg-gradient-to-r from-orange-500 to-rose-600 text-white'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -92,9 +92,9 @@ export default function TestContractPage() {
         <div className="mb-8">
           {activeTab === 'create' && (
             <div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-blue-900 mb-2">👨‍💼 Host: Create Event</h3>
-                <p className="text-sm text-blue-700">
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                <h3 className="font-semibold text-orange-900 mb-2">👨‍💼 Host: Create Event</h3>
+                <p className="text-sm text-orange-700">
                   As a host, create an event and stake 20% of the total event value. 
                   You&apos;ll get your stake back after completing the event.
                 </p>
@@ -144,7 +144,7 @@ export default function TestContractPage() {
         </div>
 
         {/* Info Section */}
-        <div className="bg-gradient-to-r from-purple-900 to-blue-900 rounded-lg shadow-lg p-6 text-white">
+        <div className="bg-gradient-to-r from-orange-900 to-rose-900 rounded-lg shadow-lg p-6 text-white">
           <h3 className="text-xl font-bold mb-4">📚 How It Works</h3>
           
           <div className="space-y-4">

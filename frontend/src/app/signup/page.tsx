@@ -93,7 +93,7 @@ export default function SignupPage() {
         </form>
 
         <p className="text-sm text-center text-gray-600">
-          Already have an account? <a className="underline text-purple-600 hover:text-purple-800" href="/login">Log in</a>
+          Already have an account? <a className="underline text-orange-600 hover:text-orange-800" href="/login">Log in</a>
         </p>
       </div>
     </div>

@@ -59,7 +59,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-purple-50 to-blue-50">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-orange-50 to-rose-50">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
           {/* Header */}
@@ -106,7 +106,7 @@ export default function LoginPage() {
                             <button
                               onClick={openConnectModal}
                               type="button"
-                              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg"
+                              className="w-full bg-gradient-to-r from-orange-500 to-rose-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:from-orange-600 hover:to-rose-700 transition-all transform hover:scale-105 shadow-lg"
                             >
                               Connect Wallet
                             </button>
@@ -174,10 +174,10 @@ export default function LoginPage() {
 
             {/* Status Messages */}
             {isAuthenticating && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
                 <div className="flex items-center justify-center space-x-2">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                  <span className="text-blue-800 font-medium">Authenticating...</span>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-orange-600"></div>
+                  <span className="text-orange-800 font-medium">Authenticating...</span>
                 </div>
               </div>
             )}
@@ -200,19 +200,19 @@ export default function LoginPage() {
           {/* Info Section */}
           <div className="pt-6 border-t border-gray-200 space-y-3">
             <div className="flex items-start space-x-2 text-sm text-gray-600">
-              <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <p>Secure authentication using your Ethereum wallet</p>
             </div>
             <div className="flex items-start space-x-2 text-sm text-gray-600">
-              <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <p>No passwords needed - your wallet is your identity</p>
             </div>
             <div className="flex items-start space-x-2 text-sm text-gray-600">
-              <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <p>Book experiences with crypto payments</p>
@@ -227,7 +227,7 @@ export default function LoginPage() {
                 href="https://metamask.io/download/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-600 hover:text-purple-800 underline font-medium"
+                className="text-orange-600 hover:text-orange-800 underline font-medium"
               >
                 Get MetaMask
               </a>

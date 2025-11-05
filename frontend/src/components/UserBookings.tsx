@@ -91,7 +91,7 @@ function BookingCard({ bookingId }: { bookingId: number }) {
   
   const getStatusClasses = (status: number) => {
     switch(status) {
-      case 0: return 'bg-blue-100 text-blue-800';
+      case 0: return 'bg-orange-100 text-orange-800';
       case 1: return 'bg-green-100 text-green-800';
       case 2: return 'bg-red-100 text-red-800';
       case 3: return 'bg-gray-100 text-gray-800';
@@ -122,7 +122,7 @@ function BookingCard({ bookingId }: { bookingId: number }) {
         </div>
         <div>
           <p className="text-sm text-gray-600">Your Stake</p>
-          <p className="font-semibold text-purple-600">{formatEthValue(booking.userStake)} ETH</p>
+          <p className="font-semibold text-orange-600">{formatEthValue(booking.userStake)} ETH</p>
         </div>
         <div>
           <p className="text-sm text-gray-600">Booked At</p>
@@ -134,7 +134,7 @@ function BookingCard({ bookingId }: { bookingId: number }) {
 
       {/* Status Messages */}
       {booking.status === BookingStatus.Active && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-sm text-orange-800">
           <p className="font-semibold">Upcoming Event</p>
           <p className="text-xs mt-1">
             Make sure to attend! You&apos;ll get your {formatEthValue(booking.userStake)} ETH stake back.

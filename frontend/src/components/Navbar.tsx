@@ -6,8 +6,20 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import React, { useState, useEffect } from 'react';
 import { getAccessToken, clearAuthData } from '@/lib/api';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User, Heart, Calendar, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -15,13 +27,13 @@ export default function Navbar() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
-  // Hide navbar on auth pages
+  // Check if we're on landing page (host/experiences)
+  const isLandingPage = pathname === '/host/experiences';
   const hideNavbar = pathname === '/login' || pathname === '/signup';
 
   useEffect(() => {
     // Check if user has valid token
     const token = getAccessToken();
-    // Use startTransition for non-blocking state updates
     React.startTransition(() => {
       setIsAuthenticated(!!token && isConnected);
     });
@@ -37,10 +49,13 @@ export default function Navbar() {
   if (hideNavbar) {
     return (
       <header className="sticky top-0 bg-white border-b border-gray-200 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center h-16">
-            <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent hover:from-purple-700 hover:to-blue-700 transition-all">
-              Mayhouse ETH
+            <Link href="/" className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-400 to-rose-500">
+                <span className="text-white font-bold text-sm">M</span>
+              </div>
+              <span className="text-xl font-semibold">Mayhouse</span>
             </Link>
           </div>
         </div>
@@ -49,81 +64,263 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 bg-white border-b border-gray-200 z-50 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center">
-            <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent hover:from-purple-700 hover:to-blue-700 transition-all">
-              Mayhouse ETH
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo & Navigation */}
+          <div className="flex items-center gap-8">
+            <Link href={isLandingPage ? '/host/experiences' : '/'} className="flex items-center gap-2 group">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-400 to-rose-500 group-hover:from-orange-500 group-hover:to-rose-600 transition-colors">
+                <span className="text-white font-bold text-sm">M</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xl font-semibold leading-tight">Mayhouse</span>
+                {isLandingPage && (
+                  <span className="text-xs text-muted-foreground hidden sm:block">
+                    Travel deeper. Connect authentically.
+                  </span>
+                )}
+              </div>
             </Link>
+            
+            {/* Desktop Navigation */}
+            {isLandingPage ? (
+              <nav className="hidden md:flex items-center gap-6">
+                <a 
+                  href="#experiences" 
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+                >
+                  Experiences
+                </a>
+                <a 
+                  href="#how-it-works" 
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+                >
+                  How it works
+                </a>
+                <a 
+                  href="#hosts" 
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+                >
+                  Become a host
+                </a>
+                <Link 
+                  href="/explore" 
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+                >
+                  Browse
+                </Link>
+              </nav>
+            ) : (
+              <nav className="hidden md:flex items-center gap-6">
+                <Link 
+                  href="/explore" 
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+                >
+                  Explore
+                </Link>
+                <Link 
+                  href="/host/experiences" 
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+                >
+                  About
+                </Link>
+                {isAuthenticated && (
+                  <>
+                    <Link 
+                      href="/design-experience" 
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+                    >
+                      Host
+                    </Link>
+                  </>
+                )}
+              </nav>
+            )}
           </div>
 
-          {/* Navigation */}
-          <nav className="flex items-center space-x-4">
+          {/* Right Side Actions */}
+          <div className="flex items-center gap-3">
             {isAuthenticated ? (
               <>
-                {/* Wallet Button */}
-                <ConnectButton 
-                  showBalance={false}
-                  chainStatus="icon"
-                  accountStatus={{
-                    smallScreen: 'avatar',
-                    largeScreen: 'full',
-                  }}
-                />
+                {/* Desktop: User Menu */}
+                <div className="hidden sm:flex items-center gap-2">
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link href="/explore">
+                      <Heart className="h-5 w-5" />
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link href="/profile">
+                      <Calendar className="h-5 w-5" />
+                    </Link>
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="gap-2">
+                        <div className="h-6 w-6 rounded-full bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center">
+                          <span className="text-white text-xs font-semibold">
+                            {address?.slice(2, 4).toUpperCase()}
+                          </span>
+                        </div>
+                        <span className="hidden lg:inline">Account</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem asChild>
+                        <Link href="/profile">
+                          <User className="mr-2 h-4 w-4" />
+                          Profile
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/host-dashboard">
+                          <Sparkles className="mr-2 h-4 w-4" />
+                          My Experiences
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/design-experience">
+                          <Sparkles className="mr-2 h-4 w-4" />
+                          Create Experience
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleDisconnect}>
+                        Sign out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
 
-                {/* Hamburger Menu Button */}
-                <button
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-900"
-                  aria-label="Menu"
-                >
-                  {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                </button>
-
-                {/* Dropdown Menu */}
-                {isMenuOpen && (
-                  <div className="absolute right-4 top-16 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                    <Link 
-                      href="/design-experience"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 font-medium transition-colors"
-                    >
-                      Create Experience
-                    </Link>
-                    <Link 
-                      href="/host-dashboard"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="block px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-colors"
-                    >
-                      My Experiences
-                    </Link>
-                    <Link 
-                      href="/profile"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="block px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-colors"
-                    >
-                      Profile
-                    </Link>
-                  </div>
-                )}
+                {/* Mobile: Wallet + Menu */}
+                <div className="sm:hidden flex items-center gap-2">
+                  <ConnectButton 
+                    showBalance={false}
+                    chainStatus="icon"
+                    accountStatus="avatar"
+                  />
+                  <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <Menu className="h-5 w-5" />
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right">
+                      <nav className="flex flex-col gap-4 mt-8">
+                        <Link 
+                          href="/explore"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="text-lg font-medium"
+                        >
+                          Explore
+                        </Link>
+                        <Link 
+                          href="/profile"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="text-lg font-medium"
+                        >
+                          Profile
+                        </Link>
+                        <Link 
+                          href="/host-dashboard"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="text-lg font-medium"
+                        >
+                          My Experiences
+                        </Link>
+                        <Link 
+                          href="/design-experience"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="text-lg font-medium"
+                        >
+                          Create Experience
+                        </Link>
+                        <div className="pt-4 border-t">
+                          <button
+                            onClick={() => {
+                              handleDisconnect();
+                              setIsMenuOpen(false);
+                            }}
+                            className="text-lg font-medium text-destructive"
+                          >
+                            Sign out
+                          </button>
+                        </div>
+                      </nav>
+                    </SheetContent>
+                  </Sheet>
+                </div>
               </>
             ) : (
               <>
-                {/* Connect Wallet Button */}
-                <Link href="/login">
-                  <Button 
-                    variant="default" 
-                    size="lg"
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transform hover:scale-105 shadow-md"
-                  >
-                    Connect Wallet
-                  </Button>
-                </Link>
+                {/* Not Authenticated */}
+                {!isLandingPage && (
+                  <Link href="/login">
+                    <Button 
+                      variant="default"
+                      className="bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700"
+                    >
+                      Sign in
+                    </Button>
+                  </Link>
+                )}
+                
+                {/* Mobile Menu for Landing Page */}
+                {isLandingPage && (
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon" className="md:hidden">
+                        <Menu className="h-5 w-5" />
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right">
+                      <nav className="flex flex-col gap-4 mt-8">
+                        <a 
+                          href="#experiences"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="text-lg font-medium"
+                        >
+                          Experiences
+                        </a>
+                        <a 
+                          href="#how-it-works"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="text-lg font-medium"
+                        >
+                          How it works
+                        </a>
+                        <a 
+                          href="#hosts"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="text-lg font-medium"
+                        >
+                          Become a host
+                        </a>
+                        <Link 
+                          href="/explore"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="text-lg font-medium"
+                        >
+                          Browse
+                        </Link>
+                        <div className="pt-4 border-t">
+                          <Link href="/login">
+                            <Button 
+                              variant="default"
+                              className="w-full bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700"
+                            >
+                              Sign in
+                            </Button>
+                          </Link>
+                        </div>
+                      </nav>
+                    </SheetContent>
+                  </Sheet>
+                )}
               </>
             )}
-          </nav>
+          </div>
         </div>
       </div>
     </header>
