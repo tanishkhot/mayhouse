@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Heart } from "lucide-react";
 import PriceDisplay from "@/components/PriceDisplay";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 // import ServerDebug from "@/components/ServerDebug";
 
 type Category = {
@@ -209,9 +211,9 @@ function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
       href={`/experiences/${eventRun.experience_id}/runs/${eventRun.id}`}
       className="group cursor-pointer"
     >
-      <div className="relative mb-3">
+      <Card className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow">
         {/* Cover Photo or Gradient Placeholder */}
-        <div className="h-64 rounded-xl relative overflow-hidden">
+        <div className="h-64 relative overflow-hidden">
           {eventRun.cover_photo_url ? (
             <>
               <img 
@@ -228,29 +230,29 @@ function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
             </>
           )}
           <div className="absolute bottom-4 left-4 text-white">
-            <div className="text-xs font-medium bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full mb-2 w-fit">
+            <Badge variant="secondary" className="bg-white/20 backdrop-blur-sm text-white border-0 mb-2">
               {eventRun.experience_domain}
-            </div>
+            </Badge>
             <h3 className="font-semibold text-lg leading-tight">
               {eventRun.experience_title}
             </h3>
           </div>
           
           {/* Heart Icon */}
-          <button className="absolute top-3 right-3 p-2 hover:scale-110 transition-transform">
+          <button className="absolute top-3 right-3 p-2 hover:scale-110 transition-transform z-10">
             <Heart className="w-5 h-5 text-white/80 hover:text-white" fill="none" />
           </button>
           
           {/* Available spots badge */}
           <div className="absolute top-3 left-3">
-            <span className="bg-white/90 text-gray-900 text-xs font-medium px-2 py-1 rounded-full">
+            <Badge className="bg-white/90 text-gray-900 border-0">
               {eventRun.available_spots} spots left
-            </span>
+            </Badge>
           </div>
         </div>
         
         {/* Card Content */}
-        <div className="mt-3 space-y-1">
+        <CardContent className="pt-3 space-y-1">
           {/* Promise/tagline */}
           {eventRun.experience_promise && (
             <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
@@ -292,8 +294,8 @@ function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
               <span>New</span>
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </Link>
   );
 }
