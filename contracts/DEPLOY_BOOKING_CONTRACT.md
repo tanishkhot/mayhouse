@@ -38,3 +38,4 @@ npm run dev
 ## Done!
 
 Your booking contract is now live and connected to your frontend.
+

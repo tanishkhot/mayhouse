@@ -301,3 +301,4 @@ contract MayhouseBooking is Ownable, ReentrancyGuard {
     // Receive function
     receive() external payable {}
 }
+

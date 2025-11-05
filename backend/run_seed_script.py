@@ -46,3 +46,4 @@ except Exception as e:
     print("   2. Open SQL Editor")
     print("   3. Paste contents of database/seed_buenos_aires_experiences.sql")
     print("   4. Click Run")
+

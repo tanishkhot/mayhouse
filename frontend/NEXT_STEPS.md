@@ -13,10 +13,11 @@
 These give you **immediate visual improvements** and test that everything works:
 
 #### 1.1 Add Toast Notifications to Layout
+
 **File:** `src/app/layout.tsx`
 
 ```tsx
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({ children }) {
   return (
@@ -26,7 +27,7 @@ export default function RootLayout({ children }) {
         <Toaster /> {/* Add this line */}
       </body>
     </html>
-  )
+  );
 }
 ```
 
@@ -35,11 +36,13 @@ export default function RootLayout({ children }) {
 ---
 
 #### 1.2 Migrate One Button (Test shadcn/ui)
+
 **File:** `src/components/Navbar.tsx`
 
 **Find this:**
+
 ```tsx
-<Link 
+<Link
   href="/login"
   className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-lg..."
 >
@@ -48,14 +51,15 @@ export default function RootLayout({ children }) {
 ```
 
 **Replace with:**
+
 ```tsx
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
 <Link href="/login">
   <Button variant="default" size="lg">
     Connect Wallet
   </Button>
-</Link>
+</Link>;
 ```
 
 **Why:** Test that shadcn/ui works, see immediate improvement
@@ -63,22 +67,25 @@ import { Button } from "@/components/ui/button"
 ---
 
 #### 1.3 Replace Loading Spinner with Skeleton
+
 **File:** `src/app/page.tsx` (or wherever you have loading states)
 
 **Find:**
+
 ```tsx
 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
 ```
 
 **Replace with:**
+
 ```tsx
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@/components/ui/skeleton";
 
 <div className="space-y-4">
   <Skeleton className="h-64 w-full" />
   <Skeleton className="h-4 w-3/4" />
   <Skeleton className="h-4 w-1/2" />
-</div>
+</div>;
 ```
 
 **Why:** Better UX, matches Airbnb's approach
@@ -90,15 +97,23 @@ import { Skeleton } from "@/components/ui/skeleton"
 This will make your homepage look **much better**:
 
 #### 2.1 Use Card Component for Event Listings
+
 **File:** `src/app/page.tsx`
 
 **Current:** Custom divs with Tailwind classes
 
 **Replace with:**
+
 ```tsx
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 <Card className="overflow-hidden">
   <img src={coverUrl} className="w-full h-64 object-cover" />
@@ -117,7 +132,7 @@ import { Button } from "@/components/ui/button"
   <CardFooter>
     <Button className="w-full">View Details</Button>
   </CardFooter>
-</Card>
+</Card>;
 ```
 
 **Why:** Consistent, professional look, matches Airbnb quality
@@ -129,6 +144,7 @@ import { Button } from "@/components/ui/button"
 Your filters are commented out. Let's enable them:
 
 #### 3.1 Create Filter Hook
+
 **File:** `src/hooks/useEventRunFilters.ts` (CREATE NEW)
 
 ```tsx
@@ -147,7 +163,7 @@ export function useEventRunFilters() {
 
   const updateFilters = (newFilters: Partial<typeof filters>) => {
     const params = new URLSearchParams(searchParams.toString());
-    
+
     Object.entries(newFilters).forEach(([key, value]) => {
       if (value) {
         params.set(key, value);
@@ -164,6 +180,7 @@ export function useEventRunFilters() {
 ```
 
 #### 3.2 Uncomment Filters in Homepage
+
 **File:** `src/app/page.tsx`
 
 Find the commented filter section and uncomment it, then connect to the hook above.
@@ -177,6 +194,7 @@ Find the commented filter section and uncomment it, then connect to the hook abo
 Replace all `<img>` tags with Next.js Image:
 
 #### 4.1 Create OptimizedImage Component
+
 **File:** `src/components/OptimizedImage.tsx` (CREATE NEW)
 
 ```tsx
@@ -202,14 +220,17 @@ export default function OptimizedImage({ src, alt, priority = false }) {
 ```
 
 #### 4.2 Replace img tags
+
 **File:** `src/app/page.tsx`
 
 Replace:
+
 ```tsx
 <img src={coverUrl} alt={title} />
 ```
 
 With:
+
 ```tsx
 <OptimizedImage src={coverUrl} alt={title} />
 ```
@@ -221,17 +242,20 @@ With:
 ## 📋 Priority Order Summary
 
 ### **Today (2-3 hours):**
+
 1. ✅ Add Toaster to layout (5 min)
 2. ✅ Migrate one button (10 min)
 3. ✅ Replace loading spinner (15 min)
 4. ✅ Migrate event cards (1 hour)
 
 ### **This Week (4-6 hours):**
+
 5. ✅ Enable search/filters (2-3 hours)
 6. ✅ Optimize images (1 hour)
 7. ✅ Set up Storybook (1 hour)
 
 ### **Next Week:**
+
 8. ✅ Mobile optimization
 9. ✅ Performance improvements
 10. ✅ Accessibility audit
@@ -241,6 +265,7 @@ With:
 ## 🎯 Quick Reference
 
 ### **Components Available:**
+
 - `Button` - All button variants
 - `Card` - Container components
 - `Badge` - Status labels
@@ -253,6 +278,7 @@ With:
 - And more...
 
 ### **Documentation:**
+
 - **Usage Guide:** `SHADCN_INTEGRATION_GUIDE.md`
 - **Full Checklist:** `IMPLEMENTATION_CHECKLIST.md`
 - **Technical Details:** `AIRBNB_ANALYSIS_RECOMMENDATIONS.md`
@@ -262,17 +288,20 @@ With:
 ## ✅ Success Checklist
 
 After completing Step 1, you should have:
+
 - [x] Toast notifications working
 - [x] At least one button using shadcn/ui
 - [x] Skeleton loaders instead of spinners
 - [x] Better visual consistency
 
 After completing Step 2, you should have:
+
 - [x] Professional-looking event cards
 - [x] Consistent styling
 - [x] Better UX
 
 After completing Step 3, you should have:
+
 - [x] Working search/filters
 - [x] URL-based state (shareable links)
 - [x] Better discovery experience
@@ -282,6 +311,7 @@ After completing Step 3, you should have:
 ## 🚀 Start Now!
 
 **Recommended first action:**
+
 1. Open `src/app/layout.tsx`
 2. Add `<Toaster />` component
 3. Test it by adding a toast somewhere

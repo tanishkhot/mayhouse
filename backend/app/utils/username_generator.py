@@ -212,3 +212,4 @@ def validate_username(username: str) -> tuple[bool, str]:
         return False, "Username is reserved and cannot be used"
 
     return True, ""
+

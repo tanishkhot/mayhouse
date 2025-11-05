@@ -264,3 +264,4 @@ const getStatusClasses = (status: number) => {
 ---
 
 **Next Steps:** Fix these 3 critical components immediately before doing motion/animation work.
+

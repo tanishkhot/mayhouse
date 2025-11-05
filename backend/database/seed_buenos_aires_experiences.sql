@@ -424,3 +424,4 @@ SELECT 'Data seeding complete!' as message,
            SELECT id FROM experiences WHERE city = 'Buenos Aires'
        )) as event_runs_count;
 
+
