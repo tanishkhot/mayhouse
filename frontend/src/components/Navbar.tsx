@@ -259,7 +259,7 @@ export default function Navbar() {
                   <Link href="/login">
                     <Button 
                       variant="default"
-                      className="bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700"
+                      className="bg-black hover:bg-gray-900 text-white"
                     >
                       Sign in
                     </Button>
@@ -308,7 +308,7 @@ export default function Navbar() {
                           <Link href="/login">
                             <Button 
                               variant="default"
-                              className="w-full bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700"
+                              className="w-full bg-black hover:bg-gray-900 text-white"
                             >
                               Sign in
                             </Button>
