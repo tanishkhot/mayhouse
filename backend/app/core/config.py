@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     debug: bool = False
 
     # CORS settings - stored as string, parsed to list when needed
-    cors_origins_str: str = "http://localhost:3000,http://127.0.0.1:3000"
+    cors_origins_str: str = "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001"
     
     @field_validator('debug', mode='before')
     @classmethod
@@ -65,4 +65,7 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     """Get cached settings instance."""
-    return Settings()
+    settings = Settings()
+    # Log CORS configuration for debugging
+    print(f"🔧 CORS configuration loaded: {settings.cors_origins}")
+    return settings

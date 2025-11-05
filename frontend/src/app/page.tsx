@@ -19,7 +19,7 @@ type Category = {
 };
 
 export default function ExplorePage() {
-  const { data: eventRuns = [], isLoading: eventsLoading } = useQuery({
+  const { data: eventRuns = [], isLoading: eventsLoading, error: eventsError } = useQuery({
     queryKey: ["explore"], // Removed filter dependencies for now
     queryFn: () => ExploreAPI.getUpcomingExperiences({
       // domain: selectedDomain,
@@ -28,6 +28,7 @@ export default function ExplorePage() {
     }),
     staleTime: 2 * 60 * 1000, // Cache for 2 minutes
     refetchOnWindowFocus: false, // Don't refetch on window focus
+    retry: 1, // Only retry once
   });
   
   // Categories and neighborhoods commented out for now
@@ -94,6 +95,22 @@ export default function ExplorePage() {
       
       {/* Filters - Commented out for now */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Error Display */}
+        {eventsError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-800 font-semibold">Error loading experiences</p>
+            <p className="text-red-600 text-sm mt-1">
+              {eventsError instanceof Error ? eventsError.message : 'Failed to fetch experiences'}
+            </p>
+            <details className="mt-2">
+              <summary className="text-red-600 text-xs cursor-pointer">Show details</summary>
+              <pre className="mt-2 text-xs bg-red-100 p-2 rounded overflow-auto">
+                {JSON.stringify(eventsError, null, 2)}
+              </pre>
+            </details>
+          </div>
+        )}
+        
         {/* 
         <div className="flex flex-wrap gap-2 mb-6">
           {/* Category Pills */}

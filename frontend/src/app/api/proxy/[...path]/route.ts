@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const EC2_BASE_URL = 'http://ec2-18-223-166-226.us-east-2.compute.amazonaws.com:8000';
+// Use localhost in development, EC2 in production
+const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
+  (process.env.NODE_ENV === 'production' 
+    ? 'http://ec2-18-223-166-226.us-east-2.compute.amazonaws.com:8000'
+    : 'http://localhost:8000');
 
 export async function GET(
   request: NextRequest,
@@ -51,7 +55,7 @@ async function handleRequest(
     const path = pathSegments.join('/');
     const url = new URL(request.url);
     const searchParams = url.searchParams.toString();
-    const fullPath = `${EC2_BASE_URL}/${path}${searchParams ? `?${searchParams}` : ''}`;
+    const fullPath = `${BACKEND_BASE_URL}/${path}${searchParams ? `?${searchParams}` : ''}`;
 
     console.log(`🔄 Proxying ${method} request to: ${fullPath}`);
 

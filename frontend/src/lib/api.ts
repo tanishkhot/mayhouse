@@ -1,13 +1,8 @@
 import axios from "axios";
 
-// Base API URL - use proxy in production, direct connection in development
-const isProduction = typeof window !== 'undefined' && 
-  (window.location.hostname.includes('vercel.app') || 
-   window.location.hostname.includes('mayhouse.in') ||
-   window.location.hostname !== 'localhost');
-const BASE_URL = isProduction 
-  ? "/api/proxy"  // Use Next.js API proxy in production
-  : (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000");
+// Base API URL - always use Next.js API proxy to avoid CORS issues
+// The proxy handles routing to the correct backend (localhost in dev, EC2 in prod)
+const BASE_URL = "/api/proxy";
 
 // Debug logs removed for production
 
@@ -246,8 +241,16 @@ export const ExploreAPI = {
     if (params?.limit) searchParams.append("limit", params.limit.toString());
     if (params?.offset) searchParams.append("offset", params.offset.toString());
     
-    const url = `/explore/${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
-    return api.get<ExploreEventRun[]>(url).then((r) => r.data);
+    const queryString = searchParams.toString();
+    const url = `/explore/${queryString ? `?${queryString}` : ""}`;
+    console.log('🔍 Fetching explore data from:', url);
+    return api.get<ExploreEventRun[]>(url).then((r) => {
+      console.log('✅ Explore API response:', r.data?.length || 0, 'event runs');
+      return r.data;
+    }).catch((error) => {
+      console.error('❌ Explore API error:', error.response?.data || error.message);
+      throw error;
+    });
   },
   getCategories: () =>
     api.get<Record<string, any>>("/explore/categories").then((r) => r.data),

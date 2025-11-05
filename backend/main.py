@@ -42,6 +42,7 @@ app.add_middleware(
 async def startup_event():
     """Initialize application on startup."""
     print(f"🚀 Starting {settings.app_name} v{settings.app_version}")
+    print(f"🌐 CORS origins configured: {settings.cors_origins}")
     init_database()
 
 
