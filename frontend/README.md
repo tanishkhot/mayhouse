@@ -1,36 +1,160 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mayhouse ETH Frontend
 
-## Getting Started
+[Next.js](https://nextjs.org) + [React 19](https://react.dev) + [Tailwind CSS](https://tailwindcss.com) frontend for the Mayhouse experience booking platform with Web3 integration.
 
-First, run the development server:
+## ✨ Features
+
+- **Web3 Integration**: Ethereum wallet authentication and payments via [Wagmi](https://wagmi.sh) + [RainbowKit](https://rainbowkit.com)
+- **Smart Contract**: Deployed on Sepolia at `0x09aB660CEac220678b42E0e23DebCb1475e1eAD5`
+- **Modern Stack**: Next.js 15 App Router, React 19, TypeScript 5, Tailwind CSS 4
+- **State Management**: React Query + Zustand
+- **Booking System**: Blockchain-based booking with staking mechanism
+- **Responsive Design**: Mobile-first, fully accessible
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm/yarn/pnpm
+- MetaMask or compatible wallet
+- Sepolia test ETH (for contract interactions)
+
+### Installation
 
 ```bash
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Add your API keys and contract addresses
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build for Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## 📚 Documentation
 
-To learn more about Next.js, take a look at the following resources:
+### Core Documentation
+- **[AIRBNB_ANSPIRATION_SUMMARY.md](./AIRBNB_INSPIRATION_SUMMARY.md)** - Executive summary and quick start guide
+- **[AIRBNB_ANALYSIS_RECOMMENDATIONS.md](./AIRBNB_ANALYSIS_RECOMMENDATIONS.md)** - Deep dive technical recommendations
+- **[IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md)** - Step-by-step development roadmap
+- **[ASSET_REQUIREMENTS.md](./ASSET_REQUIREMENTS.md)** - Design assets and resources needed
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Project Documentation
+- **[CONTRACT_INTEGRATION.md](./CONTRACT_INTEGRATION.md)** - Smart contract integration guide
+- **[screens.md](./screens.md)** - Page layout and routing structure
+- **[FIXES_COMPLETED.md](./FIXES_COMPLETED.md)** - Recent bug fixes and improvements
+- **[CONTRAST_AUDIT_REPORT.md](./CONTRAST_AUDIT_REPORT.md)** - Accessibility audit results
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🏗️ Project Structure
 
-## Deploy on Vercel
+```
+frontend/
+├── src/
+│   ├── app/                 # Next.js App Router pages
+│   │   ├── page.tsx        # Homepage (Explore)
+│   │   ├── login/          # Wallet authentication
+│   │   ├── host-dashboard/ # Host management
+│   │   └── experiences/    # Event detail pages
+│   ├── components/         # React components
+│   ├── lib/                # Utilities & APIs
+│   └── hooks/              # Custom React hooks
+├── public/                 # Static assets
+└── docs/                   # Additional documentation
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🎯 Quick Start Guide
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**New to the project?** Start here:
+
+1. **Read** [AIRBNB_INSPIRATION_SUMMARY.md](./AIRBNB_INSPIRATION_SUMMARY.md) (5 min)
+2. **Review** [IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md) (10 min)
+3. **Setup** Storybook (see checklist)
+4. **Build** your first UI component
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 15 with App Router
+- **UI Library**: React 19
+- **Language**: TypeScript 5
+- **Styling**: Tailwind CSS 4
+- **Web3**: Wagmi 2.18 + Viem 2.38 + RainbowKit 2.2
+- **State**: React Query 5 + Zustand 5
+- **Forms**: React Hook Form
+- **Icons**: Lucide React
+
+## 🎨 Design System
+
+### Colors
+- **Primary**: Purple/Pink (#db2777)
+- **Secondary**: Blue (#2563eb)
+- **Accent**: Orange (#f59e0b)
+- **Typography**: Geist Sans
+
+### Components
+Build UI components following Airbnb-inspired patterns. See [IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md) for details.
+
+## 📦 Scripts
+
+```bash
+npm run dev      # Development server with Turbopack
+npm run build    # Production build
+npm run start    # Production server
+npm run lint     # Lint code
+```
+
+## 🔗 Smart Contract
+
+**Network**: Sepolia Testnet  
+**Address**: `0x09aB660CEac220678b42E0e23DebCb1475e1eAD5`  
+**ABI**: See [src/lib/contract-abi.ts](./src/lib/contract-abi.ts)
+
+## 🧪 Testing
+
+```bash
+# Run tests (when implemented)
+npm test
+
+# Test smart contract
+npm run test:contract
+```
+
+## 📊 Performance
+
+Target metrics:
+- Lighthouse Performance: > 90
+- First Contentful Paint: < 1.5s
+- Bundle size: < 200KB (gzipped)
+
+## 🤝 Contributing
+
+1. Read [IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md)
+2. Pick a task from the checklist
+3. Create a feature branch
+4. Write tests
+5. Submit a pull request
+
+## 📝 License
+
+MIT
+
+## 🆘 Support
+
+- Documentation: See `/docs` folder
+- Issues: Create GitHub issue
+- Questions: Check existing documentation
+
+---
+
+**Built with ❤️ for ETHOnline Hackathon 2025**
