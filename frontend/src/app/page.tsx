@@ -3,11 +3,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { ExploreAPI, ExploreEventRun } from "@/lib/api";
 import Link from "next/link";
-import { Heart, Star } from "lucide-react";
-import PriceDisplay from "@/components/PriceDisplay";
+import { Heart, Users, Clock, Shield, Star } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import PriceDisplay from "@/components/PriceDisplay";
 // import ServerDebug from "@/components/ServerDebug";
 
 type Category = {
@@ -171,18 +172,20 @@ export default function ExplorePage() {
         
         {/* Event Run Cards Grid */}
         {eventsLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="space-y-3">
-                <Skeleton className="h-64 w-full rounded-xl" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-full" />
-                <Skeleton className="h-3 w-1/2" />
-              </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="overflow-hidden !p-0">
+                <Skeleton className="w-full aspect-[4/3]" />
+                <div className="p-4 space-y-4">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              </Card>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {eventRuns.map((eventRun) => (
               <EventRunCard key={eventRun.id} eventRun={eventRun} />
             ))}
@@ -200,11 +203,6 @@ export default function ExplorePage() {
 }
 
 function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
-  const formatPrice = (priceStr: string) => {
-    const price = parseFloat(priceStr);
-    return `₹${price.toLocaleString('en-IN')}`;
-  };
-  
   const formatDuration = (minutes: number) => {
     if (minutes < 60) return `${minutes} min`;
     const hours = Math.floor(minutes / 60);
@@ -222,107 +220,109 @@ function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
       minute: '2-digit'
     });
   };
+
+  const price = parseFloat(eventRun.price_inr);
   
   return (
-    <Link
-      href={`/experiences/${eventRun.experience_id}/runs/${eventRun.id}`}
-      className="group cursor-pointer"
+    <Card 
+      className="group overflow-hidden cursor-pointer hover:shadow-xl transition-shadow !p-0 !py-0 !gap-0 !shadow-none"
     >
-      <Card className="overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-shadow duration-300">
-        {/* 
-          Hero Image Pattern (Airbnb-style):
-          - Large hero image (h-64) for visual impact
-          - Dark gradient overlay at bottom (from-black/60) ensures white text is readable
-          - Text positioned absolutely at bottom-left (standard pattern)
-          - Badges/icons positioned at corners for easy scanning
-          This creates a modern, app-like card design that's visually engaging
-        */}
-        <div className="h-64 relative overflow-hidden">
+      <Link href={`/experiences/${eventRun.experience_id}/runs/${eventRun.id}`}>
+        <div className="relative">
           {eventRun.cover_photo_url ? (
-            <>
-              <img 
-                src={eventRun.cover_photo_url} 
-                alt={eventRun.experience_title}
-                className="w-full h-full object-cover"
-              />
-              {/* Dark gradient overlay - ensures white text is readable on any image */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-            </>
+            <img
+              src={eventRun.cover_photo_url}
+              alt={eventRun.experience_title}
+              className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300"
+            />
           ) : (
-            <>
-              <div className="w-full h-full bg-gradient-to-br from-red-400 to-pink-600"></div>
-              <div className="absolute inset-0 bg-black/20"></div>
-            </>
+            <div className="w-full aspect-[4/3] bg-gradient-to-br from-orange-400 to-rose-500" />
           )}
-          {/* Title positioned at bottom-left - standard hero card pattern */}
-          <div className="absolute bottom-4 left-4 text-white">
-            <Badge variant="secondary" className="bg-white/20 backdrop-blur-sm text-white border-0 mb-2">
-              {eventRun.experience_domain}
-            </Badge>
-            <h3 className="font-semibold text-lg leading-tight">
-              {eventRun.experience_title}
-            </h3>
-          </div>
-          
-          {/* Heart Icon */}
-          <button className="absolute top-3 right-3 p-2 hover:scale-110 transition-transform z-10">
-            <Heart className="w-5 h-5 text-white/80 hover:text-white" fill="none" />
+          <button 
+            className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center hover:bg-white transition-colors z-10"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              // TODO: Add to favorites
+            }}
+          >
+            <Heart className="h-5 w-5" />
           </button>
-          
-          {/* Available spots badge */}
-          <div className="absolute top-3 left-3">
-            <Badge className="bg-white/90 text-gray-900 border-0">
-              {eventRun.available_spots} spots left
-            </Badge>
-          </div>
+          <Badge className="absolute bottom-3 left-3 bg-white/90 backdrop-blur text-foreground hover:bg-white">
+            {eventRun.experience_domain}
+          </Badge>
         </div>
-        
-        {/* Card Content */}
-        <CardContent className="pt-3 space-y-1">
-          {/* Promise/tagline */}
-          {eventRun.experience_promise && (
-            <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
-              {eventRun.experience_promise}
-            </p>
-          )}
-          
-          {/* Date and duration */}
-          <div className="flex items-center text-sm text-gray-500 space-x-2">
-            <span>{formatDate(eventRun.start_datetime)}</span>
-            <span>•</span>
-            <span>{formatDuration(eventRun.duration_minutes)}</span>
+
+        <div className="p-4 space-y-4">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-muted-foreground">{eventRun.neighborhood || 'Mumbai'}</p>
+              <div className="flex items-center gap-1">
+                <Star className="h-4 w-4 fill-orange-400 text-orange-400" />
+                <span className="text-sm">New</span>
+              </div>
+            </div>
+            <h3 className="line-clamp-2 mb-3 font-semibold">{eventRun.experience_title}</h3>
+            
+            {eventRun.experience_promise && (
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                {eventRun.experience_promise}
+              </p>
+            )}
+            
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-rose-500 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1">
+                  <p className="text-sm truncate">{eventRun.host_name}</p>
+                  <Shield className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <span>{formatDuration(eventRun.duration_minutes)}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                <span>{eventRun.max_capacity} people</span>
+              </div>
+            </div>
+
+            {eventRun.available_spots > 0 && eventRun.available_spots < 5 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">
+                  {eventRun.available_spots} spots left
+                </Badge>
+              </div>
+            )}
           </div>
-          
-          {/* Location and host */}
-          <div className="flex items-center text-sm text-gray-500 space-x-2">
-            <span>{eventRun.neighborhood}</span>
-            <span>•</span>
-            <span>with {eventRun.host_name}</span>
-          </div>
-          
-          {/* Price */}
-          <div className="flex items-center justify-between pt-2">
-            <div className="flex flex-col gap-1">
+
+          <div className="flex items-center justify-between pt-3 border-t">
+            <div>
               <PriceDisplay 
-                priceINR={parseFloat(eventRun.price_inr)}
+                priceINR={price}
                 size="small"
                 showINR={true}
                 layout="inline"
               />
-              <span className="text-gray-500 text-xs">per person</span>
+              <span className="text-sm text-muted-foreground"> per person</span>
             </div>
-            
-            {/* New Badge */}
-            <Badge 
-              variant="secondary" 
-              className="bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-200 flex items-center gap-1.5"
+            <Button 
+              size="sm" 
+              className="bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = `/experiences/${eventRun.experience_id}/runs/${eventRun.id}`;
+              }}
             >
-              <Star className="w-3.5 h-3.5 fill-orange-500 text-orange-500" />
-              <span className="font-medium">New</span>
-            </Badge>
+              Book now
+            </Button>
           </div>
-        </CardContent>
-      </Card>
-    </Link>
+        </div>
+      </Link>
+    </Card>
   );
 }
