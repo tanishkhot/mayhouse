@@ -125,18 +125,8 @@ export function ExperiencesSection({ onExperienceSelect }: ExperiencesSectionPro
   );
 
   return (
-    <section id="experiences" className="py-20 lg:py-32 bg-gradient-to-b from-white to-orange-50/30">
+    <section id="experiences" className="pt-6 pb-20 lg:pt-8 lg:pb-32 bg-gradient-to-b from-white to-orange-50/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl mb-4">
-            Curated experiences
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            Each experience is hand-selected for authenticity, intimacy, and cultural depth. 
-            Meet the humans behind the place.
-          </p>
-        </div>
-
         <div className="mb-8 flex justify-center">
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
             <TabsList className="bg-white shadow-sm">

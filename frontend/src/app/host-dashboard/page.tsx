@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { HostOnlyRoute } from '@/components/ProtectedRoute';
 import EventRunsList from '@/components/EventRunsList';
 import EventRunScheduler from '@/components/EventRunScheduler';
+import { ExperienceCard } from '@/components/landing/ExperienceCard';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/lib/api';
 
 // Add custom styles for text clamping
@@ -36,6 +39,16 @@ interface Experience {
   admin_feedback?: string;
   created_at: string;
   updated_at: string;
+  cover_photo_url?: string;
+  traveler_max_capacity?: number;
+}
+
+interface ExperiencePhoto {
+  id: string;
+  photo_url: string;
+  is_cover_photo: boolean;
+  display_order: number;
+  caption?: string;
 }
 
 const HostDashboardContent = () => {
@@ -56,6 +69,7 @@ const HostDashboardContent = () => {
   const [filter, setFilter] = useState<'all' | 'draft' | 'submitted' | 'approved' | 'rejected'>('all');
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
   const [allExperiences, setAllExperiences] = useState<Experience[]>([]);
+  const [experiencePhotos, setExperiencePhotos] = useState<Record<string, string>>({});
   
   // Experience creation state
   const [step, setStep] = useState(1);
@@ -81,6 +95,27 @@ const HostDashboardContent = () => {
     whatToBring: '',
   });
 
+  // Fetch cover photos for experiences
+  const fetchExperiencePhotos = useCallback(async (experienceIds: string[]) => {
+    const photosMap: Record<string, string> = {};
+    
+    for (const expId of experienceIds) {
+      try {
+        const photosResponse = await api.get(`/experiences/${expId}/photos`);
+        const photos: ExperiencePhoto[] = photosResponse.data;
+        const coverPhoto = photos.find(p => p.is_cover_photo) || photos[0];
+        if (coverPhoto) {
+          photosMap[expId] = coverPhoto.photo_url;
+        }
+      } catch (err) {
+        // Photo not found or not uploaded yet - use placeholder
+        console.log(`No photos found for experience ${expId}`);
+      }
+    }
+    
+    setExperiencePhotos(prev => ({ ...prev, ...photosMap }));
+  }, []);
+
   // Define fetch functions before useEffect
   const fetchExperiences = useCallback(async () => {
     try {
@@ -98,6 +133,9 @@ const HostDashboardContent = () => {
       const allData = allResponse.data;
       setAllExperiences(allData);
       
+      // Fetch cover photos for all experiences
+      fetchExperiencePhotos(allData.map((exp: Experience) => exp.id));
+      
       // Filter experiences based on current filter
       if (filter === 'all') {
         setExperiences(allData);
@@ -111,7 +149,7 @@ const HostDashboardContent = () => {
     } finally {
       setLoading(false);
     }
-  }, [filter, setAllExperiences, setExperiences, setLoading, setError]);
+  }, [filter, fetchExperiencePhotos]);
 
   const handleViewExperience = (experience: Experience) => {
     setSelectedExperience(experience);
@@ -541,11 +579,145 @@ const HostDashboardContent = () => {
                     </div>
                   </div>
 
+                  {/* Experience Cards Grid */}
+                  <div className="mb-8">
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-2xl font-semibold text-black">Your Experiences</h2>
+                      <button
+                        onClick={() => {
+                          resetFormData();
+                          setActiveTab('create');
+                        }}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                      >
+                        + Create Experience
+                      </button>
+                    </div>
+                    {loading ? (
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[...Array(6)].map((_, i) => (
+                          <Card key={i} className="overflow-hidden !p-0 !shadow-none">
+                            <Skeleton className="w-full aspect-[4/3]" />
+                            <div className="p-4 space-y-4">
+                              <Skeleton className="h-4 w-3/4" />
+                              <Skeleton className="h-4 w-full" />
+                              <Skeleton className="h-4 w-2/3" />
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : experiences.length > 0 ? (
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {experiences.map((exp) => {
+                          const formatDuration = (minutes: number) => {
+                            if (minutes < 60) return `${minutes} min`;
+                            const hours = Math.floor(minutes / 60);
+                            const remainingMinutes = minutes % 60;
+                            if (remainingMinutes === 0) return `${hours} hr${hours > 1 ? 's' : ''}`;
+                            return `${hours}h ${remainingMinutes}m`;
+                          };
+
+                          // Use placeholder image if no cover photo
+                          const placeholderImage = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmF2ZWwlMjBleHBlcmllbmNlfGVufDF8fHx8MTc2MjM2MTU3MHww&ixlib=rb-4.1.0&q=80&w=1080';
+                          
+                          return (
+                            <ExperienceCard
+                              key={exp.id}
+                              id={exp.id}
+                              title={exp.title}
+                              host={{
+                                name: 'You', // TODO: Get actual host name from user profile
+                                verified: true,
+                              }}
+                              image={experiencePhotos[exp.id] || placeholderImage}
+                              category={exp.experience_domain}
+                              duration={formatDuration(exp.duration_minutes)}
+                              groupSize={`${exp.traveler_max_capacity || 4} people`}
+                              price={parseFloat(exp.price_inr)}
+                              rating={4.5} // TODO: Calculate actual rating from reviews
+                              reviews={0} // TODO: Get actual review count
+                              location={exp.neighborhood || 'Mumbai'}
+                              tags={exp.status === 'approved' ? ['Approved'] : exp.status === 'draft' ? ['Draft'] : []}
+                              onSelect={(id) => handleViewExperience(experiences.find(e => e.id === id)!)}
+                            />
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {/* Experience Cards Grid - Duplicate Section */}
+                  <div className="mb-8">
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-2xl font-semibold text-black">Your Experiences</h2>
+                      <button
+                        onClick={() => {
+                          resetFormData();
+                          setActiveTab('create');
+                        }}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                      >
+                        + Create Experience
+                      </button>
+                    </div>
+                    {loading ? (
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[...Array(6)].map((_, i) => (
+                          <Card key={i} className="overflow-hidden !p-0 !shadow-none">
+                            <Skeleton className="w-full aspect-[4/3]" />
+                            <div className="p-4 space-y-4">
+                              <Skeleton className="h-4 w-3/4" />
+                              <Skeleton className="h-4 w-full" />
+                              <Skeleton className="h-4 w-2/3" />
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : experiences.length > 0 ? (
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {experiences.map((exp) => {
+                          const formatDuration = (minutes: number) => {
+                            if (minutes < 60) return `${minutes} min`;
+                            const hours = Math.floor(minutes / 60);
+                            const remainingMinutes = minutes % 60;
+                            if (remainingMinutes === 0) return `${hours} hr${hours > 1 ? 's' : ''}`;
+                            return `${hours}h ${remainingMinutes}m`;
+                          };
+
+                          // Use placeholder image if no cover photo
+                          const placeholderImage = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmF2ZWwlMjBleHBlcmllbmNlfGVufDF8fHx8MTc2MjM2MTU3MHww&ixlib=rb-4.1.0&q=80&w=1080';
+                          
+                          return (
+                            <ExperienceCard
+                              key={exp.id}
+                              id={exp.id}
+                              title={exp.title}
+                              host={{
+                                name: 'You', // TODO: Get actual host name from user profile
+                                verified: true,
+                              }}
+                              image={experiencePhotos[exp.id] || placeholderImage}
+                              category={exp.experience_domain}
+                              duration={formatDuration(exp.duration_minutes)}
+                              groupSize={`${exp.traveler_max_capacity || 4} people`}
+                              price={parseFloat(exp.price_inr)}
+                              rating={4.5} // TODO: Calculate actual rating from reviews
+                              reviews={0} // TODO: Get actual review count
+                              location={exp.neighborhood || 'Mumbai'}
+                              tags={exp.status === 'approved' ? ['Approved'] : exp.status === 'draft' ? ['Draft'] : []}
+                              onSelect={(id) => handleViewExperience(experiences.find(e => e.id === id)!)}
+                            />
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+
                   {/* Experiences List */}
                   <div className="bg-gray-50 rounded-lg">
                     <div className="px-6 py-4 border-b border-gray-200 bg-white rounded-t-lg">
                       <div className="flex justify-between items-center">
-                        <h2 className="text-lg font-semibold text-black">Your Experiences</h2>
+                        <h2 className="text-lg font-semibold text-black">List View</h2>
                         <button
                           onClick={() => {
                             resetFormData();

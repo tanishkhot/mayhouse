@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import PriceDisplay from "@/components/PriceDisplay";
+import { ExperiencesSection } from "@/components/landing/ExperiencesSection";
 // import ServerDebug from "@/components/ServerDebug";
 
 type Category = {
@@ -73,28 +74,10 @@ export default function ExplorePage() {
       
       {/* Header removed - now using global Navbar component */}
       
-      {/* Search Bar - Commented out for now */}
-      {/* 
-      <div className="bg-gray-50 py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-full shadow-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h1 className="text-lg font-semibold text-gray-900">Experiences nearby</h1>
-                <p className="text-sm text-gray-500">Discover unique local adventures in Mumbai</p>
-              </div>
-              <button className="bg-red-500 text-white p-3 rounded-full hover:bg-red-600">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      */}
+      {/* Curated Experiences Section - Starting directly with filters and cards */}
+      <ExperiencesSection />
       
-      {/* Filters - Commented out for now */}
+      {/* Event Runs Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Error Display */}
         {eventsError && (
