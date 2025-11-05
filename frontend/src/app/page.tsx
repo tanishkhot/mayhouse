@@ -211,8 +211,15 @@ function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
       href={`/experiences/${eventRun.experience_id}/runs/${eventRun.id}`}
       className="group cursor-pointer"
     >
-      <Card className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow">
-        {/* Cover Photo or Gradient Placeholder */}
+      <Card className="overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+        {/* 
+          Hero Image Pattern (Airbnb-style):
+          - Large hero image (h-64) for visual impact
+          - Dark gradient overlay at bottom (from-black/60) ensures white text is readable
+          - Text positioned absolutely at bottom-left (standard pattern)
+          - Badges/icons positioned at corners for easy scanning
+          This creates a modern, app-like card design that's visually engaging
+        */}
         <div className="h-64 relative overflow-hidden">
           {eventRun.cover_photo_url ? (
             <>
@@ -221,6 +228,7 @@ function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
                 alt={eventRun.experience_title}
                 className="w-full h-full object-cover"
               />
+              {/* Dark gradient overlay - ensures white text is readable on any image */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
             </>
           ) : (
@@ -229,6 +237,7 @@ function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
               <div className="absolute inset-0 bg-black/20"></div>
             </>
           )}
+          {/* Title positioned at bottom-left - standard hero card pattern */}
           <div className="absolute bottom-4 left-4 text-white">
             <Badge variant="secondary" className="bg-white/20 backdrop-blur-sm text-white border-0 mb-2">
               {eventRun.experience_domain}
