@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { ExploreAPI, ExploreEventRun } from "@/lib/api";
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Heart, Star } from "lucide-react";
 import PriceDisplay from "@/components/PriceDisplay";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
@@ -295,13 +295,14 @@ function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
               <span className="text-gray-500 text-xs">per person</span>
             </div>
             
-            {/* Rating placeholder */}
-            <div className="flex items-center text-sm text-gray-500">
-              <svg className="w-4 h-4 text-gray-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.953a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.286 3.953c.3.921-.755 1.688-1.54 1.118L10 13.347l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.286-3.953a1 1 0 00-.364-1.118L2.643 9.38c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.953z" />
-              </svg>
-              <span>New</span>
-            </div>
+            {/* New Badge */}
+            <Badge 
+              variant="secondary" 
+              className="bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-200 flex items-center gap-1.5"
+            >
+              <Star className="w-3.5 h-3.5 fill-orange-500 text-orange-500" />
+              <span className="font-medium">New</span>
+            </Badge>
           </div>
         </CardContent>
       </Card>
