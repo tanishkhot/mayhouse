@@ -7,6 +7,7 @@ import { useAccount } from 'wagmi';
 import React, { useState, useEffect } from 'react';
 import { getAccessToken, clearAuthData } from '@/lib/api';
 import { Menu, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -111,11 +112,14 @@ export default function Navbar() {
             ) : (
               <>
                 {/* Connect Wallet Button */}
-                <Link 
-                  href="/login"
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105 font-medium shadow-md"
-                >
-                  Connect Wallet
+                <Link href="/login">
+                  <Button 
+                    variant="default" 
+                    size="lg"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transform hover:scale-105 shadow-md"
+                  >
+                    Connect Wallet
+                  </Button>
                 </Link>
               </>
             )}
