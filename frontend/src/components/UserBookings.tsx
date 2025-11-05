@@ -2,6 +2,7 @@
 
 import { useAccount } from 'wagmi';
 import { useGetUserBookings, useGetBooking, formatEthValue, BookingStatus } from '@/lib/contract';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function UserBookings() {
   const { address, isConnected } = useAccount();
@@ -17,9 +18,19 @@ export default function UserBookings() {
 
   if (isLoading) {
     return (
-      <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading your bookings...</p>
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-48" />
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg shadow-lg p-6 space-y-4">
+            <Skeleton className="h-6 w-32" />
+            <div className="grid grid-cols-2 gap-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -65,9 +76,12 @@ function BookingCard({ bookingId }: { bookingId: number }) {
 
   if (isLoading || !bookingData) {
     return (
-      <div className="bg-white rounded-lg shadow p-6 animate-pulse">
-        <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
-        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+      <div className="bg-white rounded-lg shadow p-6 space-y-4">
+        <Skeleton className="h-6 w-1/4" />
+        <div className="grid grid-cols-2 gap-4">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+        </div>
       </div>
     );
   }

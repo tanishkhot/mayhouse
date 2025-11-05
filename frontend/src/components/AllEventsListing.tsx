@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { useGetEventRun, formatEthValue, EventStatus } from '@/lib/contract';
 import BookEventButton from './BookEventButton';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Try to load events from 1 to MAX_EVENTS_TO_CHECK
 const MAX_EVENTS_TO_CHECK = 100;
@@ -38,8 +39,15 @@ export default function AllEventsListing() {
   if (isScanning) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading events...</p>
+        <div className="space-y-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="space-y-3">
+              <Skeleton className="h-48 w-full rounded-xl" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

@@ -5,6 +5,7 @@ import { ExploreAPI, ExploreEventRun } from "@/lib/api";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import PriceDisplay from "@/components/PriceDisplay";
+import { Skeleton } from "@/components/ui/skeleton";
 // import ServerDebug from "@/components/ServerDebug";
 
 type Category = {
@@ -153,11 +154,11 @@ export default function ExplorePage() {
         {eventsLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="bg-gray-200 h-64 rounded-xl mb-3"></div>
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded mb-1 w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              <div key={i} className="space-y-3">
+                <Skeleton className="h-64 w-full rounded-xl" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-1/2" />
               </div>
             ))}
           </div>
