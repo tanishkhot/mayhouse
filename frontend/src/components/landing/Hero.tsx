@@ -13,7 +13,7 @@ export function Hero() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
             <div className="space-y-4">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl">
                 Travel deeper.
                 <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-600">
@@ -70,7 +70,7 @@ export function Hero() {
                   <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-400 to-rose-500 flex-shrink-0" />
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground">Featured Host</p>
-                    <h4 className="font-semibold">Maria&apos;s Hidden Barcelona</h4>
+                    <h4>Maria&apos;s Hidden Barcelona</h4>
                     <div className="flex items-center gap-1 mt-1">
                       <span className="text-sm">⭐ 4.9</span>
                       <span className="text-sm text-muted-foreground">· 127 experiences</span>

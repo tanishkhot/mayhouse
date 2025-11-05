@@ -36,7 +36,7 @@ export function TrustSection() {
               <Badge className="bg-gradient-to-r from-orange-500 to-rose-600 text-white">
                 Trust Infrastructure
               </Badge>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl">
                 Built on trust, powered by technology
               </h2>
               <p className="text-lg text-muted-foreground">
@@ -54,7 +54,7 @@ export function TrustSection() {
                     </div>
                   </div>
                   <div className="flex-1">
-                    <h4 className="mb-1 font-semibold">{feature.title}</h4>
+                    <h4 className="mb-1">{feature.title}</h4>
                     <p className="text-muted-foreground text-sm">
                       {feature.description}
                     </p>
@@ -65,14 +65,14 @@ export function TrustSection() {
           </div>
 
           <div className="bg-white rounded-3xl shadow-2xl p-8 space-y-6">
-            <h3 className="text-center font-semibold text-lg">What makes us different</h3>
+            <h3 className="text-center">What makes us different</h3>
             
             <div className="space-y-4">
               <div className="flex items-start gap-3 p-4 rounded-xl bg-orange-50">
                 <CheckCircle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-sm mb-1 text-muted-foreground">Host verification rate</p>
-                  <p className="text-2xl font-bold">100%</p>
+                  <p className="text-2xl">100%</p>
                 </div>
               </div>
 
@@ -80,7 +80,7 @@ export function TrustSection() {
                 <CheckCircle className="h-5 w-5 text-rose-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-sm mb-1 text-muted-foreground">Average experience rating</p>
-                  <p className="text-2xl font-bold">4.9/5.0</p>
+                  <p className="text-2xl">4.9/5.0</p>
                 </div>
               </div>
 
@@ -88,7 +88,7 @@ export function TrustSection() {
                 <CheckCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-sm mb-1 text-muted-foreground">Traveler satisfaction</p>
-                  <p className="text-2xl font-bold">98%</p>
+                  <p className="text-2xl">98%</p>
                 </div>
               </div>
 
@@ -96,7 +96,7 @@ export function TrustSection() {
                 <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-sm mb-1 text-muted-foreground">Successful completions</p>
-                  <p className="text-2xl font-bold">12,000+</p>
+                  <p className="text-2xl">12,000+</p>
                 </div>
               </div>
             </div>

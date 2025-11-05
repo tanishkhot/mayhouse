@@ -37,14 +37,14 @@ export function BecomeHostSection() {
               />
             </div>
             <div className="absolute -bottom-6 -right-6 bg-gradient-to-br from-orange-500 to-rose-600 text-white rounded-2xl p-6 shadow-xl max-w-xs">
-              <p className="text-3xl mb-1 font-bold">$45-$85</p>
+              <p className="text-3xl mb-1">$45-$85</p>
               <p className="text-sm opacity-90">Average host earnings per experience</p>
             </div>
           </div>
 
           <div className="order-1 lg:order-2 space-y-8">
             <div className="space-y-4">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl">
                 Share your city.
                 <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-600">
@@ -66,7 +66,7 @@ export function BecomeHostSection() {
                     </div>
                   </div>
                   <div className="flex-1">
-                    <h4 className="mb-1 font-semibold">{benefit.title}</h4>
+                    <h4 className="mb-1">{benefit.title}</h4>
                     <p className="text-muted-foreground text-sm">
                       {benefit.description}
                     </p>
@@ -89,17 +89,17 @@ export function BecomeHostSection() {
 
             <div className="flex items-center gap-6 pt-4">
               <div>
-                <p className="text-2xl font-bold">500+</p>
+                <p className="text-2xl">500+</p>
                 <p className="text-sm text-muted-foreground">Active hosts</p>
               </div>
               <div className="h-12 w-px bg-border" />
               <div>
-                <p className="text-2xl font-bold">42</p>
+                <p className="text-2xl">42</p>
                 <p className="text-sm text-muted-foreground">Cities worldwide</p>
               </div>
               <div className="h-12 w-px bg-border" />
               <div>
-                <p className="text-2xl font-bold">4.9★</p>
+                <p className="text-2xl">4.9★</p>
                 <p className="text-sm text-muted-foreground">Avg. host rating</p>
               </div>
             </div>

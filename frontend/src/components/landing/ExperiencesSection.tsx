@@ -48,7 +48,7 @@ export function ExperiencesSection({ onExperienceSelect }: ExperiencesSectionPro
     <section id="experiences" className="py-20 lg:py-32 bg-gradient-to-b from-white to-orange-50/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl mb-4 font-bold">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl mb-4">
             Curated experiences
           </h2>
           <p className="text-lg text-muted-foreground">

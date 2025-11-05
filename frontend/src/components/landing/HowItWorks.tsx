@@ -30,7 +30,7 @@ export function HowItWorks() {
     <section id="how-it-works" className="py-20 lg:py-32 bg-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl mb-4 font-bold">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl mb-4">
             How Mayhouse works
           </h2>
           <p className="text-lg text-muted-foreground">
@@ -49,11 +49,11 @@ export function HowItWorks() {
                   <div className="h-16 w-16 rounded-full bg-gradient-to-br from-orange-500 to-rose-600 flex items-center justify-center mx-auto">
                     <step.icon className="h-8 w-8 text-white" />
                   </div>
-                  <div className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-white border-2 border-orange-500 flex items-center justify-center text-xs font-bold">
+                  <div className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-white border-2 border-orange-500 flex items-center justify-center text-xs">
                     {index + 1}
                   </div>
                 </div>
-                <h3 className="font-semibold text-lg">{step.title}</h3>
+                <h3>{step.title}</h3>
                 <p className="text-muted-foreground">
                   {step.description}
                 </p>
