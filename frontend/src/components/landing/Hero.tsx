@@ -26,18 +26,10 @@ export function Hero() {
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 p-4 bg-white rounded-2xl shadow-lg">
-              <div className="flex-1 relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input 
-                  placeholder="Where do you want to explore?" 
-                  className="pl-10 border-0 bg-transparent"
-                />
-              </div>
+            <div className="flex justify-start">
               <Link href="/explore">
                 <Button className="bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700">
-                  <Search className="h-5 w-5 mr-2" />
-                  Explore
+                  Discover new stories
                 </Button>
               </Link>
             </div>

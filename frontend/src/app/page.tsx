@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import PriceDisplay from "@/components/PriceDisplay";
 import { ExperiencesSection } from "@/components/landing/ExperiencesSection";
-import SearchBar from "@/components/SearchBar";
+// import SearchBar from "@/components/SearchBar";
 // import ServerDebug from "@/components/ServerDebug";
 
 type Category = {
@@ -75,8 +75,8 @@ export default function ExplorePage() {
       
       {/* Header removed - now using global Navbar component */}
       
-      {/* Search Bar */}
-      <SearchBar />
+      {/* Search Bar (temporarily disabled) */}
+      {/* <SearchBar /> */}
       
       {/* Curated Experiences Section - Starting directly with filters and cards */}
       <ExperiencesSection />
