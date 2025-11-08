@@ -3,11 +3,9 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ExploreAPI, ExploreEventRun } from "@/lib/api";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card } from "@/components/ui/card";
 import { ExperiencesSection } from "@/components/landing/ExperiencesSection";
-import { ExperienceCard, type ExperienceCardProps } from "@/components/landing/ExperienceCard";
-import { useRouter } from "next/navigation";
+import { type ExperienceCardProps } from "@/components/landing/ExperienceCard";
+import Link from "next/link";
 // import SearchBar from "@/components/SearchBar";
 // import ServerDebug from "@/components/ServerDebug";
 
@@ -46,7 +44,7 @@ const buildEventRunTags = (eventRun: ExploreEventRun) => {
 };
 
 export default function ExplorePage() {
-  const { data: eventRuns = [], isLoading: eventsLoading, error: eventsError } = useQuery({
+  const { data: eventRuns = [] } = useQuery({
     queryKey: ["explore"], // Removed filter dependencies for now
     queryFn: () => ExploreAPI.getUpcomingExperiences({
       // domain: selectedDomain,
@@ -75,16 +73,6 @@ export default function ExplorePage() {
     const remainingMinutes = minutes % 60;
     if (remainingMinutes === 0) return `${hours} hr${hours > 1 ? 's' : ''}`;
     return `${hours}h ${remainingMinutes}m`;
-  };
-  
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit'
-    });
   };
   
   const liveExperienceCards = useMemo<ExperienceSectionItem[]>(() => {
@@ -125,153 +113,105 @@ export default function ExplorePage() {
       
       {/* Curated Experiences Section - Starting directly with filters and cards */}
       <ExperiencesSection additionalExperiences={liveExperienceCards} />
-      
-      {/* Event Runs Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Error Display */}
-        {eventsError && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800 font-semibold">Error loading experiences</p>
-            <p className="text-red-600 text-sm mt-1">
-              {eventsError instanceof Error ? eventsError.message : 'Failed to fetch experiences'}
+
+      {/* Explore Footer Navigation */}
+      <div className="border-t border-border/60 bg-gradient-to-b from-white via-white to-orange-50/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12">
+          <div className="text-center space-y-3 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-semibold text-foreground">Keep exploring with Mayhouse</h2>
+            <p className="text-muted-foreground">
+              Jump into our other spaces to browse every experience, get your hosting journey underway,
+              or reach someone from our team.
             </p>
-            <details className="mt-2">
-              <summary className="text-red-600 text-xs cursor-pointer">Show details</summary>
-              <pre className="mt-2 text-xs bg-red-100 p-2 rounded overflow-auto">
-                {JSON.stringify(eventsError, null, 2)}
-              </pre>
-            </details>
           </div>
-        )}
-        
-        {/* 
-        <div className="flex flex-wrap gap-2 mb-6">
-          {/* Category Pills */}
-          {/* 
-          <button
-            onClick={() => setSelectedDomain(undefined)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              !selectedDomain
-                ? "bg-black text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            All
-          </button>
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => setSelectedDomain(category.id)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
-                selectedDomain === category.id
-                  ? "bg-black text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              <span>{category.icon}</span>
-              {category.name}
-            </button>
-          ))}
-          
-          {/* Neighborhood Filter */}
-          {/* 
-          {neighborhoods.length > 0 && (
-            <select
-              value={selectedNeighborhood || ""}
-              onChange={(e) => setSelectedNeighborhood(e.target.value || undefined)}
-              className="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 border-0 text-gray-700 hover:bg-gray-200"
-            >
-              <option value="">All neighborhoods</option>
-              {neighborhoods.map((neighborhood) => (
-                <option key={neighborhood} value={neighborhood}>
-                  {neighborhood}
-                </option>
-              ))}
-            </select>
-          )}
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 text-sm text-muted-foreground leading-relaxed">
+            <div className="space-y-3">
+              <span className="text-xs uppercase tracking-widest text-orange-500">Discover</span>
+              <div className="flex flex-col space-y-2">
+                <Link href="/explore" className="text-foreground font-medium hover:text-orange-600 transition">
+                  Browse all experiences →
+                </Link>
+                <p>See everything that&apos;s live and ready to book.</p>
+              </div>
+              <div className="flex flex-col space-y-2">
+                <Link href="/explore?f=new" className="hover:text-orange-600 transition">
+                  New this week
+                </Link>
+                <Link href="/explore?f=nearby" className="hover:text-orange-600 transition">
+                  Happening nearby
+                </Link>
+                <Link href="/explore?f=themes" className="hover:text-orange-600 transition">
+                  Themes & collections
+                </Link>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <span className="text-xs uppercase tracking-widest text-orange-500">Host</span>
+              <div className="flex flex-col space-y-2">
+                <Link href="/host-dashboard" className="text-foreground font-medium hover:text-orange-600 transition">
+                  Become a host →
+                </Link>
+                <p>Share your city with travelers and earn as you host.</p>
+              </div>
+              <div className="flex flex-col space-y-2">
+                <Link href="/host-dashboard?tab=resources" className="hover:text-orange-600 transition">
+                  Hosting resources
+                </Link>
+                <Link href="/host-dashboard?tab=eventruns" className="hover:text-orange-600 transition">
+                  Manage event runs
+                </Link>
+                <Link href="/host-dashboard?tab=community" className="hover:text-orange-600 transition">
+                  Join the community
+                </Link>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <span className="text-xs uppercase tracking-widest text-orange-500">Plan</span>
+              <div className="flex flex-col space-y-2">
+                <Link href="/account/bookings" className="text-foreground font-medium hover:text-orange-600 transition">
+                  View your bookings →
+                </Link>
+                <p>Check upcoming plans and manage reservations.</p>
+              </div>
+              <div className="flex flex-col space-y-2">
+                <Link href="/account/wishlist" className="hover:text-orange-600 transition">
+                  Saved experiences
+                </Link>
+                <Link href="/account/history" className="hover:text-orange-600 transition">
+                  Past trips
+                </Link>
+                <Link href="/account/profile" className="hover:text-orange-600 transition">
+                  Update profile
+                </Link>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <span className="text-xs uppercase tracking-widest text-orange-500">Support</span>
+              <div className="flex flex-col space-y-2">
+                <Link href="/support" className="text-foreground font-medium hover:text-orange-600 transition">
+                  Help & support →
+                </Link>
+                <p>Find answers or talk to us if you need a hand.</p>
+              </div>
+              <div className="flex flex-col space-y-2">
+                <Link href="/support/safety" className="hover:text-orange-600 transition">
+                  Safety information
+                </Link>
+                <Link href="/support/policies" className="hover:text-orange-600 transition">
+                  Policies & guidelines
+                </Link>
+                <Link href="/support/contact" className="hover:text-orange-600 transition">
+                  Contact Mayhouse
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
-        
-        {/* Results Count */}
-        {/* 
-        <div className="mb-6">
-          <p className="text-gray-600">
-            {eventsLoading ? "Loading..." : `${eventRuns.length} experiences`}
-            {selectedDomain && ` in ${categories.find(c => c.id === selectedDomain)?.name}`}
-            {selectedNeighborhood && ` in ${selectedNeighborhood}`}
-          </p>
-        </div>
-        */}
-        
-        {/* Event Run Cards Grid */}
-        {eventsLoading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="overflow-hidden !p-0">
-                <Skeleton className="w-full aspect-[4/3]" />
-                <div className="p-4 space-y-4">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                </div>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {eventRuns.map((eventRun) => (
-              <EventRunCard key={eventRun.id} eventRun={eventRun} />
-            ))}
-          </div>
-        )}
-        
-        {!eventsLoading && eventRuns.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500">No experiences found. Try adjusting your filters.</p>
-          </div>
-        )}
       </div>
     </div>
-  );
-}
-
-function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
-  const router = useRouter();
-
-  const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes} min`;
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    if (remainingMinutes === 0) return `${hours} hr${hours > 1 ? 's' : ''}`;
-    return `${hours}h ${remainingMinutes}m`;
-  };
-
-  const price = parseFloat(eventRun.price_inr);
-  const navigateToRun = () => {
-    router.push(`/experiences/${eventRun.experience_id}/runs/${eventRun.id}`);
-  };
-
-  return (
-    <ExperienceCard
-      id={eventRun.id}
-      title={eventRun.experience_title}
-      host={{
-        name: eventRun.host_name,
-        verified: true,
-      }}
-      image={eventRun.cover_photo_url}
-      category={formatCategoryLabel(eventRun.experience_domain)}
-      duration={formatDuration(eventRun.duration_minutes)}
-      groupSize={`${eventRun.max_capacity} people`}
-      price={price}
-      priceLocale="en-IN"
-      currencySymbol="₹"
-      ratingLabel="New"
-      location={eventRun.neighborhood || 'Mumbai'}
-      description={eventRun.experience_promise ?? undefined}
-      tags={buildEventRunTags(eventRun).slice(0, 3)}
-      onSelect={navigateToRun}
-      ctaHref={`/experiences/${eventRun.experience_id}/runs/${eventRun.id}`}
-      onCtaClick={navigateToRun}
-    />
   );
 }
