@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ExperienceCard } from './ExperienceCard';
+import { ExperienceCard, type ExperienceCardProps } from './ExperienceCard';
 import Link from 'next/link';
 
-const experiences = [
+type ExperienceListItem = Omit<ExperienceCardProps, 'onSelect'>;
+
+const baseExperiences: ExperienceListItem[] = [
   {
     id: '1',
     title: 'Hidden Stories of the Gothic Quarter',
@@ -23,6 +25,7 @@ const experiences = [
     reviews: 127,
     location: 'Barcelona, Spain',
     tags: ['History', 'Walking', 'Local insights'],
+    ctaHref: '/explore',
   },
   {
     id: '2',
@@ -40,6 +43,7 @@ const experiences = [
     reviews: 89,
     location: 'Hanoi, Vietnam',
     tags: ['Culinary', 'Street food', 'Family recipes'],
+    ctaHref: '/explore',
   },
   {
     id: '3',
@@ -57,6 +61,7 @@ const experiences = [
     reviews: 54,
     location: 'Kyoto, Japan',
     tags: ['Hands-on', 'Traditional craft', 'Artisan'],
+    ctaHref: '/explore',
   },
   {
     id: '4',
@@ -74,6 +79,7 @@ const experiences = [
     reviews: 92,
     location: 'New York, USA',
     tags: ['History', 'Music', 'Civil rights'],
+    ctaHref: '/explore',
   },
   {
     id: '5',
@@ -91,6 +97,7 @@ const experiences = [
     reviews: 108,
     location: 'Jaipur, India',
     tags: ['Early morning', 'Cooking', 'Market'],
+    ctaHref: '/explore',
   },
   {
     id: '6',
@@ -108,6 +115,7 @@ const experiences = [
     reviews: 43,
     location: 'Paris, France',
     tags: ['Sustainability', 'Hands-on', 'Community'],
+    ctaHref: '/explore',
   },
 ];
 
@@ -115,12 +123,30 @@ const categories = ['All', 'Culture', 'Food', 'Arts', 'Nature'];
 
 interface ExperiencesSectionProps {
   onExperienceSelect?: (id: string) => void;
+  additionalExperiences?: ExperienceListItem[];
 }
 
-export function ExperiencesSection({ onExperienceSelect }: ExperiencesSectionProps) {
+export function ExperiencesSection({ onExperienceSelect, additionalExperiences = [] }: ExperiencesSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const filteredExperiences = experiences.filter(
+  const combinedExperiences = useMemo(
+    () => [...baseExperiences, ...additionalExperiences],
+    [additionalExperiences]
+  );
+
+  const additionalExperienceIds = useMemo(
+    () => new Set(additionalExperiences.map((exp) => exp.id)),
+    [additionalExperiences]
+  );
+
+  const availableCategories = useMemo(() => {
+    const dynamicCategories = Array.from(
+      new Set(additionalExperiences.map((exp) => exp.category))
+    );
+    return Array.from(new Set(['All', ...categories.slice(1), ...dynamicCategories]));
+  }, [additionalExperiences]);
+
+  const filteredExperiences = combinedExperiences.filter(
     (exp) => selectedCategory === 'All' || exp.category === selectedCategory
   );
 
@@ -130,7 +156,7 @@ export function ExperiencesSection({ onExperienceSelect }: ExperiencesSectionPro
         <div className="mb-8 flex justify-center">
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
             <TabsList className="bg-white shadow-sm">
-              {categories.map((category) => (
+              {availableCategories.map((category) => (
                 <TabsTrigger key={category} value={category}>
                   {category}
                 </TabsTrigger>
@@ -140,14 +166,24 @@ export function ExperiencesSection({ onExperienceSelect }: ExperiencesSectionPro
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {filteredExperiences.map((experience) => (
-            <ExperienceCard
-              key={experience.id}
-              {...experience}
-              onSelect={onExperienceSelect}
-              ctaHref="/explore"
-            />
-          ))}
+          {filteredExperiences.map((experience) => {
+            const isDynamicExperience = additionalExperienceIds.has(experience.id);
+
+            return (
+              <ExperienceCard
+                key={experience.id}
+                {...experience}
+                onSelect={(id) => {
+                  if (isDynamicExperience && experience.ctaHref && typeof window !== 'undefined') {
+                    window.location.href = experience.ctaHref;
+                    return;
+                  }
+                  onExperienceSelect?.(id);
+                }}
+                ctaHref={experience.ctaHref ?? (isDynamicExperience ? undefined : '/explore')}
+              />
+            );
+          })}
         </div>
 
         <div className="text-center">

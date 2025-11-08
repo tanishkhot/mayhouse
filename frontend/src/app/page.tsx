@@ -1,11 +1,12 @@
 "use client";
 
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ExploreAPI, ExploreEventRun } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { ExperiencesSection } from "@/components/landing/ExperiencesSection";
-import { ExperienceCard } from "@/components/landing/ExperienceCard";
+import { ExperienceCard, type ExperienceCardProps } from "@/components/landing/ExperienceCard";
 import { useRouter } from "next/navigation";
 // import SearchBar from "@/components/SearchBar";
 // import ServerDebug from "@/components/ServerDebug";
@@ -16,6 +17,32 @@ type Category = {
   description: string;
   icon: string;
   count: number;
+};
+
+type ExperienceSectionItem = Omit<ExperienceCardProps, "onSelect">;
+
+const formatCategoryLabel = (domain?: string | null) => {
+  if (!domain) return "Culture";
+  return domain
+    .toString()
+    .toLowerCase()
+    .split(/[\s_-]+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+const buildEventRunTags = (eventRun: ExploreEventRun) => {
+  const tags: string[] = [];
+  if (eventRun.experience_theme) {
+    tags.push(eventRun.experience_theme);
+  }
+  if (eventRun.available_spots > 0 && eventRun.available_spots < 5) {
+    tags.push(`${eventRun.available_spots} spots left`);
+  }
+  if (eventRun.neighborhood) {
+    tags.push(eventRun.neighborhood);
+  }
+  return tags;
 };
 
 export default function ExplorePage() {
@@ -42,11 +69,6 @@ export default function ExplorePage() {
   // Get unique neighborhoods from current event runs
   // const neighborhoods = [...new Set(eventRuns.map(run => run.neighborhood).filter(Boolean))] as string[];
   
-  const formatPrice = (priceStr: string) => {
-    const price = parseFloat(priceStr);
-    return `₹${price.toLocaleString('en-IN')}`;
-  };
-  
   const formatDuration = (minutes: number) => {
     if (minutes < 60) return `${minutes} min`;
     const hours = Math.floor(minutes / 60);
@@ -65,6 +87,32 @@ export default function ExplorePage() {
     });
   };
   
+  const liveExperienceCards = useMemo<ExperienceSectionItem[]>(() => {
+    return eventRuns.map((eventRun) => {
+      const price = parseFloat(eventRun.price_inr);
+      return {
+        id: eventRun.id,
+        title: eventRun.experience_title,
+        host: {
+          name: eventRun.host_name,
+          verified: true,
+        },
+        image: eventRun.cover_photo_url ?? undefined,
+        category: formatCategoryLabel(eventRun.experience_domain),
+        duration: formatDuration(eventRun.duration_minutes),
+        groupSize: `${eventRun.max_capacity} people`,
+        price,
+        priceLocale: "en-IN",
+        currencySymbol: "₹",
+        ratingLabel: "New",
+        location: eventRun.neighborhood || "Mumbai",
+        description: eventRun.experience_promise ?? undefined,
+        tags: buildEventRunTags(eventRun).slice(0, 3),
+        ctaHref: `/experiences/${eventRun.experience_id}/runs/${eventRun.id}`,
+      };
+    });
+  }, [eventRuns]);
+
   return (
     <div className="min-h-screen bg-white">
       {/* Server Debug Info - Commented out for now */}
@@ -76,7 +124,7 @@ export default function ExplorePage() {
       {/* <SearchBar /> */}
       
       {/* Curated Experiences Section - Starting directly with filters and cards */}
-      <ExperiencesSection />
+      <ExperiencesSection additionalExperiences={liveExperienceCards} />
       
       {/* Event Runs Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -202,17 +250,6 @@ function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
     router.push(`/experiences/${eventRun.experience_id}/runs/${eventRun.id}`);
   };
 
-  const tags: string[] = [];
-  if (eventRun.experience_theme) {
-    tags.push(eventRun.experience_theme);
-  }
-  if (eventRun.available_spots > 0 && eventRun.available_spots < 5) {
-    tags.push(`${eventRun.available_spots} spots left`);
-  }
-  if (eventRun.neighborhood) {
-    tags.push(eventRun.neighborhood);
-  }
-
   return (
     <ExperienceCard
       id={eventRun.id}
@@ -222,7 +259,7 @@ function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
         verified: true,
       }}
       image={eventRun.cover_photo_url}
-      category={eventRun.experience_domain}
+      category={formatCategoryLabel(eventRun.experience_domain)}
       duration={formatDuration(eventRun.duration_minutes)}
       groupSize={`${eventRun.max_capacity} people`}
       price={price}
@@ -231,7 +268,7 @@ function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
       ratingLabel="New"
       location={eventRun.neighborhood || 'Mumbai'}
       description={eventRun.experience_promise ?? undefined}
-      tags={tags.slice(0, 3)}
+      tags={buildEventRunTags(eventRun).slice(0, 3)}
       onSelect={navigateToRun}
       ctaHref={`/experiences/${eventRun.experience_id}/runs/${eventRun.id}`}
       onCtaClick={navigateToRun}
