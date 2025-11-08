@@ -2,14 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { ExploreAPI, ExploreEventRun } from "@/lib/api";
-import Link from "next/link";
-import { Heart, Users, Clock, Shield, Star } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import PriceDisplay from "@/components/PriceDisplay";
 import { ExperiencesSection } from "@/components/landing/ExperiencesSection";
+import { ExperienceCard } from "@/components/landing/ExperienceCard";
+import { useRouter } from "next/navigation";
 // import SearchBar from "@/components/SearchBar";
 // import ServerDebug from "@/components/ServerDebug";
 
@@ -190,6 +187,8 @@ export default function ExplorePage() {
 }
 
 function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
+  const router = useRouter();
+
   const formatDuration = (minutes: number) => {
     if (minutes < 60) return `${minutes} min`;
     const hours = Math.floor(minutes / 60);
@@ -197,119 +196,45 @@ function EventRunCard({ eventRun }: { eventRun: ExploreEventRun }) {
     if (remainingMinutes === 0) return `${hours} hr${hours > 1 ? 's' : ''}`;
     return `${hours}h ${remainingMinutes}m`;
   };
-  
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit'
-    });
-  };
 
   const price = parseFloat(eventRun.price_inr);
-  
+  const navigateToRun = () => {
+    router.push(`/experiences/${eventRun.experience_id}/runs/${eventRun.id}`);
+  };
+
+  const tags: string[] = [];
+  if (eventRun.experience_theme) {
+    tags.push(eventRun.experience_theme);
+  }
+  if (eventRun.available_spots > 0 && eventRun.available_spots < 5) {
+    tags.push(`${eventRun.available_spots} spots left`);
+  }
+  if (eventRun.neighborhood) {
+    tags.push(eventRun.neighborhood);
+  }
+
   return (
-    <Card 
-      className="group overflow-hidden cursor-pointer hover:shadow-xl transition-shadow !p-0 !py-0 !gap-0 !shadow-none"
-    >
-      <Link href={`/experiences/${eventRun.experience_id}/runs/${eventRun.id}`}>
-        <div className="relative">
-          {eventRun.cover_photo_url ? (
-            <img
-              src={eventRun.cover_photo_url}
-              alt={eventRun.experience_title}
-              className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full aspect-[4/3] bg-gradient-to-br from-orange-400 to-rose-500" />
-          )}
-          <button 
-            className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center hover:bg-white transition-colors z-10"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              // TODO: Add to favorites
-            }}
-          >
-            <Heart className="h-5 w-5" />
-          </button>
-          <Badge className="absolute bottom-3 left-3 bg-white/90 backdrop-blur text-foreground hover:bg-white">
-            {eventRun.experience_domain}
-          </Badge>
-        </div>
-
-        <div className="p-4 space-y-4">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-muted-foreground">{eventRun.neighborhood || 'Mumbai'}</p>
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 fill-orange-400 text-orange-400" />
-                <span className="text-sm">New</span>
-              </div>
-            </div>
-            <h3 className="line-clamp-2 mb-3 font-semibold">{eventRun.experience_title}</h3>
-            
-            {eventRun.experience_promise && (
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                {eventRun.experience_promise}
-              </p>
-            )}
-            
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-rose-500 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1">
-                  <p className="text-sm truncate">{eventRun.host_name}</p>
-                  <Shield className="h-3 w-3 text-blue-500 flex-shrink-0" />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                <span>{formatDuration(eventRun.duration_minutes)}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                <span>{eventRun.max_capacity} people</span>
-              </div>
-            </div>
-
-            {eventRun.available_spots > 0 && eventRun.available_spots < 5 && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">
-                  {eventRun.available_spots} spots left
-                </Badge>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between pt-3 border-t">
-            <div>
-              <PriceDisplay 
-                priceINR={price}
-                size="small"
-                showINR={true}
-                layout="inline"
-              />
-              <span className="text-sm text-muted-foreground"> per person</span>
-            </div>
-            <Button 
-              size="sm" 
-              className="bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700"
-              onClick={(e) => {
-                e.preventDefault();
-                window.location.href = `/experiences/${eventRun.experience_id}/runs/${eventRun.id}`;
-              }}
-            >
-              Book now
-            </Button>
-          </div>
-        </div>
-      </Link>
-    </Card>
+    <ExperienceCard
+      id={eventRun.id}
+      title={eventRun.experience_title}
+      host={{
+        name: eventRun.host_name,
+        verified: true,
+      }}
+      image={eventRun.cover_photo_url}
+      category={eventRun.experience_domain}
+      duration={formatDuration(eventRun.duration_minutes)}
+      groupSize={`${eventRun.max_capacity} people`}
+      price={price}
+      priceLocale="en-IN"
+      currencySymbol="₹"
+      ratingLabel="New"
+      location={eventRun.neighborhood || 'Mumbai'}
+      description={eventRun.experience_promise ?? undefined}
+      tags={tags.slice(0, 3)}
+      onSelect={navigateToRun}
+      ctaHref={`/experiences/${eventRun.experience_id}/runs/${eventRun.id}`}
+      onCtaClick={navigateToRun}
+    />
   );
 }

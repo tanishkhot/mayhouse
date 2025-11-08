@@ -1,11 +1,11 @@
 'use client';
 
+import { MouseEvent } from 'react';
 import { Heart, Users, Clock, Shield, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { ImageWithFallback } from './ImageWithFallback';
-import Link from 'next/link';
 
 interface ExperienceCardProps {
   id: string;
@@ -13,18 +13,26 @@ interface ExperienceCardProps {
   host: {
     name: string;
     avatar?: string;
-    verified: boolean;
+    verified?: boolean;
   };
-  image: string;
+  image?: string | null;
   category: string;
   duration: string;
   groupSize: string;
   price: number;
-  rating: number;
-  reviews: number;
+  priceLocale?: string;
+  currencySymbol?: string;
+  priceSuffix?: string;
+  rating?: number;
+  reviews?: number;
+  ratingLabel?: string;
   location: string;
+  description?: string;
   tags?: string[];
   onSelect?: (id: string) => void;
+  ctaLabel?: string;
+  ctaHref?: string;
+  onCtaClick?: (id: string) => void;
 }
 
 export function ExperienceCard({
@@ -39,20 +47,55 @@ export function ExperienceCard({
   rating,
   reviews,
   location,
+  description,
   tags = [],
   onSelect,
+  priceLocale = 'en-US',
+  currencySymbol = '$',
+  priceSuffix = ' per person',
+  ratingLabel,
+  ctaLabel = 'Book now',
+  ctaHref,
+  onCtaClick,
 }: ExperienceCardProps) {
+  const numericPrice = Number(price);
+  const formattedPrice = Number.isFinite(numericPrice)
+    ? `${currencySymbol}${numericPrice.toLocaleString(priceLocale, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      })}`
+    : `${currencySymbol}${price}`;
+
+  const handleCtaClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+
+    if (onCtaClick) {
+      onCtaClick(id);
+      return;
+    }
+
+    if (ctaHref) {
+      if (typeof window !== 'undefined') {
+        window.location.href = ctaHref;
+      }
+    }
+  };
+
   return (
     <Card 
       className="group overflow-hidden cursor-pointer hover:shadow-xl transition-shadow !p-0 !py-0 !gap-0 !shadow-none"
       onClick={() => onSelect?.(id)}
     >
       <div className="relative">
-        <ImageWithFallback
-          src={image}
-          alt={title}
-          className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300"
-        />
+        {image ? (
+          <ImageWithFallback
+            src={image}
+            alt={title}
+            className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full aspect-[4/3] bg-gradient-to-br from-orange-400 to-rose-500" />
+        )}
         <button className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center hover:bg-white transition-colors">
           <Heart className="h-5 w-5" />
         </button>
@@ -65,13 +108,29 @@ export function ExperienceCard({
         <div>
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm text-muted-foreground">{location}</p>
-            <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-orange-400 text-orange-400" />
-              <span className="text-sm">{rating}</span>
-              <span className="text-sm text-muted-foreground">({reviews})</span>
-            </div>
+            {(rating !== undefined || ratingLabel) && (
+              <div className="flex items-center gap-1">
+                <Star className="h-4 w-4 fill-orange-400 text-orange-400" />
+                {rating !== undefined ? (
+                  <>
+                    <span className="text-sm">{rating.toFixed(1)}</span>
+                    {reviews !== undefined && (
+                      <span className="text-sm text-muted-foreground">({reviews})</span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-sm">{ratingLabel}</span>
+                )}
+              </div>
+            )}
           </div>
           <h3 className="line-clamp-2 mb-3">{title}</h3>
+
+          {description && (
+            <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+              {description}
+            </p>
+          )}
           
           <div className="flex items-center gap-2 mb-3">
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-rose-500 flex-shrink-0" />
@@ -109,14 +168,16 @@ export function ExperienceCard({
 
         <div className="flex items-center justify-between pt-3 border-t">
           <div>
-            <span className="text-lg">${price}</span>
-            <span className="text-sm text-muted-foreground"> per person</span>
+            <span className="text-lg">{formattedPrice}</span>
+            <span className="text-sm text-muted-foreground">{priceSuffix}</span>
           </div>
-          <Link href="/explore">
-            <Button size="sm" className="bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700">
-              Book now
-            </Button>
-          </Link>
+          <Button
+            size="sm"
+            className="bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700"
+            onClick={handleCtaClick}
+          >
+            {ctaLabel}
+          </Button>
         </div>
       </div>
     </Card>

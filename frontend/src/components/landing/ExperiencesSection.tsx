@@ -145,6 +145,7 @@ export function ExperiencesSection({ onExperienceSelect }: ExperiencesSectionPro
               key={experience.id}
               {...experience}
               onSelect={onExperienceSelect}
+              ctaHref="/explore"
             />
           ))}
         </div>

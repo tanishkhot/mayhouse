@@ -486,30 +486,30 @@ const HostDashboardContent = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
-              <div>
-                <h1 className="text-2xl font-bold text-black">Host Dashboard</h1>
-                <p className="text-black">Manage and create your experiences</p>
-              </div>
-            </div>
+    <div className="min-h-screen bg-background">
+        {/* Hero */}
+        <section className="bg-gradient-to-r from-orange-500 via-rose-500 to-amber-500 text-white">
+          <div className="max-w-6xl mx-auto px-6 lg:px-8 py-12">
+            <h1 className="text-3xl lg:text-4xl font-semibold tracking-tight">
+              Welcome back, host.
+            </h1>
+            <p className="mt-4 max-w-2xl text-base lg:text-lg text-white/90">
+              Shape new experiences, track reviews, and keep your event runs fresh. Everything you need to curate unforgettable moments lives here.
+            </p>
           </div>
-        </div>
+        </section>
 
         {/* Tab Navigation */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="bg-white rounded-lg shadow-sm mb-6">
-            <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 -mt-8 pb-10">
+          <div className="rounded-3xl bg-white shadow-xl ring-1 ring-black/5 overflow-hidden">
+            <div className="px-6 pt-6">
+              <nav className="flex flex-wrap gap-2" aria-label="Tabs">
                 <button
                   onClick={() => setActiveTab('manage')}
-                  className={`py-4 px-6 text-sm font-medium border-b-2 ${
+                  className={`rounded-full px-5 py-2 text-sm font-medium transition ${
                     activeTab === 'manage'
-                      ? 'border-red-500 text-red-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'bg-foreground text-background shadow-sm'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/70'
                   }`}
                 >
                   My Experiences
@@ -519,10 +519,10 @@ const HostDashboardContent = () => {
                     resetFormData();
                     setActiveTab('create');
                   }}
-                  className={`py-4 px-6 text-sm font-medium border-b-2 ${
+                  className={`rounded-full px-5 py-2 text-sm font-medium transition ${
                     activeTab === 'create'
-                      ? 'border-red-500 text-red-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'bg-foreground text-background shadow-sm'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/70'
                   }`}
                 >
                   {isEditMode ? 'Edit Experience' : 'Create Experience'}
@@ -532,10 +532,10 @@ const HostDashboardContent = () => {
                     setActiveTab('eventruns');
                     setShowScheduler(false);
                   }}
-                  className={`py-4 px-6 text-sm font-medium border-b-2 ${
+                  className={`rounded-full px-5 py-2 text-sm font-medium transition ${
                     activeTab === 'eventruns' || activeTab === 'schedule'
-                      ? 'border-red-500 text-red-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'bg-foreground text-background shadow-sm'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/70'
                   }`}
                 >
                   Event Runs
@@ -544,18 +544,34 @@ const HostDashboardContent = () => {
             </div>
 
             {/* Tab Content */}
-            <div className="p-6">
+            <div className="p-6 lg:p-8">
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
                   {error}
                 </div>
               )}
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
+                <p className="text-sm text-muted-foreground">
+                  Need a quick end-to-end check? Jump straight to the scheduler to spin up a test run.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => {
+                      setActiveTab('eventruns');
+                      setShowScheduler(true);
+                    }}
+                    className="rounded-full bg-gradient-to-r from-orange-500 to-rose-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:shadow transition"
+                  >
+                    Test schedule run
+                  </button>
+                </div>
+              </div>
 
               {activeTab === 'manage' && (
                 <div>
                   {/* Experience Management */}
-                  <div className="mb-6">
-                    <h2 className="text-lg font-semibold mb-4 text-black">Filter Experiences</h2>
+                  <div className="mb-8">
+                    <h2 className="text-base font-semibold text-foreground mb-3 uppercase tracking-wide">Filter</h2>
                     <div className="flex flex-wrap gap-2">
                       {[
                         ['all', 'All'],
@@ -569,8 +585,8 @@ const HostDashboardContent = () => {
                           onClick={() => setFilter(status as 'all' | 'draft' | 'submitted' | 'approved' | 'rejected')}
                           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             filter === status
-                              ? 'bg-red-500 text-white'
-                              : 'bg-gray-100 text-black hover:bg-gray-200'
+                              ? 'bg-gradient-to-r from-orange-500 to-rose-600 text-white shadow-sm'
+                              : 'bg-muted text-muted-foreground hover:bg-muted/70'
                           }`}
                         >
                           {label} ({getStatusCount(status)})
@@ -581,16 +597,19 @@ const HostDashboardContent = () => {
 
                   {/* Experience Cards Grid */}
                   <div className="mb-8">
-                    <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-2xl font-semibold text-black">Your Experiences</h2>
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+                      <div>
+                        <p className="text-sm uppercase tracking-wide text-muted-foreground">Your work</p>
+                        <h2 className="text-2xl font-semibold text-foreground">Experiences you&apos;re crafting</h2>
+                      </div>
                       <button
                         onClick={() => {
                           resetFormData();
                           setActiveTab('create');
                         }}
-                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                        className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-rose-600 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-orange-500/20 transition hover:shadow-xl"
                       >
-                        + Create Experience
+                        <span className="text-lg leading-none">＋</span> New experience
                       </button>
                     </div>
                     {loading ? (
@@ -634,78 +653,15 @@ const HostDashboardContent = () => {
                               duration={formatDuration(exp.duration_minutes)}
                               groupSize={`${exp.traveler_max_capacity || 4} people`}
                               price={parseFloat(exp.price_inr)}
+                              priceLocale="en-IN"
+                              currencySymbol="₹"
                               rating={4.5} // TODO: Calculate actual rating from reviews
                               reviews={0} // TODO: Get actual review count
                               location={exp.neighborhood || 'Mumbai'}
                               tags={exp.status === 'approved' ? ['Approved'] : exp.status === 'draft' ? ['Draft'] : []}
                               onSelect={(id) => handleViewExperience(experiences.find(e => e.id === id)!)}
-                            />
-                          );
-                        })}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  {/* Experience Cards Grid - Duplicate Section */}
-                  <div className="mb-8">
-                    <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-2xl font-semibold text-black">Your Experiences</h2>
-                      <button
-                        onClick={() => {
-                          resetFormData();
-                          setActiveTab('create');
-                        }}
-                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                      >
-                        + Create Experience
-                      </button>
-                    </div>
-                    {loading ? (
-                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {[...Array(6)].map((_, i) => (
-                          <Card key={i} className="overflow-hidden !p-0 !shadow-none">
-                            <Skeleton className="w-full aspect-[4/3]" />
-                            <div className="p-4 space-y-4">
-                              <Skeleton className="h-4 w-3/4" />
-                              <Skeleton className="h-4 w-full" />
-                              <Skeleton className="h-4 w-2/3" />
-                            </div>
-                          </Card>
-                        ))}
-                      </div>
-                    ) : experiences.length > 0 ? (
-                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {experiences.map((exp) => {
-                          const formatDuration = (minutes: number) => {
-                            if (minutes < 60) return `${minutes} min`;
-                            const hours = Math.floor(minutes / 60);
-                            const remainingMinutes = minutes % 60;
-                            if (remainingMinutes === 0) return `${hours} hr${hours > 1 ? 's' : ''}`;
-                            return `${hours}h ${remainingMinutes}m`;
-                          };
-
-                          // Use placeholder image if no cover photo
-                          const placeholderImage = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmF2ZWwlMjBleHBlcmllbmNlfGVufDF8fHx8MTc2MjM2MTU3MHww&ixlib=rb-4.1.0&q=80&w=1080';
-                          
-                          return (
-                            <ExperienceCard
-                              key={exp.id}
-                              id={exp.id}
-                              title={exp.title}
-                              host={{
-                                name: 'You', // TODO: Get actual host name from user profile
-                                verified: true,
-                              }}
-                              image={experiencePhotos[exp.id] || placeholderImage}
-                              category={exp.experience_domain}
-                              duration={formatDuration(exp.duration_minutes)}
-                              groupSize={`${exp.traveler_max_capacity || 4} people`}
-                              price={parseFloat(exp.price_inr)}
-                              rating={4.5} // TODO: Calculate actual rating from reviews
-                              reviews={0} // TODO: Get actual review count
-                              location={exp.neighborhood || 'Mumbai'}
-                              tags={exp.status === 'approved' ? ['Approved'] : exp.status === 'draft' ? ['Draft'] : []}
-                              onSelect={(id) => handleViewExperience(experiences.find(e => e.id === id)!)}
+                              ctaLabel="View details"
+                              onCtaClick={() => handleViewExperience(exp)}
                             />
                           );
                         })}
@@ -714,36 +670,39 @@ const HostDashboardContent = () => {
                   </div>
 
                   {/* Experiences List */}
-                  <div className="bg-gray-50 rounded-lg">
-                    <div className="px-6 py-4 border-b border-gray-200 bg-white rounded-t-lg">
+                  <div className="rounded-2xl border border-border bg-muted/30">
+                    <div className="px-6 py-4 border-b border-border/80 bg-white rounded-t-2xl">
                       <div className="flex justify-between items-center">
-                        <h2 className="text-lg font-semibold text-black">List View</h2>
+                        <div>
+                          <p className="text-xs uppercase tracking-widest text-muted-foreground">Deep dive</p>
+                          <h2 className="text-lg font-semibold text-foreground">Operational view</h2>
+                        </div>
                         <button
                           onClick={() => {
                             resetFormData();
                             setActiveTab('create');
                           }}
-                          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                          className="px-4 py-2 bg-foreground text-background rounded-full hover:bg-foreground/90 transition-colors text-sm font-medium"
                         >
-                          + Create Experience
+                          New experience
                         </button>
                       </div>
                     </div>
 
                     {loading ? (
                       <div className="p-8 text-center bg-white">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-                        <p className="text-black">Loading experiences...</p>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                        <p className="text-foreground">Loading experiences...</p>
                       </div>
                     ) : experiences.length === 0 ? (
-                      <div className="p-8 text-center bg-white rounded-b-lg">
-                        <div className="text-gray-500 mb-4">
+                      <div className="p-8 text-center bg-white rounded-b-2xl">
+                        <div className="text-muted-foreground mb-4">
                           <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                           </svg>
                         </div>
-                        <h3 className="text-lg font-semibold text-black mb-2">No experiences found</h3>
-                        <p className="text-gray-600 mb-4">
+                        <h3 className="text-lg font-semibold text-foreground mb-2">No experiences found</h3>
+                        <p className="text-muted-foreground mb-4">
                           {filter === 'all' 
                             ? "You haven't created any experiences yet."
                             : `No experiences found with "${filter}" status.`
@@ -754,22 +713,22 @@ const HostDashboardContent = () => {
                             resetFormData();
                             setActiveTab('create');
                           }}
-                          className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                          className="px-6 py-2 bg-gradient-to-r from-orange-500 to-rose-600 text-white rounded-full hover:from-orange-600 hover:to-rose-700 transition-colors"
                         >
                           Create Your First Experience
                         </button>
                       </div>
                     ) : (
-                      <div className="divide-y divide-gray-200 bg-white rounded-b-lg">
+                      <div className="divide-y divide-border bg-white rounded-b-2xl">
                         {experiences.map((exp) => (
-                          <div key={exp.id} className="p-6 hover:bg-gray-50">
+                          <div key={exp.id} className="p-6 hover:bg-muted/40 transition">
                             <div className="flex items-start justify-between gap-4">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between mb-3">
                                   <div className="flex-1 min-w-0">
-                                    <h3 className="text-lg font-semibold text-black truncate">{exp.title}</h3>
-                                    <p className="text-black text-sm mt-1 line-clamp-2 break-words">{exp.promise}</p>
-                                    <p className="text-black text-sm mt-1 break-words">
+                                    <h3 className="text-lg font-semibold text-foreground truncate">{exp.title}</h3>
+                                    <p className="text-muted-foreground text-sm mt-1 line-clamp-2 break-words">{exp.promise}</p>
+                                    <p className="text-muted-foreground text-sm mt-1 break-words">
                                       Domain: {exp.experience_domain} • Duration: {exp.duration_minutes}min • ₹{exp.price_inr}/person
                                     </p>
                                   </div>
@@ -793,14 +752,14 @@ const HostDashboardContent = () => {
                               <div className="flex flex-col space-y-2 flex-shrink-0">
                                 <button
                                   onClick={() => handleViewExperience(exp)}
-                                  className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 whitespace-nowrap"
+                                  className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 whitespace-nowrap transition"
                                 >
                                   View Details
                                 </button>
                                 {exp.status === 'draft' && (
                                   <button
                                     onClick={() => handleSubmitForReview(exp.id)}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-lg hover:bg-green-600 whitespace-nowrap"
+                                    className="px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-full hover:bg-green-600 whitespace-nowrap transition"
                                   >
                                     Submit for Review
                                   </button>
@@ -813,7 +772,7 @@ const HostDashboardContent = () => {
                                       setActiveTab('create');
                                       fetchExperienceData(exp.id);
                                     }}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 whitespace-nowrap"
+                                    className="px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-full hover:bg-orange-600 whitespace-nowrap transition"
                                   >
                                     Edit & Resubmit
                                   </button>
@@ -833,16 +792,16 @@ const HostDashboardContent = () => {
                   {/* Experience Creation Form */}
                   {isLoadingExperience ? (
                     <div className="flex items-center justify-center py-12">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-                      <p className="text-black ml-4">Loading experience data...</p>
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                      <p className="text-foreground ml-4">Loading experience data...</p>
                     </div>
                   ) : (
                     <>
                       <div className="mb-6">
-                        <h2 className="text-xl font-semibold text-black mb-2">
+                        <h2 className="text-xl font-semibold text-foreground mb-2">
                           {isEditMode ? 'Edit Your Experience' : 'Create New Experience'}
                         </h2>
-                        <p className="text-gray-600">
+                        <p className="text-muted-foreground">
                           {isEditMode ? 'Update your local adventure for travelers' : 'Design a unique local adventure for travelers'}
                         </p>
                       </div>
@@ -856,8 +815,8 @@ const HostDashboardContent = () => {
                                 key={num}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                                   step >= num
-                                    ? 'bg-red-500 text-white'
-                                    : 'bg-gray-200 text-gray-600'
+                                ? 'bg-gradient-to-r from-orange-500 to-rose-600 text-white shadow-sm'
+                                : 'bg-muted text-muted-foreground'
                                 }`}
                               >
                                 {num}
@@ -866,22 +825,22 @@ const HostDashboardContent = () => {
                           </div>
                           <span className="text-sm text-black">Step {step} of 3</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-muted rounded-full h-2">
                           <div
-                            className="bg-red-500 h-2 rounded-full transition-all duration-300"
+                            className="bg-gradient-to-r from-orange-500 to-rose-600 h-2 rounded-full transition-all duration-300"
                             style={{ width: `${(step / 3) * 100}%` }}
                           ></div>
                         </div>
                       </div>
 
                       {/* Form Steps */}
-                      <div className="bg-white rounded-lg border p-8">
+                      <div className="bg-white rounded-3xl border border-border/60 p-8 shadow-sm">
                         {step === 1 && (
                           <div className="space-y-6">
-                            <h3 className="text-lg font-semibold text-black mb-6">Basic Information</h3>
+                            <h3 className="text-lg font-semibold text-foreground mb-6">Basic Information</h3>
                             
                             <div>
-                              <label className="block text-sm font-medium text-black mb-2">
+                              <label className="block text-sm font-medium text-foreground mb-2">
                                 Experience Title * (minimum 10 characters)
                               </label>
                               <input
@@ -895,11 +854,11 @@ const HostDashboardContent = () => {
                               {(fieldErrors as Record<string, string>).title && (
                                 <p className="text-sm text-red-500 mt-1">{(fieldErrors as Record<string, string>).title}</p>
                               )}
-                              <p className="text-sm text-gray-500 mt-1">{formData.title.length}/10+ characters</p>
+                              <p className="text-sm text-muted-foreground mt-1">{formData.title.length}/10+ characters</p>
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-black mb-2">
+                              <label className="block text-sm font-medium text-foreground mb-2">
                                 Description * (minimum 100 characters)
                               </label>
                               <textarea
@@ -913,12 +872,12 @@ const HostDashboardContent = () => {
                               {(fieldErrors as Record<string, string>).description && (
                                 <p className="text-sm text-red-500 mt-1">{(fieldErrors as Record<string, string>).description}</p>
                               )}
-                              <p className="text-sm text-gray-500 mt-1">{formData.description.length}/100+ characters</p>
+                              <p className="text-sm text-muted-foreground mt-1">{formData.description.length}/100+ characters</p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <label className="block text-sm font-medium text-black mb-2">
+                                <label className="block text-sm font-medium text-foreground mb-2">
                                   Category *
                                 </label>
                                 <select
@@ -941,7 +900,7 @@ const HostDashboardContent = () => {
                               </div>
 
                               <div>
-                                <label className="block text-sm font-medium text-black mb-2">
+                                <label className="block text-sm font-medium text-foreground mb-2">
                                   Duration (minutes) *
                                 </label>
                                 <input
@@ -960,11 +919,11 @@ const HostDashboardContent = () => {
 
                         {step === 2 && (
                           <div className="space-y-6">
-                            <h3 className="text-lg font-semibold text-black mb-6">Experience Details</h3>
+                            <h3 className="text-lg font-semibold text-foreground mb-6">Experience Details</h3>
                             
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <label className="block text-sm font-medium text-black mb-2">
+                                <label className="block text-sm font-medium text-foreground mb-2">
                                   Max Participants *
                                 </label>
                                 <input
@@ -979,7 +938,7 @@ const HostDashboardContent = () => {
                               </div>
 
                               <div>
-                                <label className="block text-sm font-medium text-black mb-2">
+                                <label className="block text-sm font-medium text-foreground mb-2">
                                   Price per Person (₹) *
                                 </label>
                                 <input
@@ -997,7 +956,7 @@ const HostDashboardContent = () => {
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-black mb-2">
+                              <label className="block text-sm font-medium text-foreground mb-2">
                                 Neighborhood *
                               </label>
                               <input
@@ -1014,7 +973,7 @@ const HostDashboardContent = () => {
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-black mb-2">
+                              <label className="block text-sm font-medium text-foreground mb-2">
                                 Meeting Point *
                               </label>
                               <input
@@ -1031,7 +990,7 @@ const HostDashboardContent = () => {
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-black mb-2">
+                              <label className="block text-sm font-medium text-foreground mb-2">
                                 What to Expect * (minimum 50 characters)
                               </label>
                               <textarea
@@ -1045,17 +1004,17 @@ const HostDashboardContent = () => {
                               {(fieldErrors as Record<string, string>).whatToExpect && (
                                 <p className="text-sm text-red-500 mt-1">{(fieldErrors as Record<string, string>).whatToExpect}</p>
                               )}
-                              <p className="text-sm text-gray-500 mt-1">{(formData.whatToExpect || '').length}/50+ characters</p>
+                              <p className="text-sm text-muted-foreground mt-1">{(formData.whatToExpect || '').length}/50+ characters</p>
                             </div>
                           </div>
                         )}
 
                         {step === 3 && (
                           <div className="space-y-6">
-                            <h3 className="text-lg font-semibold text-black mb-6">Additional Information</h3>
+                            <h3 className="text-lg font-semibold text-foreground mb-6">Additional Information</h3>
                             
                             <div>
-                              <label className="block text-sm font-medium text-black mb-2">
+                              <label className="block text-sm font-medium text-foreground mb-2">
                                 Requirements & Prerequisites
                               </label>
                               <textarea
@@ -1068,7 +1027,7 @@ const HostDashboardContent = () => {
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-black mb-2">
+                              <label className="block text-sm font-medium text-foreground mb-2">
                                 What to Bring
                               </label>
                               <textarea
@@ -1081,7 +1040,7 @@ const HostDashboardContent = () => {
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-black mb-2">
+                              <label className="block text-sm font-medium text-foreground mb-2">
                                 Good to Know
                               </label>
                               <textarea
@@ -1095,7 +1054,7 @@ const HostDashboardContent = () => {
 
                             {/* Submit for Review Option - Only show for new experiences */}
                             {!isEditMode && (
-                              <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                              <div className="border border-blue-200 rounded-2xl p-4 bg-blue-50">
                                 <div className="flex items-center space-x-3">
                                   <input
                                     type="checkbox"
@@ -1116,7 +1075,7 @@ const HostDashboardContent = () => {
                             
                             {/* Edit mode info */}
                             {isEditMode && (
-                              <div className="border border-orange-200 rounded-lg p-4 bg-orange-50">
+                              <div className="border border-orange-200 rounded-2xl p-4 bg-orange-50">
                                 <div className="flex items-center space-x-3">
                                   <div className="w-4 h-4 bg-orange-400 rounded-full flex-shrink-0"></div>
                                   <div>
@@ -1132,14 +1091,14 @@ const HostDashboardContent = () => {
                             )}
 
                             {/* Preview Card */}
-                            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                              <h4 className="font-semibold text-black mb-2">Experience Preview</h4>
+                            <div className="border border-border rounded-2xl p-4 bg-muted/40">
+                              <h4 className="font-semibold text-foreground mb-2">Experience Preview</h4>
                               <div className="space-y-2 text-sm">
-                                <p className="text-black"><strong>Title:</strong> {formData.title || 'Not specified'}</p>
-                                <p className="text-black"><strong>Category:</strong> {formData.domain || 'Not specified'}</p>
-                                <p className="text-black"><strong>Duration:</strong> {formData.duration} minutes</p>
-                                <p className="text-black"><strong>Price:</strong> ₹{formData.price || 'Not specified'} per person</p>
-                                <p className="text-black"><strong>Location:</strong> {formData.neighborhood || 'Not specified'}</p>
+                                <p className="text-foreground"><strong>Title:</strong> {formData.title || 'Not specified'}</p>
+                                <p className="text-foreground"><strong>Category:</strong> {formData.domain || 'Not specified'}</p>
+                                <p className="text-foreground"><strong>Duration:</strong> {formData.duration} minutes</p>
+                                <p className="text-foreground"><strong>Price:</strong> ₹{formData.price || 'Not specified'} per person</p>
+                                <p className="text-foreground"><strong>Location:</strong> {formData.neighborhood || 'Not specified'}</p>
                               </div>
                             </div>
                           </div>
@@ -1158,7 +1117,7 @@ const HostDashboardContent = () => {
                           {step < 3 ? (
                             <button
                               onClick={handleNext}
-                              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                            className="px-6 py-2 rounded-full bg-gradient-to-r from-orange-500 to-rose-600 text-white hover:from-orange-600 hover:to-rose-700 transition"
                             >
                               Next
                             </button>
@@ -1166,7 +1125,7 @@ const HostDashboardContent = () => {
                             <button
                               onClick={handleFormSubmit}
                               disabled={isSubmitting}
-                              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-6 py-2 rounded-full bg-gradient-to-r from-orange-500 to-rose-600 text-white hover:from-orange-600 hover:to-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                             >
                               {isSubmitting 
                                 ? (isEditMode ? 'Updating Experience...' : 'Creating Experience...') 
