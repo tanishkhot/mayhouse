@@ -140,6 +140,24 @@ class BlockchainService:
         self.contract_address = settings.contract_address
         self.platform_private_key = settings.platform_private_key
         
+        # Initialize Web3 connection lazily - don't fail on startup
+        self.w3 = None
+        self.contract = None
+        self.platform_account = None
+        self._is_connected = False
+        
+        # Try to connect, but don't fail if it doesn't work
+        try:
+            self._connect()
+        except Exception as e:
+            print(f"⚠️  Warning: Could not connect to blockchain on startup: {e}")
+            print("⚠️  Blockchain features will be unavailable until connection is established.")
+    
+    def _connect(self):
+        """Establish blockchain connection."""
+        if self._is_connected and self.w3 and self.w3.is_connected():
+            return
+        
         # Initialize Web3
         self.w3 = Web3(Web3.HTTPProvider(self.rpc_url))
         
@@ -148,7 +166,7 @@ class BlockchainService:
             raise Exception("Failed to connect to blockchain")
         
         # Initialize contract
-        self.contract: Contract = self.w3.eth.contract(
+        self.contract = self.w3.eth.contract(
             address=Web3.to_checksum_address(self.contract_address),
             abi=self.CONTRACT_ABI
         )
@@ -158,6 +176,20 @@ class BlockchainService:
             self.platform_account = Account.from_key(self.platform_private_key)
         else:
             self.platform_account = None
+        
+        self._is_connected = True
+    
+    def _ensure_connected(self):
+        """Ensure blockchain connection is established, raise error if not."""
+        if not self._is_connected or not self.w3 or not self.w3.is_connected():
+            try:
+                self._connect()
+            except Exception as e:
+                from fastapi import HTTPException
+                raise HTTPException(
+                    status_code=503,
+                    detail="Blockchain service is unavailable. Please check RPC connection."
+                )
 
     def convert_inr_to_wei(self, price_inr: Decimal, eth_price_inr: Decimal = Decimal("200000")) -> int:
         """
@@ -170,6 +202,7 @@ class BlockchainService:
         Returns:
             Price in Wei
         """
+        self._ensure_connected()
         # Convert INR to ETH
         eth_amount = price_inr / eth_price_inr
         # Convert ETH to Wei (1 ETH = 10^18 Wei)
@@ -178,6 +211,7 @@ class BlockchainService:
 
     def convert_wei_to_inr(self, wei_amount: int, eth_price_inr: Decimal = Decimal("200000")) -> Decimal:
         """Convert Wei to INR."""
+        self._ensure_connected()
         eth_amount = self.w3.from_wei(wei_amount, 'ether')
         inr_amount = Decimal(str(eth_amount)) * eth_price_inr
         return inr_amount
@@ -203,6 +237,7 @@ class BlockchainService:
         Returns:
             Tuple of (blockchain_event_run_id, transaction_hash)
         """
+        self._ensure_connected()
         try:
             # Convert price to Wei
             price_per_seat_wei = self.convert_inr_to_wei(price_inr)
@@ -257,6 +292,7 @@ class BlockchainService:
 
     async def get_event_run_from_chain(self, blockchain_event_run_id: int) -> dict:
         """Get event run details from blockchain."""
+        self._ensure_connected()
         try:
             event_run = self.contract.functions.getEventRun(blockchain_event_run_id).call()
             
@@ -291,6 +327,7 @@ class BlockchainService:
         Returns:
             Tuple of (payment_wei, stake_wei, total_wei)
         """
+        self._ensure_connected()
         try:
             result = self.contract.functions.calculateBookingCost(
                 blockchain_event_run_id,
@@ -358,6 +395,7 @@ class BlockchainService:
         host_wallet_address: str
     ) -> str:
         """Cancel an event and refund all users."""
+        self._ensure_connected()
         try:
             tx = self.contract.functions.cancelEvent(
                 blockchain_event_run_id
@@ -387,6 +425,7 @@ class BlockchainService:
 
     async def get_host_events(self, host_wallet_address: str) -> List[int]:
         """Get all event run IDs for a host."""
+        self._ensure_connected()
         try:
             checksum_address = Web3.to_checksum_address(host_wallet_address)
             event_ids = self.contract.functions.getHostEvents(checksum_address).call()
@@ -396,6 +435,7 @@ class BlockchainService:
 
     async def get_user_bookings(self, user_wallet_address: str) -> List[int]:
         """Get all booking IDs for a user."""
+        self._ensure_connected()
         try:
             checksum_address = Web3.to_checksum_address(user_wallet_address)
             booking_ids = self.contract.functions.getUserBookings(checksum_address).call()
