@@ -785,7 +785,8 @@ class EventRunService:
                 status,
                 users!experiences_host_id_fkey (
                     id,
-                    full_name
+                    full_name,
+                    wallet_address
                 ),
                 experience_photos!experience_photos_experience_id_fkey (
                     photo_url,
@@ -819,65 +820,77 @@ class EventRunService:
         # Build explore results
         explore_runs = []
         for run in response.data:
-            experience = run["experiences"]
-            host = experience["users"]
+            try:
+                experience = run.get("experiences")
+                if not experience:
+                    continue  # Skip if experience data is missing
+                
+                host = experience.get("users")
+                if not host:
+                    continue  # Skip if host data is missing
 
-            # Calculate available spots
-            available_spots = await self._calculate_available_spots(
-                run["id"], run["max_capacity"]
-            )
+                # Calculate available spots
+                available_spots = await self._calculate_available_spots(
+                    run["id"], run["max_capacity"]
+                )
 
-            # Calculate effective price (special pricing overrides base price)
-            effective_price = run["special_pricing_inr"] or experience["price_inr"]
+                # Calculate effective price (special pricing overrides base price)
+                effective_price = run.get("special_pricing_inr") or experience.get("price_inr")
+                if not effective_price:
+                    continue  # Skip if no price available
 
-            # Get cover photo URL
-            cover_photo_url = None
-            if experience.get("experience_photos"):
-                # Find the cover photo
-                for photo in experience["experience_photos"]:
-                    if photo.get("is_cover_photo"):
-                        cover_photo_url = photo.get("photo_url")
-                        break
-                # If no cover photo marked, use the first photo
-                if not cover_photo_url and len(experience["experience_photos"]) > 0:
-                    cover_photo_url = experience["experience_photos"][0].get(
-                        "photo_url"
-                    )
+                # Get cover photo URL
+                cover_photo_url = None
+                if experience.get("experience_photos"):
+                    # Find the cover photo
+                    for photo in experience["experience_photos"]:
+                        if photo.get("is_cover_photo"):
+                            cover_photo_url = photo.get("photo_url")
+                            break
+                    # If no cover photo marked, use the first photo
+                    if not cover_photo_url and len(experience["experience_photos"]) > 0:
+                        cover_photo_url = experience["experience_photos"][0].get(
+                            "photo_url"
+                        )
 
-            # Build explore event run object
-            explore_run = ExploreEventRun(
-                id=run["id"],
-                start_datetime=datetime.fromisoformat(
-                    run["start_datetime"].replace("Z", "+00:00")
-                ),
-                end_datetime=datetime.fromisoformat(
-                    run["end_datetime"].replace("Z", "+00:00")
-                ),
-                max_capacity=run["max_capacity"],
-                available_spots=available_spots,
-                price_inr=Decimal(str(effective_price)),
-                status=EventRunStatus(run["status"]),
-                # Experience details
-                experience_id=experience["id"],
-                experience_title=experience["title"],
-                experience_promise=experience.get("promise"),
-                experience_domain=experience["experience_domain"],
-                experience_theme=experience.get("experience_theme"),
-                neighborhood=experience.get("neighborhood"),
-                meeting_landmark=experience.get("meeting_landmark"),
-                duration_minutes=experience["duration_minutes"],
-                cover_photo_url=cover_photo_url,
-                # Host details
-                host_id=host["id"],
-                host_name=host["full_name"],
-                host_wallet_address=host.get(
-                    "wallet_address"
-                ),  # Include wallet address for payments
-                host_meeting_instructions=run.get("host_meeting_instructions"),
-                group_pairing_enabled=run["group_pairing_enabled"],
-            )
+                # Build explore event run object
+                explore_run = ExploreEventRun(
+                    id=run["id"],
+                    start_datetime=datetime.fromisoformat(
+                        run["start_datetime"].replace("Z", "+00:00")
+                    ),
+                    end_datetime=datetime.fromisoformat(
+                        run["end_datetime"].replace("Z", "+00:00")
+                    ),
+                    max_capacity=run["max_capacity"],
+                    available_spots=available_spots,
+                    price_inr=Decimal(str(effective_price)),
+                    status=EventRunStatus(run["status"]),
+                    # Experience details
+                    experience_id=experience["id"],
+                    experience_title=experience["title"],
+                    experience_promise=experience.get("promise"),
+                    experience_domain=experience["experience_domain"],
+                    experience_theme=experience.get("experience_theme"),
+                    neighborhood=experience.get("neighborhood"),
+                    meeting_landmark=experience.get("meeting_landmark"),
+                    duration_minutes=experience.get("duration_minutes", 180),
+                    cover_photo_url=cover_photo_url,
+                    # Host details
+                    host_id=host["id"],
+                    host_name=host.get("full_name", "Unknown Host"),
+                    host_wallet_address=host.get("wallet_address"),
+                    host_meeting_instructions=run.get("host_meeting_instructions"),
+                    group_pairing_enabled=run.get("group_pairing_enabled", False),
+                )
 
-            explore_runs.append(explore_run)
+                explore_runs.append(explore_run)
+            except Exception as e:
+                # Log error but continue processing other runs
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error processing event run {run.get('id', 'unknown')}: {str(e)}")
+                continue
 
         return explore_runs
 
