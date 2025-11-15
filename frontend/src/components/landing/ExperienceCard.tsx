@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { ImageWithFallback } from './ImageWithFallback';
 
-interface ExperienceCardProps {
+export interface ExperienceCardProps {
   id: string;
   title: string;
   host: {

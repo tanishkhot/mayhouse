@@ -261,7 +261,78 @@ export const ExploreAPI = {
 };
 
 // Profile-related API
+export type PublicProfile = {
+  id: string;
+  full_name: string;
+  username?: string | null;
+  bio?: string | null;
+  profile_image_url?: string | null;
+  wallet_address?: string | null;
+  role: UserRole;
+  created_at: string;
+  email?: string; // Only included for own profile
+  host_stats?: {
+    experience_count: number;
+    event_run_count: number;
+    travelers_hosted: number;
+    avg_rating?: number | null;
+    review_count: number;
+    years_hosting: number;
+    response_rate?: number | null;
+  };
+  host_application?: {
+    languages_spoken?: string[];
+    hosting_experience?: string;
+    why_host?: string;
+    special_skills?: string;
+  };
+};
+
+export type HostExperience = {
+  id: string;
+  title: string;
+  domain: string;
+  price_inr: number;
+  neighborhood?: string | null;
+  city: string;
+  cover_photo_url?: string | null;
+  created_at: string;
+};
+
+export type HostExperiencesResponse = {
+  experiences: HostExperience[];
+  count: number;
+  limit: number;
+  offset: number;
+};
+
+export type HostStats = {
+  experience_count: number;
+  event_run_count: number;
+  travelers_hosted: number;
+  avg_rating?: number | null;
+  review_count: number;
+  years_hosting: number;
+  response_rate?: number | null;
+};
+
 export const ProfileAPI = {
+  getPublicProfile: (userId: string) =>
+    api.get<PublicProfile>(`/users/${userId}/profile`).then((r) => r.data),
+  getHostExperiences: (userId: string, params?: { limit?: number; offset?: number }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.limit) searchParams.append("limit", params.limit.toString());
+    if (params?.offset) searchParams.append("offset", params.offset.toString());
+    
+    const url = `/users/${userId}/experiences${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    return api.get<HostExperiencesResponse>(url).then((r) => r.data);
+  },
+  getHostStats: (userId: string) =>
+    api.get<HostStats>(`/users/${userId}/stats`).then((r) => r.data),
+  getOwnProfile: () =>
+    api.get<PublicProfile>("/users/profile").then((r) => r.data),
+  updateOwnProfile: (updateData: UserUpdate) =>
+    api.put<PublicProfile>("/users/profile", updateData).then((r) => r.data),
   getBookings: (params?: { status_filter?: string; limit?: number }) => {
     const searchParams = new URLSearchParams();
     if (params?.status_filter) searchParams.append("status_filter", params.status_filter);

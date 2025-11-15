@@ -231,6 +231,7 @@ class EventRunService:
             booking_summary=booking_summary,
             experience_title=experience.get("title"),
             experience_domain=experience.get("experience_domain"),
+            host_id=experience.get("host_id"),
             host_name=host.get("full_name"),
             host_wallet_address=host.get("wallet_address"),
             price_inr=Decimal(str(effective_price)),
@@ -678,12 +679,14 @@ class EventRunService:
         experience_data = event_run_data.get("experiences")
         experience_title = None
         experience_domain = None
+        host_id = None
         host_name = None
         base_price = None
 
         if experience_data:
             experience_title = experience_data.get("title")
             experience_domain = experience_data.get("experience_domain")
+            host_id = experience_data.get("host_id")
             base_price = experience_data.get("price_inr")
 
             # Extract host name if nested
@@ -721,6 +724,7 @@ class EventRunService:
             detailed_bookings=detailed_bookings,
             experience_title=experience_title,
             experience_domain=experience_domain,
+            host_id=host_id,
             host_name=host_name,
             price_inr=Decimal(str(effective_price)) if effective_price else None,
         )

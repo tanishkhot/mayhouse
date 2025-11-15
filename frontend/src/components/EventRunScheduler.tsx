@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { EventRunAPI, EventRunCreate } from '@/lib/event-run-api';
 import { experienceAPI, ExperienceResponse } from '@/lib/experience-api';
-import { useCreateEventRun } from '@/lib/contract';
 
 interface EventRunSchedulerProps {
   onSuccess?: () => void;
@@ -31,9 +30,6 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string>('');
-
-  // Blockchain integration
-  const { createEventRun: createEventRunOnChain, isPending, isConfirming, isSuccess, hash } = useCreateEventRun();
 
   // Fetch approved experiences on mount
   useEffect(() => {
@@ -177,7 +173,6 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
       // Construct date-time strings in ISO format with timezone
       const startDateTime = new Date(`${selectedDate}T${startTime}:00`).toISOString();
       const endDateTime = new Date(`${selectedDate}T${endTime}:00`).toISOString();
-      const eventTimestamp = Math.floor(new Date(`${selectedDate}T${startTime}:00`).getTime() / 1000);
 
       // Get the selected experience to determine price
       const experience = experiences.find(exp => exp.id === selectedExperience);
@@ -186,59 +181,6 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
         return;
       }
 
-      // Calculate price (use special pricing if set, otherwise base price)
-      const priceInINR = specialPricing && specialPricing.trim() ? parseFloat(specialPricing) : experience.price_inr;
-      
-      // Convert INR to ETH (rough conversion - 1 ETH ≈ 200,000 INR)
-      const ETH_TO_INR = 200000;
-      const priceInETH = (priceInINR / ETH_TO_INR).toFixed(6);
-
-      // Calculate required stake (25% of total)
-      const totalValueInETH = parseFloat(priceInETH) * maxCapacity;
-      const requiredStakeInETH = (totalValueInETH * 0.25).toFixed(6);
-
-      // Show staking confirmation to user
-      const confirmMessage = `
-BLOCKCHAIN STAKING REQUIRED
-
-To create this event run, you need to stake:
-${requiredStakeInETH} ETH (25% of ${totalValueInETH.toFixed(6)} ETH total)
-
-This stake will be:
-- Returned if you complete the experience
-- Forfeited if you cancel or no-show
-
-Price per seat: ₹${priceInINR} (${priceInETH} ETH)
-Max capacity: ${maxCapacity} travelers
-Total value: ₹${priceInINR * maxCapacity} (${totalValueInETH.toFixed(6)} ETH)
-
-Do you want to proceed with the staking?
-      `.trim();
-
-      if (!confirm(confirmMessage)) {
-        setSubmitting(false);
-        return;
-      }
-
-      // Step 1: Create event run on blockchain (requires staking)
-      setError('Creating event run on blockchain... Please confirm the transaction in your wallet.');
-      
-      await createEventRunOnChain(
-        selectedExperience,
-        priceInETH,
-        maxCapacity,
-        eventTimestamp
-      );
-
-      // Step 2: Wait for blockchain confirmation
-      setError('Waiting for blockchain confirmation...');
-      
-      // The transaction will be confirmed automatically by the hook
-      // We'll check isSuccess in the useEffect below
-      
-      // For now, continue with database creation
-      // In production, you'd wait for blockchain confirmation first
-      
       // Safely parse special pricing (handle invalid numbers)
       let specialPricingValue: number | null = null;
       if (specialPricing && specialPricing.trim()) {
@@ -264,11 +206,10 @@ Do you want to proceed with the staking?
       // Log the payload for debugging
       console.log('📤 Sending event run data:', JSON.stringify(eventRunData, null, 2));
 
-      // Step 3: Create in database after blockchain success
       await EventRunAPI.createEventRun(eventRunData);
       
       setError('');
-      alert('Event run created successfully! Your stake has been locked on the blockchain.');
+      alert('Event run scheduled successfully!');
       
       // Success - call parent success handler
       onSuccess?.();
@@ -505,42 +446,6 @@ Do you want to proceed with the staking?
         </div>
 
         {/* Staking Requirements Display */}
-        {selectedExperience && maxCapacity > 0 && (
-          <div className="border-2 border-yellow-300 rounded-lg p-4 bg-yellow-50 mt-6">
-            <h3 className="text-lg font-semibold text-yellow-900 mb-2">
-              Blockchain Staking Required
-            </h3>
-            <div className="text-sm text-yellow-800 space-y-2">
-              <p>
-                To create this event run, you&apos;ll need to stake cryptocurrency as a commitment guarantee.
-              </p>
-              {(() => {
-                const experience = experiences.find(exp => exp.id === selectedExperience);
-                if (!experience) return null;
-                
-                const priceInINR = specialPricing && specialPricing.trim() ? parseFloat(specialPricing) : experience.price_inr;
-                const ETH_TO_INR = 200000;
-                const priceInETH = (priceInINR / ETH_TO_INR).toFixed(6);
-                const totalValueInETH = parseFloat(priceInETH) * maxCapacity;
-                const requiredStakeInETH = (totalValueInETH * 0.25).toFixed(6);
-                
-                return (
-                  <div className="bg-yellow-100 rounded p-3 mt-2">
-                    <p className="font-semibold">Required Stake: <span className="text-yellow-900">{requiredStakeInETH} ETH</span></p>
-                    <p className="text-xs mt-1">
-                      (25% of {totalValueInETH.toFixed(6)} ETH total value)
-                    </p>
-                    <div className="mt-2 text-xs space-y-1">
-                      <p>• Stake returned when you complete the experience</p>
-                      <p>• Stake forfeited if you cancel or no-show</p>
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
-        )}
-
         {/* Submit buttons */}
         <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
           {onCancel && (

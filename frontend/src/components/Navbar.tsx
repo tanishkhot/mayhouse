@@ -114,12 +114,6 @@ export default function Navbar() {
             ) : (
               <nav className="hidden md:flex items-center gap-6">
                 <Link 
-                  href="/explore" 
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
-                >
-                  Explore
-                </Link>
-                <Link 
                   href="/host/experiences" 
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
                 >
@@ -209,11 +203,11 @@ export default function Navbar() {
                     <SheetContent side="right">
                       <nav className="flex flex-col gap-4 mt-8">
                         <Link 
-                          href="/explore"
+                          href="/host/experiences"
                           onClick={() => setIsMenuOpen(false)}
                           className="text-lg font-medium"
                         >
-                          Explore
+                          About
                         </Link>
                         <Link 
                           href="/profile"

@@ -6,6 +6,269 @@ import { HostOnlyRoute } from '@/components/ProtectedRoute';
 import { api } from '@/lib/api';
 import { ExperiencePhotoUpload } from '@/components/ExperiencePhotoUpload';
 
+type ExperienceFormState = {
+  title: string;
+  description: string;
+  domain: string;
+  theme: string;
+  duration: number;
+  maxCapacity: number;
+  price: string;
+  neighborhood: string;
+  meetingPoint: string;
+  requirements: string;
+  whatToExpect: string;
+  whatToKnow: string;
+  whatToBring: string;
+};
+
+interface ExperiencePhoto {
+  id: string;
+  photo_url: string;
+  is_cover_photo: boolean;
+  display_order: number;
+  caption?: string;
+}
+
+const INITIAL_FORM_DATA: ExperienceFormState = {
+  title: '',
+  description: '',
+  domain: '',
+  theme: '',
+  duration: 180,
+  maxCapacity: 4,
+  price: '',
+  neighborhood: '',
+  meetingPoint: '',
+  requirements: '',
+  whatToExpect: '',
+  whatToKnow: '',
+  whatToBring: '',
+};
+
+const TEST_EXPERIENCE_TEMPLATES: Array<{ form: ExperienceFormState; imageUrl: string }> = [
+  {
+    form: {
+      title: 'Old Town Dawn Walk & Chai Stories',
+      description:
+        'Begin your morning with an intimate walk through Mumbai’s historic lanes as the city slowly wakes up. We will visit the flower market, taste steaming chai with spice vendors, and listen to stories about the original dock workers who built this neighborhood. Expect the smell of fresh jasmine, temple bells echoing through narrow alleys, and plenty of personal anecdotes from my family who has lived here for generations.',
+      domain: 'culture',
+      theme: 'Morning Heritage Trails',
+      duration: 150,
+      maxCapacity: 4,
+      price: '2200',
+      neighborhood: 'Fort & Colaba',
+      meetingPoint: 'Gateway of India, main arch',
+      requirements: 'Comfortable walking shoes recommended; moderate walking pace.',
+      whatToExpect:
+        'Witness Mumbai’s oldest markets come alive at sunrise, meet the families who still run century-old stalls, and enjoy a private chai tasting while listening to intimate neighborhood stories passed down to me.',
+      whatToKnow:
+        'Tour runs rain or shine. We finish near Kala Ghoda for breakfast options. Light snacks included, please bring a reusable bottle.',
+      whatToBring: 'Camera, reusable water bottle, light jacket for early mornings.',
+    },
+    imageUrl:
+      'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=1400&q=80',
+  },
+  {
+    form: {
+      title: 'Midnight Mills & Textile Tales',
+      description:
+        'Explore Mumbai’s mill district after dark with former textile workers. We slip into abandoned courtyards, hear union stories in the old cafeteria, and end with Irani chai while reading from original wage ledgers my family preserved.',
+      domain: 'history',
+      theme: 'Industrial Heritage Nights',
+      duration: 150,
+      maxCapacity: 6,
+      price: '2500',
+      neighborhood: 'Lower Parel',
+      meetingPoint: 'Shakti Mills security gate',
+      requirements: 'Wear closed shoes; light jacket recommended for night breeze.',
+      whatToExpect:
+        'Industrial landscapes under moonlight, insider access to a mill floor, personal union anecdotes, and a curated playlist of archival mill songs.',
+      whatToKnow:
+        'Security escort provided. Photographs allowed only at marked zones. Moderate walking over uneven surfaces.',
+      whatToBring: 'Government ID, small flashlight (phone acceptable).',
+    },
+    imageUrl:
+      'https://images.unsplash.com/photo-1517350461416-43c0db9fb0c7?auto=format&fit=crop&w=1400&q=80',
+  },
+  {
+    form: {
+      title: 'Seafront Stories & Koli Breakfast',
+      description:
+        'Join my Koli family as we welcome the morning tide at Worli. You will watch nets being cast, learn a folk song that calls the fish, and share a traditional breakfast in our community kitchen while elders recount sea legends.',
+      domain: 'culture',
+      theme: 'Coastal Community Immersions',
+      duration: 180,
+      maxCapacity: 5,
+      price: '2800',
+      neighborhood: 'Worli Gaon',
+      meetingPoint: 'Worli Fort entrance',
+      requirements: 'Comfortable footwear that can get wet; basic balance over stones.',
+      whatToExpect:
+        'Hands-on net throwing session, exclusive access to tide-watching deck, storytelling circle with elders, and a seasonal seafood breakfast.',
+      whatToKnow:
+        'Tour timed to tide charts; reschedules offered during cyclonic alerts. Vegetarian alternative available on request.',
+      whatToBring: 'Hat, sunscreen, reusable bottle, optional motion-sickness aid.',
+    },
+    imageUrl:
+      'https://images.unsplash.com/photo-1452075758390-0474c4dd5538?auto=format&fit=crop&w=1400&q=80',
+  },
+  {
+    form: {
+      title: 'Art Deco Twilight Walk',
+      description:
+        'Decode Marine Drive’s UNESCO-listed Art Deco skyline as the sun sets. As a preservation architect, I will show original blueprints, rooftop vistas, and hidden motifs that most city residents never notice.',
+      domain: 'architecture',
+      theme: 'Sunset Skyline Stories',
+      duration: 150,
+      maxCapacity: 8,
+      price: '2000',
+      neighborhood: 'Marine Drive & Oval Maidan',
+      meetingPoint: 'Churchgate Station (west exit)',
+      requirements: 'Light walking; elevator access to rooftops.',
+      whatToExpect:
+        'Interior tour of Regal Cinema, vintage elevator ride, design sketch mini-workshop, and a Deco-inspired mocktail at a historic café.',
+      whatToKnow:
+        'Wheelchair-friendly path; rooftop access subject to weather. Tour concludes near Art Deco cafés for optional dinner.',
+      whatToBring: 'Camera, light shawl for sea breeze.',
+    },
+    imageUrl:
+      'https://images.unsplash.com/photo-1542370285-b8eb8317691f?auto=format&fit=crop&w=1400&q=80',
+  },
+  {
+    form: {
+      title: 'Chor Bazaar Treasure Hunt',
+      description:
+        'Scour Chor Bazaar with the grandson of a 1940s antique trader. Learn bargaining rituals, meet restorers, and gain access to our family’s hidden warehouse with stories behind every piece.',
+      domain: 'culture',
+      theme: 'Market Narratives & Collectibles',
+      duration: 180,
+      maxCapacity: 6,
+      price: '1900',
+      neighborhood: 'Chor Bazaar',
+      meetingPoint: 'Minara Masjid corner',
+      requirements: 'Comfortable sandals; keep valuables secure.',
+      whatToExpect:
+        'Hands-on negotiation coaching, lamp restoration demo, Sulemani chai with traders, and a curated list of trustworthy vendors.',
+      whatToKnow:
+        'Cash preferred for purchases. Tour operates except on major religious holidays when shops close.',
+      whatToBring: 'Tote bag, small bills for purchases.',
+    },
+    imageUrl:
+      'https://images.unsplash.com/photo-1506242395783-2e70b6b9c577?auto=format&fit=crop&w=1400&q=80',
+  },
+  {
+    form: {
+      title: 'Bandra Graffiti Nights',
+      description:
+        'Walk Bandra’s dynamic street-art corridors after dusk with a curator who has commissioned many murals. Meet an artist on-site, paint a collaborative stencil, and end at a pop-up rooftop gallery with the scene’s insiders.',
+      domain: 'art',
+      theme: 'Urban Art Immersions',
+      duration: 150,
+      maxCapacity: 10,
+      price: '2400',
+      neighborhood: 'Bandra (West)',
+      meetingPoint: 'St. Andrew’s Church steps',
+      requirements: 'Wear clothes that can get paint on them.',
+      whatToExpect:
+        'Guided mural decoding, insider anecdotes about gentrification, live stencil workshop, and craft beer / mocktail at a rooftop gallery.',
+      whatToKnow:
+        'All paint permissions secured. Masks provided for spray work. Accessible detour available for stair sections.',
+      whatToBring: 'Optional sketchbook, curiosity for color.',
+    },
+    imageUrl:
+      'https://images.unsplash.com/photo-1497536194212-77674a5c0f0c?auto=format&fit=crop&w=1400&q=80',
+  },
+  {
+    form: {
+      title: 'Modkhana Heritage Walk',
+      description:
+        'Trace Girgaon’s sweet traditions with my extended family who run the neighborhood’s modkhana. Watch artisans sculpt idols, taste steaming ukadiche modak, and hear the spiritual lore behind each lane.',
+      domain: 'food',
+      theme: 'Festival & Faith Trails',
+      duration: 180,
+      maxCapacity: 5,
+      price: '1800',
+      neighborhood: 'Girgaon',
+      meetingPoint: 'Charni Road (east) outside station',
+      requirements: 'Short bursts of stair climbing in heritage buildings.',
+      whatToExpect:
+        'Live modak shaping class, visit to community shrine, oral mythology from mandal historians, and curated photo archive viewing.',
+      whatToKnow:
+        'Peak experience during Ganesh Chaturthi; off-season walk focuses on year-round artisans. Vegetarian and dairy-inclusive.',
+      whatToBring: 'Appetite and respect for shrines (cover shoulders).',
+    },
+    imageUrl:
+      'https://images.unsplash.com/photo-1516214104705-6b4e4e663b1a?auto=format&fit=crop&w=1400&q=80',
+  },
+  {
+    form: {
+      title: 'Matunga Filter Coffee Trail',
+      description:
+        'Taste the evolution of Matunga’s iconic filter coffees with a third-generation café owner. Learn bean roasting, brew your own tumbler, and explore migration stories that shaped this South-Indian enclave.',
+      domain: 'food',
+      theme: 'Café Culture Walks',
+      duration: 150,
+      maxCapacity: 6,
+      price: '1600',
+      neighborhood: 'Matunga',
+      meetingPoint: 'Matunga station (west) concourse',
+      requirements: 'Light walking; mostly flat terrain.',
+      whatToExpect:
+        'Roastery floor visit, filter brewing workshop, temple architecture snippets, and breakfast platter featuring dosa, idli, and sweets.',
+      whatToKnow:
+        'Vegetarian friendly; gluten-free options with prior notice. Tour ends near King’s Circle for onward exploration.',
+      whatToBring: 'Minimal—everything served fresh. Optional reusable cup.',
+    },
+    imageUrl:
+      'https://images.unsplash.com/photo-1527169402691-feff5539e52c?auto=format&fit=crop&w=1400&q=80',
+  },
+  {
+    form: {
+      title: 'Queer History After Hours',
+      description:
+        'Walk Mumbai’s queer archives with community historians. We visit hidden safe spaces, discuss landmark court cases, create a zine page together, and end with poetry readings under the Kala Ghoda banyans.',
+      domain: 'culture',
+      theme: 'Community & Identity Walks',
+      duration: 150,
+      maxCapacity: 12,
+      price: '2100',
+      neighborhood: 'Fort & Kala Ghoda',
+      meetingPoint: 'Asiatic Library steps',
+      requirements: 'Inclusive environment—respectful participation essential.',
+      whatToExpect:
+        'Archive interaction, safe-space café visit, live spoken word performance, and collaborative zine-making session guided by activists.',
+      whatToKnow:
+        'Wheelchair-accessible plan provided. Optional donation to archive. Neutral pronoun badges offered on arrival.',
+      whatToBring: 'Open mind, optional art supplies for zine.',
+    },
+    imageUrl:
+      'https://images.unsplash.com/photo-1499540633125-484965b60031?auto=format&fit=crop&w=1400&q=80',
+  },
+  {
+    form: {
+      title: 'Salt Pan Sundown Walk',
+      description:
+        'Witness flamingos feeding on the Airoli wetlands from my family’s salt pan boat. Hear stories of salt-worker resilience, sketch the sunset, and savor home-made banana fritters with warming chai.',
+      domain: 'nature',
+      theme: 'Wetland & Wildlife Immersions',
+      duration: 165,
+      maxCapacity: 6,
+      price: '2300',
+      neighborhood: 'Airoli',
+      meetingPoint: 'Airoli jetty',
+      requirements: 'Comfortable shoes; minor balance boarding boat.',
+      whatToExpect:
+        'Boat ride across salt pans, flamingo spotting with naturalist, salt harvesting demonstration, and guided sunset sketch circle.',
+      whatToKnow:
+        'Seasonal sightings (Nov–March best). Alternate mangrove exploration offered when flamingos migrate.',
+      whatToBring: 'Hat, sunscreen, binoculars (loaners limited).',
+    },
+    imageUrl:
+      'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80',
+  },
+];
+
 const DesignExperienceContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -16,23 +279,11 @@ const DesignExperienceContent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
   const [experienceId, setExperienceId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    domain: '',
-    theme: '',
-    duration: 180,
-    maxCapacity: 4,
-    price: '',
-    neighborhood: '',
-    meetingPoint: '',
-    requirements: '',
-    whatToExpect: '',
-    whatToKnow: '',
-    whatToBring: '',
-  });
+  const [formData, setFormData] = useState<ExperienceFormState>(INITIAL_FORM_DATA);
   const [createdExperienceId, setCreatedExperienceId] = useState<string | null>(null);
   const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
+  const [initialPhotos, setInitialPhotos] = useState<ExperiencePhoto[]>([]);
+  const [isAutoBuilding, setIsAutoBuilding] = useState(false);
 
   // Define fetchExperienceData before using it in useEffect
   const fetchExperienceData = useCallback(async (id: string) => {
@@ -69,6 +320,15 @@ const DesignExperienceContent = () => {
           : experienceData.traveler_should_bring || '',
       });
 
+      try {
+        const photosResponse = await api.get(`/experiences/${id}/photos`);
+        setInitialPhotos(photosResponse.data || []);
+      } catch (photoError) {
+        console.error('Error fetching experience photos:', photoError);
+        setInitialPhotos([]);
+      }
+
+      setCreatedExperienceId(id);
     } catch (error) {
       console.error('Error fetching experience:', error);
       alert('Network error while loading experience. Please try again.');
@@ -92,6 +352,66 @@ const DesignExperienceContent = () => {
 
   const handleNext = () => {
     if (step < 4) setStep(step + 1);
+  };
+
+  const uploadTestPhoto = async (experienceId: string): Promise<ExperiencePhoto[] | null> => {
+    try {
+      const response = await fetch(TEST_EXPERIENCE_IMAGE_URL);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch sample image (${response.status})`);
+      }
+
+      const blob = await response.blob();
+      const fileName = 'mayhouse-test-experience.jpg';
+      const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+      formDataUpload.append('is_cover_photo', 'true');
+      formDataUpload.append('display_order', '0');
+
+      await api.post(`/experiences/${experienceId}/photos`, formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const photosResponse = await api.get(`/experiences/${experienceId}/photos`);
+      return photosResponse.data || [];
+    } catch (error) {
+      console.error('Error uploading test photo:', error);
+      alert('Test experience created, but uploading the sample photo failed. You can add one manually.');
+      return null;
+    }
+  };
+
+  const buildTestExperience = async () => {
+    if (isEditMode || isAutoBuilding) {
+      return;
+    }
+
+    setIsAutoBuilding(true);
+    setFieldErrors({});
+    setSubmitForReview(false);
+    setInitialPhotos([]);
+    setFormData({ ...TEST_EXPERIENCE_FORM });
+
+    try {
+      const experienceId = await handleSubmit(TEST_EXPERIENCE_FORM);
+      if (!experienceId) {
+        return;
+      }
+
+      const photos = await uploadTestPhoto(experienceId);
+      if (photos) {
+        setInitialPhotos(photos);
+      }
+
+      setCreatedExperienceId(experienceId);
+      setStep(4);
+    } catch (error) {
+      console.error('Error building test experience:', error);
+      alert('Failed to auto-build the test experience. Please try again.');
+    } finally {
+      setIsAutoBuilding(false);
+    }
   };
 
   const handleBack = () => {
@@ -143,17 +463,20 @@ const DesignExperienceContent = () => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (dataOverride?: ExperienceFormState): Promise<string | null> => {
+    const submissionData = dataOverride ?? formData;
+
     // Validate all fields
-    if (!validateAllFields()) {
-      const errorMessages = Object.values(fieldErrors).filter(Boolean);
+    const { isValid, errors } = validateAllFields(submissionData);
+    if (!isValid) {
+      const errorMessages = Object.values(errors).filter(Boolean);
       alert('Please fix the following issues:\n\n' + errorMessages.join('\n'));
-      return;
+      return null;
     }
 
     const actionText = isEditMode ? 'updating' : 'creating';
     console.log(`📝 FORM: Starting experience ${actionText}...`);
-    console.log('📝 FORM: Form data:', formData);
+    console.log('📝 FORM: Form data:', submissionData);
     console.log('📝 FORM: Edit mode:', isEditMode);
     console.log('📝 FORM: Experience ID:', experienceId);
     
@@ -162,23 +485,23 @@ const DesignExperienceContent = () => {
     try {
       // Create the experience payload matching backend schema
       const experienceData = {
-        title: formData.title,
-        promise: formData.description.substring(0, 200), // Use first 200 chars of description as promise
-        description: formData.description,
-        unique_element: formData.whatToExpect || `This ${formData.domain} experience offers authentic local insights and memorable moments.`,
-        host_story: `As a passionate local guide, I created this ${formData.domain} experience to share the authentic side of Mumbai with travelers.`,
-        experience_domain: formData.domain,
-        experience_theme: formData.theme,
-        neighborhood: formData.neighborhood,
-        meeting_landmark: formData.meetingPoint.split(',')[0] || formData.meetingPoint, // Extract landmark from meeting point
-        meeting_point_details: formData.meetingPoint,
-        duration_minutes: formData.duration,
-        traveler_max_capacity: formData.maxCapacity,
-        price_inr: parseFloat(formData.price),
+        title: submissionData.title,
+        promise: submissionData.description.substring(0, 200), // Use first 200 chars of description as promise
+        description: submissionData.description,
+        unique_element: submissionData.whatToExpect || `This ${submissionData.domain} experience offers authentic local insights and memorable moments.`,
+        host_story: `As a passionate local guide, I created this ${submissionData.domain} experience to share the authentic side of Mumbai with travelers.`,
+        experience_domain: submissionData.domain,
+        experience_theme: submissionData.theme,
+        neighborhood: submissionData.neighborhood,
+        meeting_landmark: submissionData.meetingPoint.split(',')[0] || submissionData.meetingPoint, // Extract landmark from meeting point
+        meeting_point_details: submissionData.meetingPoint,
+        duration_minutes: submissionData.duration,
+        traveler_max_capacity: submissionData.maxCapacity,
+        price_inr: parseFloat(submissionData.price),
         inclusions: ['Professional local guide', 'All activities mentioned in description'],
-        traveler_should_bring: formData.whatToBring ? [formData.whatToBring] : ['Comfortable walking shoes', 'Camera (optional)'],
-        accessibility_notes: formData.requirements ? [formData.requirements] : [],
-        experience_safety_guidelines: formData.whatToKnow
+        traveler_should_bring: submissionData.whatToBring ? [submissionData.whatToBring] : ['Comfortable walking shoes', 'Camera (optional)'],
+        accessibility_notes: submissionData.requirements ? [submissionData.requirements] : [],
+        experience_safety_guidelines: submissionData.whatToKnow
       };
       
       console.log('📤 FORM: Sending experience data:', experienceData);
@@ -289,7 +612,7 @@ Check the browser console for detailed token search results.`;
         console.log('FORM: No valid token found, cannot proceed');
         console.log('FORM: Available localStorage keys:', allStorageKeys);
         // router.push('/login'); // Commented out for testing
-        return;
+        return null;
       }
       
       console.log(`FORM: Using token from '${tokenSource}': ${token.substring(0, 20)}...`);
@@ -312,22 +635,23 @@ Check the browser console for detailed token search results.`;
       // Axios response structure
       const result = response.data;
       console.log(`✅ FORM: Experience ${isEditMode ? 'updated' : 'created'} successfully:`, result);
-        
-        // Store the created experience ID for photo upload
-        if (!isEditMode && result.id) {
+
+      if (isEditMode) {
+        if (result?.id) {
           setCreatedExperienceId(result.id);
-          // Move to photo upload step
-          setStep(4);
         }
-        
-        if (isEditMode) {
-          // For updates, just show success message and redirect
-          alert('Experience updated successfully! You can now submit it for review again from your dashboard.');
-          router.push('/host-dashboard');
-        } else {
-          // For new experiences, don't redirect yet - let them upload photos
-          // Submission will be handled from the dashboard
-        }
+        alert('Experience updated successfully! You can now submit it for review again from your dashboard.');
+        router.push('/host-dashboard');
+        return result?.id || null;
+      }
+
+      if (result?.id) {
+        setCreatedExperienceId(result.id);
+        setInitialPhotos([]);
+        setStep(4);
+      }
+
+      return result?.id || null;
     } catch (error: any) {
       console.log('💥 FORM: Error:', error);
       console.error('Error creating experience:', error);
@@ -367,6 +691,7 @@ Check the browser console for detailed token search results.`;
         // Something else happened
         alert(`Error: ${error.message || 'Unknown error occurred'}`);
       }
+      return null;
     } finally {
       setIsSubmitting(false);
     }
@@ -428,20 +753,21 @@ Check the browser console for detailed token search results.`;
   };
 
   // Validate all fields
-  const validateAllFields = () => {
-    const errors = {};
+  const validateAllFields = (data: ExperienceFormState = formData) => {
+    const errors: Record<string, string> = {};
     let hasErrors = false;
 
     Object.keys(validationRules).forEach(field => {
-      const error = validateField(field, (formData as Record<string, unknown>)[field]);
+      const value = (data as Record<string, unknown>)[field];
+      const error = validateField(field, value);
       if (error) {
-        (errors as Record<string, string>)[field] = error;
+        errors[field] = error;
         hasErrors = true;
       }
     });
 
     setFieldErrors(errors);
-    return !hasErrors;
+    return { isValid: !hasErrors, errors };
   };
 
   // Show loading state while fetching experience data
@@ -472,6 +798,15 @@ Check the browser console for detailed token search results.`;
                   {isEditMode ? 'Update your local adventure for travelers' : 'Create a unique local adventure for travelers'}
                 </p>
               </div>
+              {!isEditMode && (
+                <button
+                  onClick={buildTestExperience}
+                  disabled={isSubmitting || isAutoBuilding}
+                  className="rounded-full bg-black text-white px-4 py-2 text-sm font-medium hover:bg-black/80 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isAutoBuilding ? 'Building…' : 'Build test experience'}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -738,6 +1073,8 @@ Check the browser console for detailed token search results.`;
                     <ExperiencePhotoUpload 
                       experienceId={createdExperienceId || experienceId || ''}
                       maxPhotos={10}
+                      existingPhotos={initialPhotos}
+                      onPhotosUpdate={setInitialPhotos}
                     />
                   ) : (
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">

@@ -51,6 +51,7 @@ export type EventRunResponse = {
   booking_summary?: EventRunBookingSummary | null;
   experience_title?: string | null;
   experience_domain?: string | null;
+  host_id?: string | null;
   host_name?: string | null;
   host_wallet_address?: string | null;
   price_inr?: number | null;

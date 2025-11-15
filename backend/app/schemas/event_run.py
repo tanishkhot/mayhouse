@@ -185,6 +185,7 @@ class EventRunResponse(BaseModel):
     experience_domain: Optional[str] = Field(None, description="Experience domain")
     
     # Host info
+    host_id: Optional[str] = Field(None, description="Host user ID")
     host_name: Optional[str] = Field(None, description="Host's full name")
     host_wallet_address: Optional[str] = Field(
         None, description="Host's Ethereum wallet address for payments"

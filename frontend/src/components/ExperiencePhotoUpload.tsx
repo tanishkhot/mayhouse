@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { api } from '@/lib/api';
 
 interface Photo {
@@ -14,7 +14,7 @@ interface ExperiencePhotoUploadProps {
   experienceId: string;
   onPhotosUpdate?: (photos: Photo[]) => void;
   existingPhotos?: Photo[];
-  maxPhotos?: number;
+  maxPhotos?: number;  
 }
 
 export const ExperiencePhotoUpload: React.FC<ExperiencePhotoUploadProps> = ({
@@ -28,6 +28,10 @@ export const ExperiencePhotoUpload: React.FC<ExperiencePhotoUploadProps> = ({
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+
+  useEffect(() => {
+    setPhotos(existingPhotos);
+  }, [existingPhotos]);
 
   const fetchPhotos = useCallback(async () => {
     try {

@@ -16,6 +16,7 @@ from app.api.legal_policies import router as legal_policies_router
 from app.api.eip712_policy import router as eip712_policy_router
 from app.api.blockchain import router as blockchain_router
 from app.api.experience_photos import router as experience_photos_router
+from app.api.users import public_router as users_public_router, user_router as users_user_router
 
 settings = get_settings()
 
@@ -62,6 +63,8 @@ app.include_router(legal_policies_router)  # Legal policies endpoints
 app.include_router(eip712_policy_router)  # EIP-712 policy signing endpoints
 app.include_router(blockchain_router)  # Blockchain operations endpoints
 app.include_router(experience_photos_router)  # Experience photos endpoints
+app.include_router(users_public_router)  # Public user profile endpoints
+app.include_router(users_user_router)  # Authenticated user profile endpoints
 
 
 # Root endpoint
