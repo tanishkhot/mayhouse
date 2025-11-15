@@ -349,7 +349,6 @@ class BlockchainService:
     ) -> str:
         """
         Complete an event on the blockchain.
-        self._ensure_connected()
         
         Args:
             blockchain_event_run_id: Blockchain event run ID
@@ -359,6 +358,7 @@ class BlockchainService:
         Returns:
             Transaction hash
         """
+        self._ensure_connected()
         try:
             # Build transaction
             tx = self.contract.functions.completeEvent(
