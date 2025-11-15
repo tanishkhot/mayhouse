@@ -29,6 +29,7 @@ interface ExperiencePhoto {
   is_cover_photo: boolean;
   display_order: number;
   caption?: string;
+  uploaded_at?: string;
 }
 
 const INITIAL_FORM_DATA: ExperienceFormState = {
@@ -270,6 +271,25 @@ const TEST_EXPERIENCE_TEMPLATES: Array<{ form: ExperienceFormState; imageUrl: st
   },
 ];
 
+// Test constants for development
+const TEST_EXPERIENCE_FORM: ExperienceFormState = TEST_EXPERIENCE_TEMPLATES[0]?.form || {
+  title: '',
+  description: '',
+  domain: '',
+  theme: '',
+  duration: 180,
+  maxCapacity: 4,
+  price: '',
+  neighborhood: '',
+  meetingPoint: '',
+  requirements: '',
+  whatToExpect: '',
+  whatToKnow: '',
+  whatToBring: '',
+};
+
+const TEST_EXPERIENCE_IMAGE_URL = TEST_EXPERIENCE_TEMPLATES[0]?.imageUrl || 'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=1400&q=80';
+
 const DesignExperienceContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -357,7 +377,8 @@ const DesignExperienceContent = () => {
 
   const uploadTestPhoto = async (experienceId: string): Promise<ExperiencePhoto[] | null> => {
     try {
-      const response = await fetch(TEST_EXPERIENCE_IMAGE_URL);
+      const imageUrl = TEST_EXPERIENCE_TEMPLATES[0]?.imageUrl || 'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=1400&q=80';
+      const response = await fetch(imageUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch sample image (${response.status})`);
       }
@@ -1069,8 +1090,8 @@ Check the browser console for detailed token search results.`;
                     <ExperiencePhotoUpload 
                       experienceId={createdExperienceId || experienceId || ''}
                       maxPhotos={10}
-                      existingPhotos={initialPhotos}
-                      onPhotosUpdate={setInitialPhotos}
+                      existingPhotos={initialPhotos.map(photo => ({ ...photo, uploaded_at: photo.uploaded_at || new Date().toISOString() }))}
+                      onPhotosUpdate={(photos) => setInitialPhotos(photos.map(({ uploaded_at, ...rest }) => rest as ExperiencePhoto))}
                     />
                   ) : (
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
@@ -1078,7 +1099,7 @@ Check the browser console for detailed token search results.`;
                         Please save your experience first to upload photos
                       </p>
                       <button
-                        onClick={handleSubmit}
+                        onClick={() => handleSubmit()}
                         disabled={isSubmitting}
                         className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
