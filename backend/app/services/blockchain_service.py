@@ -349,6 +349,7 @@ class BlockchainService:
     ) -> str:
         """
         Complete an event on the blockchain.
+        self._ensure_connected()
         
         Args:
             blockchain_event_run_id: Blockchain event run ID
