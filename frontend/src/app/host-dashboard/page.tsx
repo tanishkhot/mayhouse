@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { HostOnlyRoute } from '@/components/ProtectedRoute';
+import { HostDashboardSkeleton } from '@/components/skeletons';
 import EventRunsList from '@/components/EventRunsList';
 import EventRunScheduler from '@/components/EventRunScheduler';
 import { ExperienceCard } from '@/components/landing/ExperienceCard';
@@ -1243,10 +1244,8 @@ const HostDashboardContent = () => {
 
 const HostDashboard = () => {
   return (
-    <HostOnlyRoute>
-      <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-500"></div>
-      </div>}>
+    <HostOnlyRoute skeleton={<HostDashboardSkeleton />}>
+      <Suspense fallback={<HostDashboardSkeleton />}>
         <HostDashboardContent />
       </Suspense>
     </HostOnlyRoute>

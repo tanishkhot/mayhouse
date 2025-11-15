@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getHostApplications, reviewHostApplication, getHostApplicationDetails, type HostApplicationSummary, type HostApplicationReview } from '@/lib/admin-api';
 import type { HostApplication } from '@/lib/host-application-api';
 import { AdminOnlyRoute } from '@/components/ProtectedRoute';
+import { ModeratorSkeleton } from '@/components/skeletons';
 import { AuthAPI, api } from '@/lib/api';
 import type { EventRunSummary } from '@/lib/event-run-api';
 
@@ -402,7 +403,7 @@ const ModeratorDashboard = () => {
   };
 
   return (
-    <AdminOnlyRoute>
+    <AdminOnlyRoute skeleton={<ModeratorSkeleton />}>
       <style jsx global>{`
         .force-word-break {
           word-break: break-all;

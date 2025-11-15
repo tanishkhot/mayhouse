@@ -9,6 +9,7 @@ import { HostExperiencesSection } from "@/components/profile/HostExperiencesSect
 import { ReviewsSection } from "@/components/profile/ReviewsSection";
 import { HostStatsCard } from "@/components/profile/HostStatsCard";
 import { ProfileEditModal } from "@/components/profile/ProfileEditModal";
+import { ProfilePageSkeleton } from "@/components/skeletons";
 import { useState } from "react";
 
 export default function UserProfilePage() {
@@ -42,23 +43,7 @@ export default function UserProfilePage() {
   });
 
   if (profileLoading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="animate-pulse">
-          <div className="h-64 bg-gray-200"></div>
-          <div className="max-w-6xl mx-auto px-4 py-8">
-            <div className="h-32 bg-gray-200 rounded-lg mb-8"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-6">
-                <div className="h-48 bg-gray-200 rounded-lg"></div>
-                <div className="h-64 bg-gray-200 rounded-lg"></div>
-              </div>
-              <div className="h-64 bg-gray-200 rounded-lg"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <ProfilePageSkeleton />;
   }
 
   if (profileError || !profile) {

@@ -8,12 +8,14 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: 'admin' | 'host' | 'user';
   fallbackPath?: string;
+  skeleton?: React.ReactNode; // Optional skeleton loader for the page
 }
 
 export default function ProtectedRoute({
   children,
   requiredRole = 'user',
-  fallbackPath = '/login'
+  fallbackPath = '/login',
+  skeleton
 }: ProtectedRouteProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -86,6 +88,10 @@ export default function ProtectedRoute({
   };
 
   if (loading) {
+    // Use custom skeleton if provided, otherwise use default loading screen
+    if (skeleton) {
+      return <>{skeleton}</>;
+    }
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -132,25 +138,43 @@ export default function ProtectedRoute({
 }
 
 // Convenience components for specific roles
-export function AdminOnlyRoute({ children }: { children: React.ReactNode }) {
+export function AdminOnlyRoute({ 
+  children, 
+  skeleton 
+}: { 
+  children: React.ReactNode;
+  skeleton?: React.ReactNode;
+}) {
   return (
-    <ProtectedRoute requiredRole="admin" fallbackPath="/">
+    <ProtectedRoute requiredRole="admin" fallbackPath="/" skeleton={skeleton}>
       {children}
     </ProtectedRoute>
   );
 }
 
-export function HostOnlyRoute({ children }: { children: React.ReactNode }) {
+export function HostOnlyRoute({ 
+  children, 
+  skeleton 
+}: { 
+  children: React.ReactNode;
+  skeleton?: React.ReactNode;
+}) {
   return (
-    <ProtectedRoute requiredRole="host" fallbackPath="/">
+    <ProtectedRoute requiredRole="host" fallbackPath="/" skeleton={skeleton}>
       {children}
     </ProtectedRoute>
   );
 }
 
-export function AuthenticatedRoute({ children }: { children: React.ReactNode }) {
+export function AuthenticatedRoute({ 
+  children, 
+  skeleton 
+}: { 
+  children: React.ReactNode;
+  skeleton?: React.ReactNode;
+}) {
   return (
-    <ProtectedRoute requiredRole="user" fallbackPath="/login">
+    <ProtectedRoute requiredRole="user" fallbackPath="/login" skeleton={skeleton}>
       {children}
     </ProtectedRoute>
   );
