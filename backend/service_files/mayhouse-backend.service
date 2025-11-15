@@ -8,7 +8,7 @@ Wants=network.target
 Type=exec
 User=ec2-user
 Group=ec2-user
-WorkingDirectory=/home/ec2-user/ethonline-hackathon/mayhouse/backend
+WorkingDirectory=/home/ec2-user/mayhouse/backend
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
 ExecStartPre=-/usr/bin/docker stop mayhouse-backend
 ExecStartPre=-/usr/bin/docker rm mayhouse-backend
