@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
 from fastapi import HTTPException, status
+from supabase import Client
 from app.core.database import get_service_client
 from app.schemas.design_experience import (
     StepBasicsPayload,
@@ -24,10 +25,17 @@ def _utcnow_iso() -> str:
 
 class DesignExperienceService:
     def __init__(self) -> None:
-        self._db = get_service_client()
+        self._db: Optional[Client] = None
+
+    @property
+    def _db_client(self) -> Client:
+        """Lazy initialization of database client."""
+        if self._db is None:
+            self._db = get_service_client()
+        return self._db
 
     def _sessions(self):
-        return self._db.table("experience_design_sessions")
+        return self._db_client.table("experience_design_sessions")
 
     async def start_session(self, host_id: str, experience_id: Optional[str]) -> Dict[str, Any]:
         now = _utcnow_iso()

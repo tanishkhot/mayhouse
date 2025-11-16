@@ -91,9 +91,9 @@ export default function Navbar() {
               />
               <div className="flex flex-col">
                 <span className="text-xl font-semibold leading-tight font-brand">Mayhouse</span>
-                <span className="text-xs text-muted-foreground hidden sm:block">
+                  <span className="text-xs text-muted-foreground hidden sm:block">
                   Travel Deeper.
-                </span>
+                  </span>
               </div>
             </Link>
             

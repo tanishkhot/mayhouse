@@ -1,11 +1,29 @@
 import os
 from functools import lru_cache
 from typing import List
+from pathlib import Path
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 from pydantic import field_validator
 
-load_dotenv()
+# Try to load .env file from multiple possible locations
+# This handles both local development and Docker/systemd deployments
+env_paths = [
+    Path(__file__).parent.parent.parent / ".env",  # backend/.env
+    Path(__file__).parent.parent.parent.parent / "backend" / ".env",  # project/backend/.env
+    Path("/app/.env"),  # Docker container path
+    Path.cwd() / ".env",  # Current working directory
+]
+
+for env_path in env_paths:
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path, override=False)
+        print(f"✅ Loaded .env from: {env_path}")
+        break
+else:
+    # Fallback: try loading from current directory (for systemd)
+    load_dotenv()
+    print("⚠️  Using default .env loading (may not find .env file)")
 
 
 class Settings(BaseSettings):

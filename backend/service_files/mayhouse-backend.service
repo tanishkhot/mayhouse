@@ -13,7 +13,7 @@ Environment=PATH=/usr/local/bin:/usr/bin:/bin
 ExecStartPre=-/usr/bin/docker stop mayhouse-backend
 ExecStartPre=-/usr/bin/docker rm mayhouse-backend
 ExecStartPre=/usr/bin/docker build -t mayhouse-backend .
-ExecStart=/usr/bin/docker run --name mayhouse-backend -p 8000:8000 --restart unless-stopped mayhouse-backend
+ExecStart=/usr/bin/docker run --name mayhouse-backend -p 8000:8000 --restart unless-stopped -v /home/ec2-user/mayhouse/backend/.env:/app/.env:ro mayhouse-backend
 ExecStop=/usr/bin/docker stop mayhouse-backend
 ExecReload=/usr/bin/docker restart mayhouse-backend
 TimeoutStartSec=300
