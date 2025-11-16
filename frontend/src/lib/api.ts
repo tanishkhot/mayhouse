@@ -397,3 +397,58 @@ export const HostApplicationAPI = {
     }
   },
 };
+
+// Design Experience (session-based) API
+export const DesignExperienceAPI = {
+  startSession: (experienceId?: string | null) =>
+    api.post<Record<string, any>>("/design-experience/session", {
+      experience_id: experienceId || null,
+    }).then((r) => r.data),
+
+  upsertBasics: (sessionId: string, payload: {
+    title?: string;
+    description?: string;
+    what_to_expect?: string;
+    domain?: string;
+    theme?: string;
+    duration_minutes?: number;
+  }) =>
+    api.patch<Record<string, any>>(`/design-experience/session/${sessionId}/basics`, payload)
+      .then((r) => r.data),
+
+  uploadMedia: (sessionId: string, file: File, isCoverPhoto = false, caption?: string | null) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("is_cover_photo", String(isCoverPhoto));
+    if (caption) formData.append("caption", caption);
+    return api.post<Record<string, any>>(
+      `/design-experience/session/${sessionId}/media`,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    ).then((r) => r.data);
+  },
+
+  reorderMedia: (sessionId: string, order: string[]) =>
+    api.patch<Record<string, any>>(`/design-experience/session/${sessionId}/media`, { order })
+      .then((r) => r.data),
+
+  upsertLogistics: (sessionId: string, payload: {
+    neighborhood?: string;
+    meeting_point?: string;
+    traveler_max_capacity?: number;
+    price_inr?: number;
+    requirements?: string[] | null;
+    what_to_bring?: string[] | null;
+    safety_guidelines?: string | null;
+  }) =>
+    api.patch<Record<string, any>>(`/design-experience/session/${sessionId}/logistics`, payload)
+      .then((r) => r.data),
+
+  getReview: (sessionId: string) =>
+    api.get<Record<string, any>>(`/design-experience/session/${sessionId}/review`)
+      .then((r) => r.data),
+
+  submit: (sessionId: string) =>
+    api.post<Record<string, any>>(`/design-experience/session/${sessionId}/submit`)
+      .then((r) => r.data),
+};

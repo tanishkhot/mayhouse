@@ -123,6 +123,11 @@ export default function Navbar() {
                   <>
                     <Link 
                       href="/design-experience" 
+                      onClick={() => {
+                        try {
+                          console.log('[FLOW] Navbar Host link clicked', { from: pathname, to: '/design-experience', ts: new Date().toISOString() });
+                        } catch {}
+                      }}
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
                     >
                       Host
@@ -168,13 +173,13 @@ export default function Navbar() {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/host-dashboard">
+                        <Link href="/host-dashboard" onClick={() => { try { console.log('[FLOW] Account menu -> My Experiences', { from: pathname, to: '/host-dashboard', ts: new Date().toISOString() }); } catch {} }}>
                           <Sparkles className="mr-2 h-4 w-4" />
                           My Experiences
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/design-experience">
+                        <Link href="/design-experience" onClick={() => { try { console.log('[FLOW] Account menu -> Create Experience', { from: pathname, to: '/design-experience', ts: new Date().toISOString() }); } catch {} }}>
                           <Sparkles className="mr-2 h-4 w-4" />
                           Create Experience
                         </Link>
@@ -218,6 +223,7 @@ export default function Navbar() {
                         </Link>
                         <Link 
                           href="/host-dashboard"
+                          onClick={() => { try { console.log('[FLOW] Mobile menu -> My Experiences', { from: pathname, to: '/host-dashboard', ts: new Date().toISOString() }); } catch {} }}
                           onClick={() => setIsMenuOpen(false)}
                           className="text-lg font-medium"
                         >
@@ -225,6 +231,7 @@ export default function Navbar() {
                         </Link>
                         <Link 
                           href="/design-experience"
+                          onClick={() => { try { console.log('[FLOW] Mobile menu -> Create Experience', { from: pathname, to: '/design-experience', ts: new Date().toISOString() }); } catch {} }}
                           onClick={() => setIsMenuOpen(false)}
                           className="text-lg font-medium"
                         >
