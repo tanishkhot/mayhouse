@@ -85,6 +85,20 @@ export function ExperienceCard({
     <Card 
       className="group overflow-hidden cursor-pointer hover:shadow-xl transition-shadow !p-0 !py-0 !gap-0 !shadow-none"
       onClick={() => onSelect?.(id)}
+      onMouseEnter={() => {
+        // Prefetch data when hovering over the card
+        if (ctaHref) {
+          const match = ctaHref.match(/\/experiences\/([^\/]+)\/runs\/([^\/]+)/);
+          if (match) {
+            const [, experienceId, runId] = match;
+            // Dynamically import to avoid circular dependencies
+            import('@/lib/prefetch').then(({ prefetchEventRun, prefetchExperience }) => {
+              prefetchExperience(experienceId);
+              prefetchEventRun(runId);
+            });
+          }
+        }
+      }}
     >
       <div className="relative">
         {image ? (
@@ -175,6 +189,20 @@ export function ExperienceCard({
             size="sm"
             className="bg-terracotta-500 hover:bg-terracotta-600"
             onClick={handleCtaClick}
+            onMouseEnter={() => {
+              // Prefetch data when hovering over the button
+              if (ctaHref) {
+                const match = ctaHref.match(/\/experiences\/([^\/]+)\/runs\/([^\/]+)/);
+                if (match) {
+                  const [, experienceId, runId] = match;
+                  // Dynamically import to avoid circular dependencies
+                  import('@/lib/prefetch').then(({ prefetchEventRun, prefetchExperience }) => {
+                    prefetchExperience(experienceId);
+                    prefetchEventRun(runId);
+                  });
+                }
+              }
+            }}
           >
             {ctaLabel}
           </Button>

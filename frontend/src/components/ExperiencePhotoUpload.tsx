@@ -277,6 +277,7 @@ export const ExperiencePhotoUpload: React.FC<ExperiencePhotoUploadProps> = ({
             >
               {/* Photo */}
               <div className="aspect-square relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={photo.photo_url}
                   alt={photo.caption || `Photo ${index + 1}`}

@@ -80,6 +80,18 @@ async def verify_wallet_signature(request: WalletVerifyRequest):
     
     except HTTPException:
         raise
+    except ValueError as e:
+        # Catch configuration errors (missing Supabase credentials)
+        error_msg = str(e)
+        if "Supabase URL and service key" in error_msg:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Server configuration error: Supabase credentials not configured. Please contact support."
+            )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Configuration error: {error_msg}"
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -143,6 +155,18 @@ async def get_current_user(authorization: str = Header(None)):
     
     except HTTPException:
         raise
+    except ValueError as e:
+        # Catch configuration errors (missing Supabase credentials)
+        error_msg = str(e)
+        if "Supabase URL and service key" in error_msg:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Server configuration error: Supabase credentials not configured. Please contact support."
+            )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Configuration error: {error_msg}"
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

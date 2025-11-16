@@ -182,8 +182,9 @@ export const AuthAPI = {
       // Call backend logout endpoint to blacklist the token
       const response = await api.post<Record<string, string>>("/auth/logout");
       return response.data;
-    } catch (error) {
+    } catch {
       // Continue with local logout even if backend fails
+      // Error is intentionally ignored to ensure local logout always happens
     } finally {
       // Always clear local storage regardless of backend response
       clearAuthData();

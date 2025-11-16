@@ -5,10 +5,10 @@ import { Star } from "lucide-react";
 interface ReviewsSectionProps {
   reviewCount: number;
   avgRating?: number | null;
-  hostId: string;
+  hostId: string; // Reserved for future use when reviews are implemented
 }
 
-export function ReviewsSection({ reviewCount, avgRating, hostId }: ReviewsSectionProps) {
+export function ReviewsSection({ reviewCount, avgRating }: ReviewsSectionProps) {
   if (reviewCount === 0) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">

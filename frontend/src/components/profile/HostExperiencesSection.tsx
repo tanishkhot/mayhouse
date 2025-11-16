@@ -59,6 +59,7 @@ export function HostExperiencesSection({
                 {/* Cover Image */}
                 <div className="relative h-48 bg-gray-200">
                   {exp.cover_photo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={exp.cover_photo_url}
                       alt={exp.title}

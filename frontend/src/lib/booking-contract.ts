@@ -1,5 +1,5 @@
 import { parseEther, formatEther } from 'viem';
-import { useAccount, useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
 
 // Simplified ABI for MayhouseBooking contract
 export const BOOKING_CONTRACT_ABI = [

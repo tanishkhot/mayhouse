@@ -121,6 +121,10 @@ export default function Navbar() {
                 <Link 
                   href="/explore" 
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+                  onMouseEnter={() => {
+                    // Prefetch explore data on hover
+                    import('@/lib/prefetch').then(({ prefetchExplore }) => prefetchExplore());
+                  }}
                 >
                   Browse
                 </Link>
@@ -187,7 +191,14 @@ export default function Navbar() {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/host-dashboard" onClick={() => { try { console.log('[FLOW] Account menu -> My Experiences', { from: pathname, to: '/host-dashboard', ts: new Date().toISOString() }); } catch {} }}>
+                        <Link 
+                          href="/host-dashboard" 
+                          onClick={() => { try { console.log('[FLOW] Account menu -> My Experiences', { from: pathname, to: '/host-dashboard', ts: new Date().toISOString() }); } catch {} }}
+                          onMouseEnter={() => {
+                            // Prefetch host dashboard data on hover
+                            import('@/lib/prefetch').then(({ prefetchHostExperiences }) => prefetchHostExperiences());
+                          }}
+                        >
                           <Sparkles className="mr-2 h-4 w-4" />
                           My Experiences
                         </Link>

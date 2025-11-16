@@ -489,6 +489,7 @@ export default function DesignExperienceV2() {
                   {photos.map((p, idx) => (
                     <div key={p.id} className="relative rounded-lg overflow-hidden border border-gray-200">
                       <div className="aspect-square relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={p.url} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
                         {p.isCover && (
                           <div className="absolute top-2 left-2 bg-terracotta-500 text-white text-xs font-medium px-2 py-1 rounded">

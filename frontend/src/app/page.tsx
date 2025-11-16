@@ -51,9 +51,12 @@ export default function ExplorePage() {
       // neighborhood: selectedNeighborhood,
       limit: 50
     }),
-    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes (matches global default)
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
     refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: false, // Use cached data if available
     retry: 1, // Only retry once
+    placeholderData: (previousData) => previousData, // Show previous data while refetching
   });
   
   // Categories and neighborhoods commented out for now

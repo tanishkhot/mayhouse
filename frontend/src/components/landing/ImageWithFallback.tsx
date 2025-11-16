@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
+// This component intentionally uses <img> for fallback functionality
 import React, { useState } from 'react'
 
 const ERROR_IMG_SRC =

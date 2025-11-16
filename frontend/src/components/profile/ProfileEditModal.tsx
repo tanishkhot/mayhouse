@@ -116,6 +116,7 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
             />
             {formData.profile_image_url && (
               <div className="mt-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={formData.profile_image_url}
                   alt="Preview"

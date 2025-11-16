@@ -17,7 +17,10 @@ export default function ExperienceRunDetailPage() {
     queryKey: ["eventRun", runId],
     queryFn: () => EventRunAPI.getPublicEventRunDetails(runId),
     enabled: !!runId,
-    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes (matches global default)
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnMount: false, // Use cached data if available
+    placeholderData: (previousData) => previousData, // Show previous data while refetching
   });
 
   // Note: We get all needed data from eventRun now, no need for separate experience fetch

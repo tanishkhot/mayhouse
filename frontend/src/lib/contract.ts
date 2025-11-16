@@ -1,5 +1,5 @@
 import { parseEther, formatEther } from 'viem';
-import { useAccount, useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
 import { MAYHOUSE_CONTRACT_ABI, CONTRACT_ADDRESS } from './contract-abi';
 
 // Types

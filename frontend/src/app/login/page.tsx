@@ -52,7 +52,15 @@ export default function LoginPage() {
       router.replace('/');
     } catch (err: any) {
       console.error('Authentication error:', err);
-      setError(err.response?.data?.detail || err.message || 'Authentication failed');
+      const errorMessage = err.response?.data?.detail || err.message || 'Authentication failed';
+      
+      // Provide more helpful error messages
+      if (errorMessage.includes('Supabase credentials not configured') || 
+          errorMessage.includes('Supabase URL and service key')) {
+        setError('Server configuration error. Please contact support or try again later.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setIsAuthenticating(false);
     }
@@ -144,6 +152,7 @@ export default function LoginPage() {
                                     }}
                                   >
                                     {chain.iconUrl && (
+                                      // eslint-disable-next-line @next/next/no-img-element
                                       <img
                                         alt={chain.name ?? 'Chain icon'}
                                         src={chain.iconUrl}
