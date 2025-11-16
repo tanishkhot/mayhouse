@@ -223,16 +223,14 @@ export default function Navbar() {
                         </Link>
                         <Link 
                           href="/host-dashboard"
-                          onClick={() => { try { console.log('[FLOW] Mobile menu -> My Experiences', { from: pathname, to: '/host-dashboard', ts: new Date().toISOString() }); } catch {} }}
-                          onClick={() => setIsMenuOpen(false)}
+                          onClick={() => { try { console.log('[FLOW] Mobile menu -> My Experiences', { from: pathname, to: '/host-dashboard', ts: new Date().toISOString() }); } catch {} ; setIsMenuOpen(false); }}
                           className="text-lg font-medium"
                         >
                           My Experiences
                         </Link>
                         <Link 
                           href="/design-experience"
-                          onClick={() => { try { console.log('[FLOW] Mobile menu -> Create Experience', { from: pathname, to: '/design-experience', ts: new Date().toISOString() }); } catch {} }}
-                          onClick={() => setIsMenuOpen(false)}
+                          onClick={() => { try { console.log('[FLOW] Mobile menu -> Create Experience', { from: pathname, to: '/design-experience', ts: new Date().toISOString() }); } catch {} ; setIsMenuOpen(false); }}
                           className="text-lg font-medium"
                         >
                           Create Experience
