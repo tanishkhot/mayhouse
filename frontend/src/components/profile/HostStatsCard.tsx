@@ -15,8 +15,8 @@ export function HostStatsCard({ stats }: HostStatsCardProps) {
       <div className="space-y-6">
         {/* Total Experiences */}
         <div className="flex items-start space-x-4">
-          <div className="p-2 bg-orange-100 rounded-lg">
-            <Calendar className="w-5 h-5 text-orange-600" />
+          <div className="p-2 bg-terracotta-100 rounded-lg">
+            <Calendar className="w-5 h-5 text-terracotta-600" />
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900">{stats.experience_count}</p>
@@ -26,8 +26,8 @@ export function HostStatsCard({ stats }: HostStatsCardProps) {
 
         {/* Travelers Hosted */}
         <div className="flex items-start space-x-4">
-          <div className="p-2 bg-rose-100 rounded-lg">
-            <Users className="w-5 h-5 text-rose-600" />
+          <div className="p-2 bg-terracotta-100 rounded-lg">
+            <Users className="w-5 h-5 text-terracotta-600" />
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900">{stats.travelers_hosted}</p>

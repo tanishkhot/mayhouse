@@ -1,6 +1,19 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Sparkles,
+  Edit3,
+  HelpCircle,
+  Upload,
+  Trash2,
+  MapPin,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle2,
+} from 'lucide-react';
+import Icon from '../ui/icon';
 
 type FormState = {
   title: string;
@@ -71,7 +84,7 @@ export default function DesignExperienceV2() {
     ok ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700';
 
   const fieldClasses = (hasError: boolean) =>
-    `w-full border rounded-lg px-3 py-2 text-black focus:ring-2 ${hasError ? 'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50' : 'border-gray-300 focus:ring-rose-500 focus:border-rose-500'}`;
+    `w-full border rounded-lg px-3 py-2 text-black focus:ring-2 ${hasError ? 'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50' : 'border-gray-300 focus:ring-terracotta-500 focus:border-terracotta-500'}`;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -101,8 +114,8 @@ export default function DesignExperienceV2() {
         {step === 0 && mode === 'kickstart' && (
           <div className="space-y-8">
             <div className="flex flex-col items-center gap-2 py-6">
-              <div className="h-12 w-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-lg font-semibold">
-                ✨
+              <div className="h-12 w-12 rounded-full bg-terracotta-100 text-terracotta-600 flex items-center justify-center">
+                <Icon as={Sparkles} size={24} className="text-terracotta-600" />
               </div>
               <h2 className="text-xl font-semibold text-black">Design Your Experience</h2>
               <p className="text-black/70 text-center">
@@ -115,7 +128,9 @@ export default function DesignExperienceV2() {
                 onClick={() => setMode('describe')}
                 className="text-left bg-white rounded-xl border shadow-[0_4px_14px_rgba(0,0,0,0.06),0_2px_6px_rgba(0,0,0,0.04)] hover:shadow-[0_10px_24px_rgba(0,0,0,0.10),0_4px_10px_rgba(0,0,0,0.06)] transition p-6"
               >
-                <div className="h-9 w-9 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-3">📝</div>
+                <div className="h-9 w-9 rounded-full bg-terracotta-100 text-terracotta-600 flex items-center justify-center mb-3">
+                  <Icon as={Edit3} size={18} className="text-terracotta-600" />
+                </div>
                 <div className="font-medium text-black mb-1">Describe Your Experience</div>
                 <div className="text-sm text-black/70">
                   Tell us in your own words. We’ll handle the structure.
@@ -126,7 +141,9 @@ export default function DesignExperienceV2() {
                 onClick={() => setMode('guided')}
                 className="text-left bg-white rounded-xl border shadow-[0_4px_14px_rgba(0,0,0,0.06),0_2px_6px_rgba(0,0,0,0.04)] hover:shadow-[0_10px_24px_rgba(0,0,0,0.10),0_4px_10px_rgba(0,0,0,0.06)] transition p-6"
               >
-                <div className="h-9 w-9 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-3">💬</div>
+                <div className="h-9 w-9 rounded-full bg-terracotta-100 text-terracotta-600 flex items-center justify-center mb-3">
+                  <Icon as={HelpCircle} size={18} className="text-terracotta-600" />
+                </div>
                 <div className="font-medium text-black mb-1">Answer Guided Questions</div>
                 <div className="text-sm text-black/70">
                   We’ll ask specific questions to build your listing.
@@ -149,20 +166,24 @@ export default function DesignExperienceV2() {
               onClick={() => setMode('kickstart')}
               className="text-sm text-black/70 mb-6 hover:underline"
             >
-              ← Back
+              <span className="inline-flex items-center gap-1">
+                <Icon as={ChevronLeft} size={16} className="text-black/70" />
+                Back
+              </span>
             </button>
             <h3 className="text-xl font-semibold text-black mb-2">Describe Your Experience</h3>
             <p className="text-black/70 mb-6">
               Share your vision in your own words. Include what makes it special, where it happens, and what travelers will experience.
             </p>
             <textarea
-              className="w-full min-h-[160px] border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+              className="w-full min-h-[160px] border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
               placeholder="Example: A sunset heritage walk through old Bangalore markets where we discover century‑old spice merchants, family‑run sweet shops, and hidden temples..."
             />
             <div className="mt-2 text-xs text-black/60">0 characters · The more detail, the better the draft</div>
             <div className="mt-4 flex items-center gap-3">
-              <button className="flex-1 bg-black text-white rounded-lg py-2 hover:bg-black/90">
-                ⚡ Generate My Experience
+              <button className="flex-1 bg-black text-white rounded-lg py-2 hover:bg-black/90 inline-flex items-center justify-center gap-2">
+                <Icon as={Sparkles} size={16} className="text-white" />
+                Generate My Experience
               </button>
               <button
                 onClick={() => setStep(1)}
@@ -172,7 +193,12 @@ export default function DesignExperienceV2() {
               </button>
             </div>
             <div className="mt-6 rounded-lg border bg-gray-50 p-4 text-sm text-black/80">
-              <div className="mb-2">💡 <strong>Example prompt:</strong></div>
+              <div className="mb-2 inline-flex items-center gap-2">
+                <div className="inline-flex size-6 items-center justify-center rounded-full bg-blue-100">
+                  <Icon as={Sparkles} size={14} className="text-blue-700" />
+                </div>
+                <strong>Example prompt:</strong>
+              </div>
               <div>
                 “I want to host a cooking class in my home where we make traditional Karnataka breakfast
                 items like dosas, idlis, and chutneys. I’ll share family recipes passed down three generations,
@@ -190,7 +216,10 @@ export default function DesignExperienceV2() {
               onClick={() => setMode('kickstart')}
               className="text-sm text-black/70 mb-6 hover:underline"
             >
-              ← Back
+              <span className="inline-flex items-center gap-1">
+                <Icon as={ChevronLeft} size={16} className="text-black/70" />
+                Back
+              </span>
             </button>
             <h3 className="text-xl font-semibold text-black mb-2">Let’s Build Together</h3>
             <p className="text-black/70 mb-6">
@@ -200,8 +229,9 @@ export default function DesignExperienceV2() {
               Coming soon: Interactive Q&amp;A flow
             </div>
             <div className="mt-6 flex items-center gap-3">
-              <button className="flex-1 bg-black text-white rounded-lg py-2 hover:bg-black/90">
-                ⚡ Generate My Experience
+              <button className="flex-1 bg-black text-white rounded-lg py-2 hover:bg-black/90 inline-flex items-center justify-center gap-2">
+                <Icon as={Sparkles} size={16} className="text-white" />
+                Generate My Experience
               </button>
               <button
                 onClick={() => setStep(1)}
@@ -222,7 +252,7 @@ export default function DesignExperienceV2() {
                 <div
                   key={n}
                   className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium ${
-                    step >= n ? 'bg-rose-500 text-white' : 'bg-gray-200 text-gray-600'
+                    step >= n ? 'bg-terracotta-500 text-white' : 'bg-gray-200 text-gray-600'
                   }`}
                 >
                   {n}
@@ -233,7 +263,7 @@ export default function DesignExperienceV2() {
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className="bg-rose-500 h-2 rounded-full transition-all duration-300"
+              className="bg-terracotta-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${(step / 4) * 100}%` }}
             />
           </div>
@@ -300,7 +330,7 @@ export default function DesignExperienceV2() {
                     onChange={(e) => setForm((p) => ({ ...p, duration: parseInt(e.target.value || '0', 10) }))}
                     min={30}
                     max={480}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
                   />
                 </div>
               </div>
@@ -320,7 +350,7 @@ export default function DesignExperienceV2() {
                     onChange={(e) => setForm((p) => ({ ...p, maxCapacity: parseInt(e.target.value || '1', 10) }))}
                     min={1}
                     max={4}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
                   />
                 </div>
                 <div>
@@ -347,7 +377,10 @@ export default function DesignExperienceV2() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2">Meeting Point *</label>
+                <label className="block text-sm font-medium text-black mb-2 inline-flex items-center gap-2">
+                  <Icon as={MapPin} size={16} className="text-terracotta-600" />
+                  <span>Meeting Point *</span>
+                </label>
                 <input
                   type="text"
                   value={form.meetingPoint}
@@ -358,7 +391,10 @@ export default function DesignExperienceV2() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2">What to Expect * (min 50 chars)</label>
+                <label className="block text-sm font-medium text-black mb-2 inline-flex items-center gap-2">
+                  <Icon as={Clock} size={16} className="text-terracotta-600" />
+                  <span>What to Expect * (min 50 chars)</span>
+                </label>
                 <textarea
                   value={form.whatToExpect}
                   onChange={(e) => setForm((p) => ({ ...p, whatToExpect: e.target.value }))}
@@ -440,7 +476,10 @@ export default function DesignExperienceV2() {
                       });
                     }}
                   />
-                  <p className="text-sm text-gray-600">Drop photos here or click to upload</p>
+                  <div className="flex items-center justify-center gap-2 text-gray-700">
+                    <Icon as={Upload} size={16} className="text-gray-700" />
+                    <p className="text-sm">Drop photos here or click to upload</p>
+                  </div>
                   <p className="text-xs text-gray-500">JPEG, PNG, or WebP (max 10 photos)</p>
                 </div>
               </div>
@@ -452,25 +491,29 @@ export default function DesignExperienceV2() {
                       <div className="aspect-square relative">
                         <img src={p.url} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
                         {p.isCover && (
-                          <div className="absolute top-2 left-2 bg-rose-500 text-white text-xs font-medium px-2 py-1 rounded">
+                          <div className="absolute top-2 left-2 bg-terracotta-500 text-white text-xs font-medium px-2 py-1 rounded">
                             Cover Photo
                           </div>
                         )}
                         <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/0 hover:bg-black/40 transition">
                           {!p.isCover && (
                             <button
+                              aria-label="Set as cover"
                               onClick={() =>
                                 setPhotos((prev) => prev.map((x) => ({ ...x, isCover: x.id === p.id })))
                               }
-                              className="opacity-0 hover:opacity-100 bg-white text-black text-xs px-3 py-1 rounded"
+                              className="opacity-0 hover:opacity-100 bg-white text-black text-xs px-3 py-1 rounded inline-flex items-center gap-1"
                             >
+                              <Icon as={CheckCircle2 as any} size={14} className="text-emerald-600" />
                               Set as Cover
                             </button>
                           )}
                           <button
+                            aria-label="Delete photo"
                             onClick={() => setPhotos((prev) => prev.filter((x) => x.id !== p.id))}
-                            className="opacity-0 hover:opacity-100 bg-rose-500 text-white text-xs px-3 py-1 rounded"
+                              className="opacity-0 hover:opacity-100 bg-terracotta-500 text-white text-xs px-3 py-1 rounded inline-flex items-center gap-1"
                           >
+                            <Icon as={Trash2} size={14} className="text-white" />
                             Delete
                           </button>
                         </div>
@@ -505,16 +548,18 @@ export default function DesignExperienceV2() {
             <button
               onClick={() => setStep((s) => Math.max(0, s - 1))}
               disabled={step === 0}
-              className="px-6 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
             >
+              <Icon as={ChevronLeft} size={16} className="text-gray-700" />
               Back
             </button>
             {step < 4 ? (
               <button
                 onClick={() => setStep((s) => Math.min(4, s + 1))}
-                className="px-6 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600"
+                className="px-6 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 inline-flex items-center gap-2"
               >
                 Next
+                <Icon as={ChevronRight} size={16} className="text-white" />
               </button>
             ) : (
               <div className="flex gap-3">
@@ -530,5 +575,4 @@ export default function DesignExperienceV2() {
     </div>
   );
 }
-
 

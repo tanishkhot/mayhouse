@@ -2,10 +2,11 @@
 
 import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function Footer() {
   return (
-    <footer className="border-t bg-gradient-to-b from-white to-orange-50/30">
+    <footer className="border-t bg-terracotta-50/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div>
@@ -51,10 +52,14 @@ export function Footer() {
 
         <div className="flex flex-col md:flex-row items-center justify-between pt-8 border-t gap-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-400 to-rose-500">
-              <span className="text-white font-bold">M</span>
-            </div>
-            <Link href="/host/experiences" className="text-xl font-semibold">
+            <Image 
+              src="/logo2-nobg.png" 
+              alt="Mayhouse" 
+              width={40}
+              height={40}
+              className="object-contain"
+            />
+            <Link href="/host/experiences" className="text-xl font-semibold font-brand">
               Mayhouse
             </Link>
           </div>

@@ -94,7 +94,7 @@ export function ExperienceCard({
             className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full aspect-[4/3] bg-gradient-to-br from-orange-400 to-rose-500" />
+          <div className="w-full aspect-[4/3] bg-terracotta-500" />
         )}
         <button className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center hover:bg-white transition-colors">
           <Heart className="h-5 w-5" />
@@ -110,7 +110,7 @@ export function ExperienceCard({
             <p className="text-sm text-muted-foreground">{location}</p>
             {(rating !== undefined || ratingLabel) && (
               <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 fill-orange-400 text-orange-400" />
+                <Star className="h-4 w-4 fill-terracotta-500 text-terracotta-500" />
                 {rating !== undefined ? (
                   <>
                     <span className="text-sm">{rating.toFixed(1)}</span>
@@ -133,7 +133,7 @@ export function ExperienceCard({
           )}
           
           <div className="flex items-center gap-2 mb-3">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-rose-500 flex-shrink-0" />
+            <div className="h-8 w-8 rounded-full bg-terracotta-500 flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1">
                 <p className="text-sm truncate">{host.name}</p>
@@ -173,7 +173,7 @@ export function ExperienceCard({
           </div>
           <Button
             size="sm"
-            className="bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700"
+            className="bg-terracotta-500 hover:bg-terracotta-600"
             onClick={handleCtaClick}
           >
             {ctaLabel}

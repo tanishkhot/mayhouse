@@ -118,7 +118,7 @@ export default function ExplorePage() {
       <div className="border-t border-border/60 bg-gradient-to-b from-white via-white to-orange-50/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12">
           <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <h2 className="text-3xl font-semibold text-foreground">Keep exploring with Mayhouse</h2>
+            <h2 className="text-3xl font-semibold text-foreground">Keep exploring with <span className="font-brand">Mayhouse</span></h2>
             <p className="text-muted-foreground">
               Jump into our other spaces to browse every experience, get your hosting journey underway,
               or reach someone from our team.

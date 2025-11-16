@@ -500,7 +500,7 @@ const HostDashboardContent = () => {
   return (
     <div className="min-h-screen bg-background">
         {/* Hero */}
-        <section className="bg-gradient-to-r from-orange-500 via-rose-500 to-amber-500 text-white">
+        <section className="bg-terracotta-500 text-white">
           <div className="max-w-6xl mx-auto px-6 lg:px-8 py-12">
             <h1 className="text-3xl lg:text-4xl font-semibold tracking-tight">
               Welcome back, host.
@@ -572,7 +572,7 @@ const HostDashboardContent = () => {
                       setActiveTab('eventruns');
                       setShowScheduler(true);
                     }}
-                    className="rounded-full bg-gradient-to-r from-orange-500 to-rose-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:shadow transition"
+                    className="rounded-full bg-terracotta-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-terracotta-600 hover:shadow transition"
                   >
                     Test schedule run
                   </button>
@@ -597,7 +597,7 @@ const HostDashboardContent = () => {
                           onClick={() => setFilter(status as 'all' | 'draft' | 'submitted' | 'approved' | 'rejected')}
                           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             filter === status
-                              ? 'bg-gradient-to-r from-orange-500 to-rose-600 text-white shadow-sm'
+                              ? 'bg-terracotta-500 text-white shadow-sm'
                               : 'bg-muted text-muted-foreground hover:bg-muted/70'
                           }`}
                         >
@@ -619,7 +619,7 @@ const HostDashboardContent = () => {
                           resetFormData();
                           setActiveTab('create');
                         }}
-                        className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-rose-600 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-orange-500/20 transition hover:shadow-xl"
+                        className="inline-flex items-center gap-2 rounded-full bg-terracotta-500 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-terracotta-500/20 transition hover:bg-terracotta-600 hover:shadow-xl"
                       >
                         <span className="text-lg leading-none">＋</span> New experience
                       </button>
@@ -703,7 +703,7 @@ const HostDashboardContent = () => {
 
                     {loading ? (
                       <div className="p-8 text-center bg-white">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terracotta-500 mx-auto mb-4"></div>
                         <p className="text-foreground">Loading experiences...</p>
                       </div>
                     ) : experiences.length === 0 ? (
@@ -725,7 +725,7 @@ const HostDashboardContent = () => {
                             resetFormData();
                             setActiveTab('create');
                           }}
-                          className="px-6 py-2 bg-gradient-to-r from-orange-500 to-rose-600 text-white rounded-full hover:from-orange-600 hover:to-rose-700 transition-colors"
+                          className="px-6 py-2 bg-terracotta-500 text-white rounded-full hover:bg-terracotta-600 transition-colors"
                         >
                           Create Your First Experience
                         </button>
@@ -784,7 +784,7 @@ const HostDashboardContent = () => {
                                       setActiveTab('create');
                                       fetchExperienceData(exp.id);
                                     }}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-full hover:bg-orange-600 whitespace-nowrap transition"
+                                    className="px-4 py-2 text-sm font-medium text-white bg-terracotta-500 rounded-full hover:bg-terracotta-600 whitespace-nowrap transition"
                                   >
                                     Edit & Resubmit
                                   </button>

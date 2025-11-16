@@ -73,7 +73,7 @@ export default function SearchBar() {
           {/* Search Button */}
           <Button 
             onClick={handleSearch}
-            className="rounded-full bg-rose-500 hover:bg-rose-600 text-white p-3.5 ml-4 flex-shrink-0 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
+            className="rounded-full bg-terracotta-500 hover:bg-terracotta-600 text-white p-3.5 ml-4 flex-shrink-0 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
             aria-label="Search"
           >
             <Search className="w-5 h-5" />

@@ -32,7 +32,7 @@ export function ReviewsSection({ reviewCount, avgRating, hostId }: ReviewsSectio
           )}
         </div>
         {reviewCount > 0 && (
-          <button className="text-orange-600 hover:text-orange-700 font-medium text-sm">
+          <button className="text-terracotta-600 hover:text-terracotta-700 font-medium text-sm">
             Read all reviews →
           </button>
         )}

@@ -28,12 +28,12 @@ const trustFeatures = [
 
 export function TrustSection() {
   return (
-    <section className="py-20 lg:py-32 bg-gradient-to-br from-orange-50 via-rose-50 to-white">
+    <section className="py-20 lg:py-32 bg-terracotta-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
             <div className="space-y-4">
-              <Badge className="bg-gradient-to-r from-orange-500 to-rose-600 text-white">
+              <Badge className="bg-terracotta-500 text-white">
                 Trust Infrastructure
               </Badge>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl">
@@ -50,7 +50,7 @@ export function TrustSection() {
                 <div key={feature.title} className="flex gap-4">
                   <div className="flex-shrink-0">
                     <div className="h-12 w-12 rounded-xl bg-white shadow-sm flex items-center justify-center">
-                      <feature.icon className="h-6 w-6 text-orange-600" />
+                      <feature.icon className="h-6 w-6 text-terracotta-600" />
                     </div>
                   </div>
                   <div className="flex-1">
@@ -68,16 +68,16 @@ export function TrustSection() {
             <h3 className="text-center">What makes us different</h3>
             
             <div className="space-y-4">
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-orange-50">
-                <CheckCircle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-terracotta-50">
+                <CheckCircle className="h-5 w-5 text-terracotta-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-sm mb-1 text-muted-foreground">Host verification rate</p>
                   <p className="text-2xl">100%</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-rose-50">
-                <CheckCircle className="h-5 w-5 text-rose-600 mt-0.5 flex-shrink-0" />
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-terracotta-100">
+                <CheckCircle className="h-5 w-5 text-terracotta-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-sm mb-1 text-muted-foreground">Average experience rating</p>
                   <p className="text-2xl">4.9/5.0</p>

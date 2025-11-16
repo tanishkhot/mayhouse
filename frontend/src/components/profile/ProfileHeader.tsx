@@ -37,7 +37,7 @@ export function ProfileHeader({ profile, isOwnProfile, onEditClick }: ProfileHea
                   className="w-24 h-24 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center text-white text-2xl font-bold">
+                <div className="w-24 h-24 rounded-full bg-terracotta-500 flex items-center justify-center text-white text-2xl font-bold">
                   {getInitials(profile.full_name)}
                 </div>
               )}
@@ -54,7 +54,7 @@ export function ProfileHeader({ profile, isOwnProfile, onEditClick }: ProfileHea
               <div className="flex items-center space-x-3 mb-2">
                 <h1 className="text-3xl font-bold text-gray-900">{profile.full_name}</h1>
                 {isSuperhost && (
-                  <span className="px-2 py-1 bg-orange-500 text-white text-xs font-semibold rounded">
+                  <span className="px-2 py-1 bg-terracotta-500 text-white text-xs font-semibold rounded">
                     Superhost
                   </span>
                 )}

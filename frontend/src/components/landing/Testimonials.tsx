@@ -32,7 +32,7 @@ const testimonials = [
 
 export function Testimonials() {
   return (
-    <section className="py-20 lg:py-32 bg-gradient-to-b from-white to-orange-50/30">
+    <section className="py-20 lg:py-32 bg-terracotta-50/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl mb-4">
@@ -50,7 +50,7 @@ export function Testimonials() {
                 {Array.from({ length: testimonial.rating }).map((_, i) => (
                   <Star
                     key={i}
-                    className="h-5 w-5 fill-orange-400 text-orange-400"
+                    className="h-5 w-5 fill-terracotta-500 text-terracotta-500"
                   />
                 ))}
               </div>
@@ -60,7 +60,7 @@ export function Testimonials() {
               </p>
 
               <div className="flex items-center gap-3 pt-4 border-t">
-                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center flex-shrink-0 text-white">
+                <div className="h-12 w-12 rounded-full bg-terracotta-500 flex items-center justify-center flex-shrink-0 text-white">
                   {testimonial.name.split(' ').map(n => n[0]).join('')}
                 </div>
                 <div className="flex-1">

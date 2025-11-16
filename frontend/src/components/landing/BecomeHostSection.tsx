@@ -36,7 +36,7 @@ export function BecomeHostSection() {
                 className="w-full aspect-[4/3] object-cover"
               />
             </div>
-            <div className="absolute -bottom-6 -right-6 bg-gradient-to-br from-orange-500 to-rose-600 text-white rounded-2xl p-6 shadow-xl max-w-xs">
+            <div className="absolute -bottom-6 -right-6 bg-terracotta-500 text-white rounded-2xl p-6 shadow-xl max-w-xs">
               <p className="text-3xl mb-1">$45-$85</p>
               <p className="text-sm opacity-90">Average host earnings per experience</p>
             </div>
@@ -47,7 +47,7 @@ export function BecomeHostSection() {
               <h2 className="text-3xl sm:text-4xl lg:text-5xl">
                 Share your city.
                 <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-600">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-terracotta-600 to-terracotta-500">
                   Shape the future.
                 </span>
               </h2>
@@ -61,8 +61,8 @@ export function BecomeHostSection() {
               {benefits.map((benefit) => (
                 <div key={benefit.title} className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-orange-100 to-rose-100 flex items-center justify-center">
-                      <benefit.icon className="h-6 w-6 text-orange-600" />
+                    <div className="h-12 w-12 rounded-xl bg-terracotta-100 flex items-center justify-center">
+                      <benefit.icon className="h-6 w-6 text-terracotta-600" />
                     </div>
                   </div>
                   <div className="flex-1">
@@ -77,7 +77,7 @@ export function BecomeHostSection() {
 
             <div className="flex flex-col sm:flex-row gap-3">
               <Link href="/design-experience">
-                <Button className="bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700">
+                <Button className="bg-terracotta-500 hover:bg-terracotta-600">
                   Apply to become a host
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>

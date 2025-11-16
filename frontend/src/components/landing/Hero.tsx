@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-rose-50 to-amber-50">
+    <section className="relative overflow-hidden bg-terracotta-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
@@ -16,7 +16,7 @@ export function Hero() {
               <h1 className="text-4xl sm:text-5xl lg:text-6xl">
                 Travel deeper.
                 <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-600">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-terracotta-600 to-terracotta-500">
                   Connect authentically.
                 </span>
               </h1>
@@ -28,7 +28,7 @@ export function Hero() {
 
             <div className="flex justify-start">
               <Link href="/explore">
-                <Button className="bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700">
+                <Button className="bg-terracotta-500 hover:bg-terracotta-600">
                   Discover new stories
                 </Button>
               </Link>
@@ -37,7 +37,7 @@ export function Hero() {
             <div className="flex items-center gap-6">
               <div className="flex -space-x-3">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-10 w-10 rounded-full border-2 border-white bg-gradient-to-br from-orange-400 to-rose-500" />
+                  <div key={i} className="h-10 w-10 rounded-full border-2 border-white bg-terracotta-500" />
                 ))}
               </div>
               <div>
@@ -59,7 +59,7 @@ export function Hero() {
               />
               <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur rounded-xl p-4 shadow-lg">
                 <div className="flex items-start gap-3">
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-400 to-rose-500 flex-shrink-0" />
+                  <div className="h-12 w-12 rounded-full bg-terracotta-500 flex-shrink-0" />
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground">Featured Host</p>
                     <h4>Maria&apos;s Hidden Barcelona</h4>

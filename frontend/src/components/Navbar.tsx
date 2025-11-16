@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
@@ -52,10 +53,20 @@ export default function Navbar() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center h-16">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-400 to-rose-500">
-                <span className="text-white font-bold text-sm">M</span>
+              <Image 
+                src="/logo2-nobg.png" 
+                alt="Mayhouse" 
+                width={40}
+                height={40}
+                className="object-contain"
+                priority
+              />
+              <div className="flex flex-col">
+                <span className="text-xl font-semibold leading-tight font-brand">Mayhouse</span>
+                <span className="text-xs text-muted-foreground hidden sm:block">
+                  Travel Deeper.
+                </span>
               </div>
-              <span className="text-xl font-semibold">Mayhouse</span>
             </Link>
           </div>
         </div>
@@ -70,16 +81,19 @@ export default function Navbar() {
           {/* Logo & Navigation */}
           <div className="flex items-center gap-8">
             <Link href={isLandingPage ? '/host/experiences' : '/'} className="flex items-center gap-2 group">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-400 to-rose-500 group-hover:from-orange-500 group-hover:to-rose-600 transition-colors">
-                <span className="text-white font-bold text-sm">M</span>
-              </div>
+              <Image 
+                src="/logo2-nobg.png" 
+                alt="Mayhouse" 
+                width={40}
+                height={40}
+                className="object-contain"
+                priority
+              />
               <div className="flex flex-col">
-                <span className="text-xl font-semibold leading-tight">Mayhouse</span>
-                {isLandingPage && (
-                  <span className="text-xs text-muted-foreground hidden sm:block">
-                    Travel deeper. Connect authentically.
-                  </span>
-                )}
+                <span className="text-xl font-semibold leading-tight font-brand">Mayhouse</span>
+                <span className="text-xs text-muted-foreground hidden sm:block">
+                  Travel Deeper.
+                </span>
               </div>
             </Link>
             
@@ -157,7 +171,7 @@ export default function Navbar() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="gap-2">
-                        <div className="h-6 w-6 rounded-full bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center">
+                        <div className="h-6 w-6 rounded-full bg-terracotta-500 flex items-center justify-center">
                           <span className="text-white text-xs font-semibold">
                             {address?.slice(2, 4).toUpperCase()}
                           </span>

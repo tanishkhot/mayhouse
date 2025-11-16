@@ -47,7 +47,7 @@ export default function ExperienceRunDetailPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Event Run not found</h1>
           <p className="text-gray-600 mb-4">The event you&apos;re looking for doesn&apos;t exist or has been removed.</p>
-          <Link href="/" className="text-orange-600 hover:text-orange-700 font-medium">
+          <Link href="/" className="text-terracotta-600 hover:text-terracotta-700 font-medium">
             ← Back to explore
           </Link>
         </div>
@@ -192,11 +192,11 @@ export default function ExperienceRunDetailPage() {
                 href={eventRun.host_id ? `/users/${eventRun.host_id}` : '#'}
                 className="flex items-start space-x-4 hover:bg-gray-50 p-4 rounded-lg -m-4 transition-colors cursor-pointer group"
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-rose-500 rounded-full flex items-center justify-center text-white font-semibold">
+                <div className="w-12 h-12 bg-terracotta-500 rounded-full flex items-center justify-center text-white font-semibold">
                   {displayData.host?.name?.charAt(0)}
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-terracotta-600 transition-colors">
                     Meet your host, {displayData.host?.name}
                   </h3>
                   <p className="text-gray-600 mt-2">{displayData.host?.bio || "Experienced local host"}</p>
@@ -205,7 +205,7 @@ export default function ExperienceRunDetailPage() {
                     {displayData.host?.experience_count && <span>{displayData.host.experience_count} experiences</span>}
                     {displayData.host?.languages && <span>Speaks {displayData.host.languages.join(", ")}</span>}
                   </div>
-                  <p className="text-sm text-orange-600 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <p className="text-sm text-terracotta-600 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     View profile →
                   </p>
                 </div>
@@ -220,7 +220,7 @@ export default function ExperienceRunDetailPage() {
               <div className="space-y-6">
                 {displayData.reviews?.map((review: { user: string; rating: number; date: string; comment: string }, index: number) => (
                   <div key={index} className="flex space-x-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-rose-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                    <div className="w-10 h-10 bg-terracotta-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                       {review.user.charAt(0)}
                     </div>
                     <div className="flex-1">

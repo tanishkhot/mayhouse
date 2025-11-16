@@ -39,7 +39,7 @@ export function HostExperiencesSection({
         {totalCount > experiences.length && (
           <Link
             href={`/explore?host=${hostId}`}
-            className="text-orange-600 hover:text-orange-700 font-medium text-sm"
+            className="text-terracotta-600 hover:text-terracotta-700 font-medium text-sm"
           >
             View all {totalCount} experiences →
           </Link>
@@ -65,7 +65,7 @@ export function HostExperiencesSection({
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-orange-100 to-rose-100 flex items-center justify-center">
+                    <div className="w-full h-full bg-terracotta-100 flex items-center justify-center">
                       <span className="text-gray-400 text-sm">No image</span>
                     </div>
                   )}
@@ -79,7 +79,7 @@ export function HostExperiencesSection({
 
                 {/* Content */}
                 <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-orange-600 transition-colors">
+                  <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-terracotta-600 transition-colors">
                     {exp.title}
                   </h3>
                   <div className="flex items-center justify-between text-sm text-gray-600">

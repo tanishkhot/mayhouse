@@ -62,7 +62,7 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
               value={formData.full_name}
               onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
             />
           </div>
 
@@ -77,7 +77,7 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 placeholder="Choose a unique username"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
               />
               <p className="text-xs text-gray-500 mt-1">
                 Once set, username cannot be changed
@@ -95,7 +95,7 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
               rows={4}
               placeholder="Tell travelers about yourself..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
             />
             <p className="text-xs text-gray-500 mt-1">
               {formData.bio.length} characters
@@ -112,7 +112,7 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
               value={formData.profile_image_url}
               onChange={(e) => setFormData({ ...formData, profile_image_url: e.target.value })}
               placeholder="https://example.com/your-photo.jpg"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
             />
             {formData.profile_image_url && (
               <div className="mt-2">
@@ -141,7 +141,7 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
             <button
               type="submit"
               disabled={isPending}
-              className="px-6 py-2 bg-gradient-to-r from-orange-500 to-rose-600 text-white rounded-lg hover:from-orange-600 hover:to-rose-700 transition-all font-medium disabled:opacity-50"
+              className="px-6 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 transition-all font-medium disabled:opacity-50"
             >
               {isPending ? "Saving..." : "Save Changes"}
             </button>
