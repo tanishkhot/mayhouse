@@ -16,6 +16,7 @@ import {
 import Icon from '../ui/icon';
 import { DesignExperienceAPI } from '@/lib/design-experience-api';
 import { toast } from 'sonner';
+import { AIChatSidebar, ChatMessage } from './AIChatSidebar';
 
 type FormState = {
   title: string;
@@ -56,6 +57,15 @@ export default function DesignExperienceV2() {
   const [photos, setPhotos] = useState<Array<{ id: string; url: string; isCover: boolean; caption?: string }>>([]);
   const [descriptionInput, setDescriptionInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [chatOpen, setChatOpen] = useState(true);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      id: 'welcome',
+      role: 'assistant',
+      content: "Hi! I'm here to help you refine your experience. Ask me anything or request changes to specific fields.",
+      timestamp: new Date(),
+    },
+  ]);
 
   useEffect(() => {
     try {
@@ -135,29 +145,31 @@ export default function DesignExperienceV2() {
     `w-full border rounded-lg px-3 py-2 text-black focus:ring-2 ${hasError ? 'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50' : 'border-gray-300 focus:ring-terracotta-500 focus:border-terracotta-500'}`;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-black">
-              {step === 0 ? 'Kickstart Your Experience' : 'Design Your Experience'}
-            </h1>
-            <p className="text-black/70">
-              {step === 0
-                ? 'Choose how you want to begin. We’ll guide you the rest of the way.'
-                : 'Create a unique local adventure for travelers'}
-            </p>
-          </div>
-          <div className="hidden md:flex items-center gap-2">
-            <span className={`px-3 py-1 rounded-full text-xs ${badge(completion.basicsOk)}`}>Basics</span>
-            <span className={`px-3 py-1 rounded-full text-xs ${badge(completion.detailsOk)}`}>Logistics</span>
-            <span className={`px-3 py-1 rounded-full text-xs ${badge(completion.mediaOk)}`}>Media</span>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Main Content Area */}
+      <div className={`flex-1 transition-all duration-300 ${chatOpen && step > 0 ? 'mr-96' : ''}`}>
+        {/* Header */}
+        <div className="bg-white border-b">
+          <div className="max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-black">
+                {step === 0 ? 'Kickstart Your Experience' : 'Design Your Experience'}
+              </h1>
+              <p className="text-black/70">
+                {step === 0
+                  ? 'Choose how you want to begin. We&apos;ll guide you the rest of the way.'
+                  : 'Create a unique local adventure for travelers'}
+              </p>
+            </div>
+            <div className="hidden md:flex items-center gap-2">
+              <span className={`px-3 py-1 rounded-full text-xs ${badge(completion.basicsOk)}`}>Basics</span>
+              <span className={`px-3 py-1 rounded-full text-xs ${badge(completion.detailsOk)}`}>Logistics</span>
+              <span className={`px-3 py-1 rounded-full text-xs ${badge(completion.mediaOk)}`}>Media</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
+        <div className="max-w-5xl mx-auto px-6 py-8">
         {/* Step 0 - Kickstart choices */}
         {step === 0 && mode === 'kickstart' && (
           <div className="space-y-8">
@@ -442,7 +454,7 @@ export default function DesignExperienceV2() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2 inline-flex items-center gap-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-black mb-2">
                   <Icon as={MapPin} size={16} className="text-terracotta-600" />
                   <span>Meeting Point *</span>
                 </label>
@@ -456,7 +468,7 @@ export default function DesignExperienceV2() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2 inline-flex items-center gap-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-black mb-2">
                   <Icon as={Clock} size={16} className="text-terracotta-600" />
                   <span>What to Expect * (min 50 chars)</span>
                 </label>
@@ -637,7 +649,21 @@ export default function DesignExperienceV2() {
           </div>
         </div>
         )}
+        </div>
       </div>
+
+      {/* AI Chat Sidebar - Only show when step > 0, persists across steps */}
+      {step > 0 && (
+        <AIChatSidebar
+          formState={form}
+          updateFormState={(updates) => setForm((p) => ({ ...p, ...updates }))}
+          currentStep={step}
+          isOpen={chatOpen}
+          onToggle={() => setChatOpen(!chatOpen)}
+          messages={chatMessages}
+          setMessages={setChatMessages}
+        />
+      )}
     </div>
   );
 }
