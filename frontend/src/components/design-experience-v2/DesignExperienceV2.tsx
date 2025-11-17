@@ -14,6 +14,8 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import Icon from '../ui/icon';
+import { DesignExperienceAPI } from '@/lib/design-experience-api';
+import { toast } from 'sonner';
 
 type FormState = {
   title: string;
@@ -52,6 +54,8 @@ export default function DesignExperienceV2() {
   const [mode, setMode] = useState<'kickstart' | 'describe' | 'guided'>('kickstart');
   const [form, setForm] = useState<FormState>(INITIAL);
   const [photos, setPhotos] = useState<Array<{ id: string; url: string; isCover: boolean; caption?: string }>>([]);
+  const [descriptionInput, setDescriptionInput] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     try {
@@ -64,6 +68,50 @@ export default function DesignExperienceV2() {
       console.log('[FLOW] DesignExperienceV2 step change', { step, ts: new Date().toISOString() });
     } catch {}
   }, [step]);
+
+  const handleGenerateExperience = async () => {
+    if (!descriptionInput.trim()) {
+      toast.error('Please enter a description of your experience');
+      return;
+    }
+
+    if (descriptionInput.trim().length < 20) {
+      toast.error('Description must be at least 20 characters');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const generated = await DesignExperienceAPI.generateExperience(descriptionInput.trim());
+      
+      // Populate form with generated data
+      setForm({
+        title: generated.title,
+        description: generated.description,
+        domain: generated.domain,
+        theme: generated.theme || '',
+        duration: generated.duration_minutes,
+        maxCapacity: generated.max_capacity,
+        price: generated.price_inr ? generated.price_inr.toString() : '',
+        neighborhood: generated.neighborhood || '',
+        meetingPoint: generated.meeting_point || '',
+        requirements: generated.requirements?.join(', ') || '',
+        whatToExpect: generated.what_to_expect,
+        whatToKnow: generated.what_to_know || '',
+        whatToBring: generated.what_to_bring?.join(', ') || '',
+      });
+
+      // Reset mode and redirect to step 1 (scratch experience screen)
+      setMode('kickstart');
+      setStep(1);
+      toast.success('Experience generated! Review and edit the fields below.');
+    } catch (error: any) {
+      console.error('Error generating experience:', error);
+      toast.error(error.response?.data?.detail || error.message || 'Failed to generate experience. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const completion = useMemo(() => {
     const basicsOk =
@@ -176,14 +224,31 @@ export default function DesignExperienceV2() {
               Share your vision in your own words. Include what makes it special, where it happens, and what travelers will experience.
             </p>
             <textarea
+              value={descriptionInput}
+              onChange={(e) => setDescriptionInput(e.target.value)}
               className="w-full min-h-[160px] border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
               placeholder="Example: A sunset heritage walk through old Bangalore markets where we discover century‑old spice merchants, family‑run sweet shops, and hidden temples..."
             />
-            <div className="mt-2 text-xs text-black/60">0 characters · The more detail, the better the draft</div>
+            <div className="mt-2 text-xs text-black/60">
+              {descriptionInput.length} characters · The more detail, the better the draft
+            </div>
             <div className="mt-4 flex items-center gap-3">
-              <button className="flex-1 bg-black text-white rounded-lg py-2 hover:bg-black/90 inline-flex items-center justify-center gap-2">
-                <Icon as={Sparkles} size={16} className="text-white" />
-                Generate My Experience
+              <button
+                onClick={handleGenerateExperience}
+                disabled={isGenerating || !descriptionInput.trim() || descriptionInput.trim().length < 20}
+                className="flex-1 bg-black text-white rounded-lg py-2 hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+              >
+                {isGenerating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Icon as={Sparkles} size={16} className="text-white" />
+                    Generate My Experience
+                  </>
+                )}
               </button>
               <button
                 onClick={() => setStep(1)}

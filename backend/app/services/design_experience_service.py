@@ -210,6 +210,45 @@ class DesignExperienceService:
 
         return {"experience_id": experience_id, "status": "submitted"}
 
+    async def generate_from_description(self, user_id: str, description: str) -> Dict[str, Any]:
+        """
+        Generate experience fields from a natural language description.
+        
+        TODO: Integrate LangChain flow here to generate structured experience data.
+        For now, returns a placeholder structure that matches the expected response.
+        
+        Args:
+            user_id: User ID (for future use in personalization)
+            description: Natural language description of the experience
+            
+        Returns:
+            Dictionary with generated experience fields
+        """
+        # TODO: Replace this with actual LangChain AI generation
+        # This is a placeholder that returns a structured response
+        # The LangChain flow will be added here to:
+        # 1. Parse the description
+        # 2. Extract key information (location, activity type, duration, etc.)
+        # 3. Generate appropriate fields (title, description, domain, etc.)
+        # 4. Return structured data
+        
+        # Placeholder response - will be replaced with AI generation
+        return {
+            "title": "Generated Experience Title",  # Will be AI-generated
+            "description": description,  # Refined version of input
+            "what_to_expect": "Generated unique element description",  # AI-generated
+            "domain": "culture",  # AI-extracted from description
+            "theme": None,  # AI-extracted if applicable
+            "duration_minutes": 180,  # AI-inferred from description
+            "max_capacity": 4,  # Default, can be AI-suggested
+            "price_inr": None,  # Will be suggested or left empty
+            "neighborhood": None,  # AI-extracted from description
+            "meeting_point": None,  # AI-extracted from description
+            "requirements": [],  # AI-extracted from description
+            "what_to_bring": [],  # AI-extracted from description
+            "what_to_know": None,  # AI-generated safety/important info
+        }
+
 
 design_experience_service = DesignExperienceService()
 

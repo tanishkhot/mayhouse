@@ -59,3 +59,30 @@ class DesignSessionReview(BaseModel):
     validation_report: Dict[str, Any] = {}
 
 
+class ExperienceGenerationRequest(BaseModel):
+    """Request schema for AI experience generation."""
+    description: str = Field(
+        ..., 
+        min_length=20, 
+        max_length=2000, 
+        description="Natural language description of the experience"
+    )
+
+
+class ExperienceGenerationResponse(BaseModel):
+    """Response schema for AI-generated experience fields."""
+    title: str
+    description: str
+    what_to_expect: str  # unique_element
+    domain: str
+    theme: Optional[str] = None
+    duration_minutes: int
+    max_capacity: int
+    price_inr: Optional[float] = None
+    neighborhood: Optional[str] = None
+    meeting_point: Optional[str] = None
+    requirements: Optional[List[str]] = None
+    what_to_bring: Optional[List[str]] = None
+    what_to_know: Optional[str] = None
+
+

@@ -13,6 +13,8 @@ from app.schemas.design_experience import (
     StepLogisticsPayload,
     StepMediaReorder,
     DesignSessionReview,
+    ExperienceGenerationRequest,
+    ExperienceGenerationResponse,
 )
 
 router = APIRouter(prefix="/design-experience", tags=["Design Experience"])
@@ -116,5 +118,23 @@ async def submit(
 ):
     user_id = _get_user_id_from_auth(authorization)
     return await design_experience_service.submit(session_id, user_id)
+
+
+@router.post("/generate", response_model=ExperienceGenerationResponse)
+async def generate_experience(
+    body: ExperienceGenerationRequest,
+    authorization: str = Header(None),
+):
+    """
+    Generate experience fields from a natural language description.
+    This is a pre-session step - user hasn't started a design session yet.
+    Uses AI to generate structured experience data from free-form text.
+    """
+    user_id = _get_user_id_from_auth(authorization)
+    generated = await design_experience_service.generate_from_description(
+        user_id, 
+        body.description
+    )
+    return ExperienceGenerationResponse(**generated)
 
 
