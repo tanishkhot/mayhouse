@@ -1,6 +1,17 @@
-import { parseEther, formatEther } from 'viem';
-import { useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
-import { MAYHOUSE_CONTRACT_ABI, CONTRACT_ADDRESS } from './contract-abi';
+/**
+ * NOTE: This file is DEPRECATED - Not used for regular payment flow
+ * 
+ * This file contains Web3 smart contract interaction logic.
+ * Currently commented out/not used as we're using regular API-based bookings.
+ * 
+ * Can be re-enabled if Web3 integration is restored.
+ * 
+ * Last used: Before migration to API-based booking system
+ */
+
+// import { parseEther, formatEther } from 'viem';
+// import { useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
+// import { MAYHOUSE_CONTRACT_ABI, CONTRACT_ADDRESS } from './contract-abi';
 
 // Types
 export enum EventStatus {

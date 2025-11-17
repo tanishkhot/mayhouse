@@ -4,7 +4,7 @@ Design Experience API - Session-based stepwise creation flow.
 
 from typing import Dict, Any
 from fastapi import APIRouter, Header, HTTPException, status, UploadFile, File, Form
-from app.core.jwt_utils import verify_token
+from app.core.auth_helpers import get_user_from_token
 from app.services.design_experience_service import design_experience_service
 from app.schemas.design_experience import (
     DesignSessionStartRequest,
@@ -20,17 +20,13 @@ from app.schemas.design_experience import (
 router = APIRouter(prefix="/design-experience", tags=["Design Experience"])
 
 
-def _get_user_id_from_auth(authorization: str | None) -> str:
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
-    token = authorization.replace("Bearer ", "")
-    payload = verify_token(token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-    return user_id
+async def _get_user_id_from_auth(authorization: str | None) -> str:
+    """
+    Extract user ID from authorization header.
+    Supports both Supabase Auth tokens (OAuth) and custom JWT tokens (wallet).
+    """
+    user = await get_user_from_token(authorization)
+    return user["id"]
 
 
 @router.post("/session", response_model=DesignSessionStartResponse, status_code=status.HTTP_201_CREATED)
@@ -38,7 +34,7 @@ async def start_session(
     body: DesignSessionStartRequest,
     authorization: str = Header(None),
 ):
-    user_id = _get_user_id_from_auth(authorization)
+    user_id = await _get_user_id_from_auth(authorization)
     session = await design_experience_service.start_session(user_id, body.experience_id)
     return DesignSessionStartResponse(
         session_id=session["id"],
@@ -56,7 +52,7 @@ async def upsert_basics(
     payload: StepBasicsPayload,
     authorization: str = Header(None),
 ):
-    user_id = _get_user_id_from_auth(authorization)
+    user_id = await _get_user_id_from_auth(authorization)
     updated = await design_experience_service.upsert_basics(session_id, user_id, payload)
     return {"session_id": updated["id"], "updated_at": updated["updated_at"], "step": "basics"}
 
@@ -70,7 +66,7 @@ async def upload_media(
     authorization: str = Header(None),
 ):
     # For MVP: we don't persist actual files here. In Phase 2, delegate to photo service.
-    _get_user_id_from_auth(authorization)
+    await _get_user_id_from_auth(authorization)
     fake_photo = {
         "id": f"session-photo-{session_id}",
         "url": "about:blank",
@@ -86,7 +82,7 @@ async def reorder_media(
     order: StepMediaReorder,
     authorization: str = Header(None),
 ):
-    user_id = _get_user_id_from_auth(authorization)
+    user_id = await _get_user_id_from_auth(authorization)
     updated = await design_experience_service.reorder_media(session_id, user_id, order)
     return {"session_id": updated["id"], "updated_at": updated["updated_at"], "step": "media"}
 
@@ -97,7 +93,7 @@ async def upsert_logistics(
     payload: StepLogisticsPayload,
     authorization: str = Header(None),
 ):
-    user_id = _get_user_id_from_auth(authorization)
+    user_id = await _get_user_id_from_auth(authorization)
     updated = await design_experience_service.upsert_logistics(session_id, user_id, payload)
     return {"session_id": updated["id"], "updated_at": updated["updated_at"], "step": "logistics"}
 
@@ -107,7 +103,7 @@ async def get_review(
     session_id: str,
     authorization: str = Header(None),
 ):
-    user_id = _get_user_id_from_auth(authorization)
+    user_id = await _get_user_id_from_auth(authorization)
     return await design_experience_service.get_review(session_id, user_id)
 
 
@@ -116,7 +112,7 @@ async def submit(
     session_id: str,
     authorization: str = Header(None),
 ):
-    user_id = _get_user_id_from_auth(authorization)
+    user_id = await _get_user_id_from_auth(authorization)
     return await design_experience_service.submit(session_id, user_id)
 
 
@@ -130,7 +126,7 @@ async def generate_experience(
     This is a pre-session step - user hasn't started a design session yet.
     Uses AI to generate structured experience data from free-form text.
     """
-    user_id = _get_user_id_from_auth(authorization)
+    user_id = await _get_user_id_from_auth(authorization)
     generated = await design_experience_service.generate_from_description(
         user_id, 
         body.description

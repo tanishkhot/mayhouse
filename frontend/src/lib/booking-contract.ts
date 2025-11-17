@@ -1,5 +1,16 @@
-import { parseEther, formatEther } from 'viem';
-import { useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
+/**
+ * NOTE: This file is DEPRECATED - Not used for regular payment flow
+ * 
+ * This file contains Web3 booking contract interaction logic.
+ * Currently commented out/not used as we're using regular API-based bookings.
+ * 
+ * Can be re-enabled if Web3 integration is restored.
+ * 
+ * Last used: Before migration to API-based booking system
+ */
+
+// import { parseEther, formatEther } from 'viem';
+// import { useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
 
 // Simplified ABI for MayhouseBooking contract
 export const BOOKING_CONTRACT_ABI = [

@@ -1,3 +1,15 @@
+/**
+ * NOTE: This file is DEPRECATED - Not used for regular payment flow
+ * 
+ * This file contains the smart contract ABI for MayhouseExperience contract.
+ * Currently still used by some components (HostDashboard, UserBookings, etc.)
+ * but not used for the main booking flow.
+ * 
+ * Can be removed or kept for future Web3 integration.
+ * 
+ * Last used in booking flow: Before migration to API-based booking system
+ */
+
 // MayhouseExperience Contract ABI
 // This is the interface to interact with your deployed smart contract
 

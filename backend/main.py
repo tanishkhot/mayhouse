@@ -15,6 +15,7 @@ from app.api.event_runs import admin_router as event_run_admin_router
 from app.api.legal_policies import router as legal_policies_router
 from app.api.eip712_policy import router as eip712_policy_router
 from app.api.blockchain import router as blockchain_router
+from app.api.bookings import router as bookings_router
 from app.api.experience_photos import router as experience_photos_router
 from app.api.users import public_router as users_public_router, user_router as users_user_router
 from app.api.design_experience import router as design_experience_router
@@ -64,7 +65,8 @@ app.include_router(event_run_public_router)  # Event run public endpoints
 app.include_router(event_run_admin_router)  # Event run admin endpoints
 app.include_router(legal_policies_router)  # Legal policies endpoints
 app.include_router(eip712_policy_router)  # EIP-712 policy signing endpoints
-app.include_router(blockchain_router)  # Blockchain operations endpoints
+app.include_router(blockchain_router)  # Blockchain operations endpoints (cost calculation)
+app.include_router(bookings_router)  # Bookings endpoints
 app.include_router(experience_photos_router)  # Experience photos endpoints
 app.include_router(users_public_router)  # Public user profile endpoints
 app.include_router(users_user_router)  # Authenticated user profile endpoints
@@ -93,6 +95,7 @@ async def root():
         "legal_policies": "/legal",
         "eip712_policy_signing": "/legal/eip712",
         "blockchain": "/blockchain",
+        "bookings": "/bookings",
     }
 
 

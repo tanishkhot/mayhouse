@@ -109,6 +109,10 @@ async def get_or_create_oauth_user(google_user_info: Dict[str, Any]) -> Dict[str
     """
     Get existing user or create new one from Google OAuth user info.
     
+    Creates user in our users table. JWT tokens are assigned via
+    create_supabase_session_token() which creates custom JWT tokens
+    that work with our middleware.
+    
     Args:
         google_user_info: User information from Google OAuth
         
@@ -139,6 +143,19 @@ async def get_or_create_oauth_user(google_user_info: Dict[str, Any]) -> Dict[str
             update_data["full_name"] = google_user_info.get("name")
         if google_user_info.get("picture") and not user.get("profile_image_url"):
             update_data["profile_image_url"] = google_user_info.get("picture")
+        # Update auth provider classification if needed
+        if user.get("auth_provider") != "google_oauth":
+            update_data["auth_provider"] = "google_oauth"
+        # Store Google ID and OAuth data if not present
+        if google_user_info.get("id") and not user.get("google_id"):
+            update_data["google_id"] = google_user_info.get("id")
+        if not user.get("primary_oauth_provider"):
+            update_data["primary_oauth_provider"] = "google"
+        if not user.get("oauth_profile_data"):
+            update_data["oauth_profile_data"] = google_user_info
+        # Auto-upgrade to host for first 6 months (unless already admin)
+        if user.get("role") == "user":
+            update_data["role"] = "host"
         
         if update_data:
             update_result = (
@@ -155,15 +172,21 @@ async def get_or_create_oauth_user(google_user_info: Dict[str, Any]) -> Dict[str
     # Generate elegant username for new user
     username = generate_elegant_username(supabase)
     
-    # Create new user
+    # Create new user in our users table
+    # Note: JWT tokens are created separately via create_supabase_session_token()
+    # For first 6 months, all new users are automatically hosts
     new_user = {
         "email": email,
         "username": username,
-        "role": "user",
+        "role": "host",  # Auto-upgrade to host (we're only onboarding hosts initially)
         "full_name": google_user_info.get("name", email.split("@")[0]),
         "profile_image_url": google_user_info.get("picture"),
         "email_confirmed_at": datetime.utcnow().isoformat(),
         "created_at": datetime.utcnow().isoformat(),
+        "auth_provider": "google_oauth",  # Properly classify as Google OAuth
+        "google_id": google_user_info.get("id"),  # Store Google ID
+        "primary_oauth_provider": "google",  # Mark as Google OAuth
+        "oauth_profile_data": google_user_info,  # Store full OAuth profile data
     }
     
     result = supabase.table("users").insert(new_user).execute()

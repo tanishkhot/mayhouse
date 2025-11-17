@@ -189,7 +189,8 @@ class EventRunService:
         # Fetch host details separately
         host_response = (
             service_client.table("users")
-            .select("id, full_name, wallet_address")
+            .select("id, full_name")  # wallet_address commented out - not needed for regular payments
+            # .select("id, full_name, wallet_address")  # Web3: Uncomment if wallet address needed
             .eq("id", experience["host_id"])
             .execute()
         )
@@ -233,7 +234,8 @@ class EventRunService:
             experience_domain=experience.get("experience_domain"),
             host_id=experience.get("host_id"),
             host_name=host.get("full_name"),
-            host_wallet_address=host.get("wallet_address"),
+            host_wallet_address=None,  # Commented out - not needed for regular payments
+            # host_wallet_address=host.get("wallet_address"),  # Web3: Uncomment if wallet address needed
             price_inr=Decimal(str(effective_price)),
             duration_minutes=experience.get("duration_minutes"),
             neighborhood=experience.get("neighborhood"),
@@ -785,8 +787,9 @@ class EventRunService:
                 status,
                 users!experiences_host_id_fkey (
                     id,
-                    full_name,
-                    wallet_address
+                    full_name
+                    # wallet_address  # Commented out - not needed for regular payments
+                    # Web3: Uncomment wallet_address if needed
                 ),
                 experience_photos!experience_photos_experience_id_fkey (
                     photo_url,
@@ -879,7 +882,8 @@ class EventRunService:
                     # Host details
                     host_id=host["id"],
                     host_name=host.get("full_name", "Unknown Host"),
-                    host_wallet_address=host.get("wallet_address"),
+                    host_wallet_address=None,  # Commented out - not needed for regular payments
+                    # host_wallet_address=host.get("wallet_address"),  # Web3: Uncomment if wallet address needed
                     host_meeting_instructions=run.get("host_meeting_instructions"),
                     group_pairing_enabled=run.get("group_pairing_enabled", False),
                 )

@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     app_name: str = "Mayhouse ETH Backend"
     app_version: str = "1.0.0"
     debug: bool = False
+    test_user_id: str = ""  # Optional: Test user ID for bypassing auth in debug mode
 
     # CORS settings - stored as string, parsed to list when needed
     cors_origins_str: str = "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001"
@@ -63,10 +64,18 @@ class Settings(BaseSettings):
     groq_api_key: str = ""
 
     # Blockchain settings
-    blockchain_rpc_url: str = "https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY"
-    contract_address: str = "0x09aB660CEac220678b42E0e23DebCb1475e1eAD5"
-    platform_private_key: str = ""  # Private key for platform account (for gas)
-    eth_price_inr: str = "200000"  # Current ETH price in INR for conversions
+    # NOTE: Commented out - Not needed for regular payment flow
+    # Can be re-enabled if Web3 integration is restored
+    # blockchain_rpc_url: str = "https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY"
+    # contract_address: str = "0x09aB660CEac220678b42E0e23DebCb1475e1eAD5"
+    # platform_private_key: str = ""  # Private key for platform account (for gas)
+    # eth_price_inr: str = "200000"  # Current ETH price in INR for conversions
+    
+    # Placeholder values to prevent errors (will be None/empty)
+    blockchain_rpc_url: str = ""
+    contract_address: str = ""
+    platform_private_key: str = ""
+    eth_price_inr: str = "200000"
 
     model_config = {
         "env_file": ".env",

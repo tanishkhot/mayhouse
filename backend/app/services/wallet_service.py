@@ -152,6 +152,7 @@ async def get_or_create_user(wallet_address: str) -> Dict[str, Any]:
             "role": "user",
             "full_name": f"User {wallet_address[:6]}...{wallet_address[-4:]}",
             "created_at": datetime.utcnow().isoformat(),
+            "auth_provider": "wallet",  # Properly classify as wallet user
         }
 
         result = supabase.table("users").insert(new_user).execute()

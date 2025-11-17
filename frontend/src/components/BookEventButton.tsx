@@ -1,15 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useSwitchChain } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
-import { useCreateBooking, formatEthValue } from '@/lib/booking-contract';
 import { BlockchainAPI } from '@/lib/blockchain-api';
+import { BookingsAPI } from '@/lib/bookings-api';
 
 interface BookEventButtonProps {
   eventRunId: string;  // Database ID (UUID)
   availableSeats: number;
-  hostWalletAddress?: string; // Host's wallet address (from database)
+  hostWalletAddress?: string; // Host's wallet address (deprecated, kept for compatibility)
   eventTimestamp?: string; // Event start time
   priceINR?: number; // Price in INR (optional for legacy components)
 }
@@ -21,23 +19,21 @@ export default function BookEventButton({
   eventTimestamp,
   priceINR = 0 // Default to 0 for legacy components
 }: BookEventButtonProps) {
-  const { isConnected, chain } = useAccount();
-  const { switchChain } = useSwitchChain();
   const [seatCount, setSeatCount] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [costData, setCostData] = useState<any>(null);
   const [loadingCost, setLoadingCost] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
+  const [isBooking, setIsBooking] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [bookingData, setBookingData] = useState<any>(null);
   
-  const { createBooking, hash, isPending, isConfirming, isSuccess, error } = useCreateBooking();
-  
-  // Track if transaction failed after submission
-  const [transactionFailed, setTransactionFailed] = useState(false);
-  
-  // Reset transaction failed state when modal opens
+  // Reset booking state when modal opens
   useEffect(() => {
     if (showModal) {
-      setTransactionFailed(false);
+      setBookingError(null);
+      setBookingSuccess(false);
+      setBookingData(null);
     }
   }, [showModal]);
 
@@ -66,115 +62,56 @@ export default function BookEventButton({
 
   const handleBook = async () => {
     setBookingError(null);
-
-    if (!isConnected) {
-      setBookingError('Please connect your wallet first');
-      return;
-    }
-
-    // Check if on correct network
-    if (chain?.id !== sepolia.id) {
-      setBookingError(`Please switch to Sepolia Testnet. You're currently on ${chain?.name || 'Unknown Network'}`);
-      try {
-        await switchChain?.({ chainId: sepolia.id });
-      } catch (err) {
-        console.error('Failed to switch network:', err);
-      }
-      return;
-    }
+    setIsBooking(true);
 
     if (!costData) {
       setBookingError('Could not calculate booking cost');
-      return;
-    }
-
-    if (!hostWalletAddress) {
-      setBookingError('Host wallet address not found. Please contact support.');
+      setIsBooking(false);
       return;
     }
 
     try {
       console.log('[BOOKING] Starting booking process:', {
         eventRunId,
-        hostWalletAddress,
         seatCount,
         costData,
-        eventTimestamp
       });
       
-      // Calculate ticket price in Wei (excluding stake)
-      const ticketPriceWei = BigInt(costData.total_cost_wei - costData.stake_wei);
-      
-      // Convert event timestamp to Unix timestamp
-      const eventUnixTimestamp = eventTimestamp 
-        ? Math.floor(new Date(eventTimestamp).getTime() / 1000)
-        : Math.floor(Date.now() / 1000) + 86400; // Default to 24h from now
-      
-      console.log('[BOOKING] Contract call parameters:', {
-        hostWalletAddress,
-        eventRunId,
-        ticketPriceWei: ticketPriceWei.toString(),
-        seatCount,
-        eventUnixTimestamp,
-        totalValue: costData.total_cost_wei
+      // Call the backend API to create booking
+      const booking = await BookingsAPI.createBooking({
+        event_run_id: eventRunId,
+        seat_count: seatCount,
       });
       
-      // Call the smart contract to create booking
-      const hash = await createBooking(
-        hostWalletAddress,
-        eventRunId, // Use UUID as reference
-        ticketPriceWei,
-        seatCount,
-        eventUnixTimestamp
-      );
+      console.log('[BOOKING] Success! Booking created:', booking);
       
-      console.log('[BOOKING] Success! Transaction hash:', hash);
-      
-      // TODO: Record blockchain booking ID in backend
-      // await api.post('/bookings/record-blockchain', {
-      //   event_run_id: eventRunId,
-      //   transaction_hash: hash,
-      //   user_address: address
-      // });
-      
+      setBookingData(booking);
+      setBookingSuccess(true);
       setBookingError(null);
-      setTransactionFailed(false);
     } catch (err: any) {
       console.error('[BOOKING] Error details:', {
         error: err,
         message: err.message,
-        code: err.code,
-        reason: err.reason,
-        stack: err.stack
+        response: err.response?.data,
       });
-      
-      setTransactionFailed(true);
       
       // Parse the error to show user-friendly message
       let errorMessage = 'Failed to book event';
       
-      if (err.message?.includes('user rejected')) {
-        errorMessage = 'Transaction was rejected. Please try again.';
-      } else if (err.message?.includes('insufficient funds')) {
-        errorMessage = 'Insufficient funds. Please add more Sepolia ETH to your wallet.';
-      } else if (err.message?.includes('Invalid host')) {
-        errorMessage = 'Invalid host wallet address. Please contact support.';
-      } else if (err.message?.includes('undefined') || err.message?.includes('contract')) {
-        errorMessage = 'Booking contract not deployed. Please contact support.';
-      } else if (err.reason) {
-        errorMessage = err.reason;
+      if (err.response?.data?.detail) {
+        errorMessage = err.response.data.detail;
       } else if (err.message) {
         errorMessage = err.message;
       }
       
       setBookingError(errorMessage);
+    } finally {
+      setIsBooking(false);
     }
   };
 
-  // Success modal with transaction details
-  if (isSuccess && hash) {
-    const explorerUrl = `https://sepolia.etherscan.io/tx/${hash}`;
-    
+  // Success modal with booking confirmation
+  if (bookingSuccess && bookingData) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
@@ -186,21 +123,21 @@ export default function BookEventButton({
               </svg>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-2">Booking Confirmed!</h3>
-            <p className="text-gray-600">Your transaction has been successfully submitted to the blockchain</p>
+            <p className="text-gray-600">Your booking has been successfully created</p>
           </div>
 
-          {/* Transaction Details */}
+          {/* Booking Details */}
           <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-3">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Transaction Hash</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Booking ID</p>
               <div className="flex items-center gap-2">
                 <code className="text-sm text-gray-900 font-mono bg-white px-3 py-2 rounded border border-gray-200 flex-1 overflow-x-auto">
-                  {hash}
+                  {bookingData.id}
                 </code>
                 <button
-                  onClick={() => navigator.clipboard.writeText(hash)}
+                  onClick={() => navigator.clipboard.writeText(bookingData.id)}
                   className="p-2 hover:bg-gray-200 rounded transition-colors"
-                  title="Copy transaction hash"
+                  title="Copy booking ID"
                 >
                   <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -213,13 +150,13 @@ export default function BookEventButton({
               <div>
                 <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Status</p>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
-                  <span className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                  <span className="w-2 h-2 bg-green-600 rounded-full"></span>
                   Confirmed
                 </span>
               </div>
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Network</p>
-                <p className="text-sm font-medium text-gray-900">Sepolia Testnet</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Payment</p>
+                <p className="text-sm font-medium text-gray-900">{bookingData.payment?.status || 'Completed'}</p>
               </div>
             </div>
 
@@ -236,7 +173,7 @@ export default function BookEventButton({
                     <span className="font-medium text-gray-900">₹{costData.total_price_inr.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Refundable Stake:</span>
+                    <span className="text-gray-600">Refundable Deposit:</span>
                     <span className="font-medium text-terracotta-600">₹{costData.stake_inr.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="flex justify-between pt-1.5 border-t border-gray-200">
@@ -250,20 +187,13 @@ export default function BookEventButton({
 
           {/* Action Buttons */}
           <div className="space-y-3">
-            <a
-              href={explorerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full text-center bg-terracotta-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-terracotta-600 transition-all"
-            >
-              View on Etherscan
-            </a>
             <button
               onClick={() => {
                 setShowModal(false);
+                setBookingSuccess(false);
                 window.location.reload(); // Refresh to show updated bookings
               }}
-              className="block w-full text-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-900 font-medium"
+              className="block w-full text-center bg-terracotta-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-terracotta-600 transition-all"
             >
               Close
             </button>
@@ -272,7 +202,7 @@ export default function BookEventButton({
           {/* Info Message */}
           <div className="mt-4 bg-terracotta-50 border border-terracotta-200 rounded-lg p-3">
             <p className="text-sm text-terracotta-800">
-              <span className="font-semibold">Important:</span> Your ₹{costData?.stake_inr.toLocaleString('en-IN') || '200'} stake will be refunded after you attend the event. Don&apos;t forget to check in!
+              <span className="font-semibold">Important:</span> Your ₹{costData?.stake_inr.toLocaleString('en-IN') || '200'} refundable deposit will be returned after you attend the event. Don&apos;t forget to check in!
             </p>
           </div>
         </div>
@@ -332,19 +262,13 @@ export default function BookEventButton({
                     <div className="font-semibold text-gray-900">
                       ₹{costData.total_price_inr.toLocaleString('en-IN')}
                     </div>
-                    <div className="text-xs text-gray-500">
-                      {formatEthValue(BigInt(costData.total_cost_wei - costData.stake_wei))} ETH
-                    </div>
                   </div>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Refundable Stake (20%):</span>
+                  <span className="text-gray-600">Refundable Deposit (20%):</span>
                   <div className="text-right">
                     <div className="font-semibold text-terracotta-600">
                       ₹{costData.stake_inr.toLocaleString('en-IN')}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {formatEthValue(BigInt(costData.stake_wei))} ETH
                     </div>
                   </div>
                 </div>
@@ -354,19 +278,16 @@ export default function BookEventButton({
                     <div className="font-bold text-lg text-gray-900">
                       ₹{costData.total_cost_inr.toLocaleString('en-IN')}
                     </div>
-                    <div className="text-xs text-terracotta-600 font-semibold">
-                      {formatEthValue(BigInt(costData.total_cost_wei))} ETH
-                    </div>
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  * You&apos;ll get your ₹{costData.stake_inr.toLocaleString('en-IN')} stake back after attending the event
+                  * You&apos;ll get your ₹{costData.stake_inr.toLocaleString('en-IN')} refundable deposit back after attending the event
                 </p>
               </div>
             ) : null}
 
             {/* Error Display */}
-            {(bookingError || error) && (
+            {bookingError && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                 <div className="flex items-start gap-3">
                   <svg className="w-6 h-6 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -375,16 +296,8 @@ export default function BookEventButton({
                   <div className="flex-1">
                     <h4 className="font-semibold text-red-900 mb-1">Booking Error</h4>
                     <p className="text-sm text-red-800 leading-relaxed">
-                      {bookingError || error?.message}
+                      {bookingError}
                     </p>
-                    {chain && chain.id !== sepolia.id && (
-                      <button
-                        onClick={() => switchChain?.({ chainId: sepolia.id })}
-                        className="mt-3 text-sm font-medium text-red-700 hover:text-red-900 underline"
-                      >
-                        Switch to Sepolia Testnet
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>
@@ -395,42 +308,18 @@ export default function BookEventButton({
               <button
                 onClick={() => setShowModal(false)}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-900 font-medium"
-                disabled={isPending || isConfirming}
+                disabled={isBooking}
               >
                 Cancel
               </button>
               <button
                 onClick={handleBook}
-                disabled={(isPending || (isConfirming && !transactionFailed)) || !isConnected || (chain && chain.id !== sepolia.id)}
+                disabled={isBooking || !costData}
                 className="flex-1 bg-terracotta-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-terracotta-600 disabled:opacity-50 transition-all"
               >
-                {isPending && !transactionFailed && 'Waiting...'}
-                {isConfirming && !transactionFailed && 'Confirming...'}
-                {transactionFailed && 'Try Again'}
-                {!isPending && !isConfirming && !transactionFailed && (chain && chain.id !== sepolia.id ? 'Wrong Network' : 'Confirm & Pay')}
+                {isBooking ? 'Processing...' : 'Confirm & Pay'}
               </button>
             </div>
-
-            {/* Wallet Status */}
-            {!isConnected ? (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4 text-center">
-                <p className="text-sm text-yellow-800">
-                  Please connect your wallet to book
-                </p>
-              </div>
-            ) : chain && chain.id !== sepolia.id ? (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4 text-center">
-                <p className="text-sm text-yellow-800 mb-2">
-                  Wrong network: Connected to {chain.name}
-                </p>
-                <button
-                  onClick={() => switchChain?.({ chainId: sepolia.id })}
-                  className="text-sm font-medium text-yellow-900 underline hover:text-yellow-700"
-                >
-                  Switch to Sepolia Testnet
-                </button>
-              </div>
-            ) : null}
           </div>
         </div>
       )}
