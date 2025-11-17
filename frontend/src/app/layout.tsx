@@ -22,6 +22,14 @@ const lato = Lato({
 export const metadata: Metadata = {
   title: "Mayhouse",
   description: "Mayhouse frontend",
+  icons: {
+    icon: [
+      { url: "/logo2-nobg.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/logo2-nobg.png", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -31,6 +39,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/logo2-nobg.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/logo2-nobg.png" />
+      </head>
       <body className={`${lora.variable} ${lato.variable} font-sans antialiased`}>
         <Providers>
           <RoutePrefetcher />
