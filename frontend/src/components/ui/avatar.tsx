@@ -42,11 +42,18 @@ function AvatarFallback({
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
       className={cn(
-        "bg-muted flex size-full items-center justify-center rounded-full",
+        "bg-muted flex size-full items-center justify-center rounded-full overflow-hidden",
         className
       )}
       {...props}
-    />
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/user-image.png"
+        alt="User"
+        className="size-full object-cover object-center scale-125"
+      />
+    </AvatarPrimitive.Fallback>
   )
 }
 

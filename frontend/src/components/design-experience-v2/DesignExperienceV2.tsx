@@ -17,6 +17,13 @@ import Icon from '../ui/icon';
 import { DesignExperienceAPI } from '@/lib/design-experience-api';
 import { toast } from 'sonner';
 import { AIChatSidebar, ChatMessage } from './AIChatSidebar';
+import GuidedQAFlow from './GuidedQAFlow';
+import GuidedQAIntro from './GuidedQAIntro';
+import { experienceAPI } from '@/lib/experience-api';
+import { mapFormToExperienceCreate } from '@/lib/experience-mapper';
+import { useRouter } from 'next/navigation';
+import { AuthAPI, UserResponse } from '@/lib/api';
+import ExperiencePreviewCard from './ExperiencePreviewCard';
 
 type FormState = {
   title: string;
@@ -51,13 +58,17 @@ const INITIAL: FormState = {
 };
 
 export default function DesignExperienceV2() {
+  const router = useRouter();
   const [step, setStep] = useState(0);
   const [mode, setMode] = useState<'kickstart' | 'describe' | 'guided'>('kickstart');
+  const [hasStartedGuidedFlow, setHasStartedGuidedFlow] = useState(false);
   const [form, setForm] = useState<FormState>(INITIAL);
   const [photos, setPhotos] = useState<Array<{ id: string; url: string; isCover: boolean; caption?: string }>>([]);
   const [descriptionInput, setDescriptionInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [chatOpen, setChatOpen] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
@@ -66,12 +77,34 @@ export default function DesignExperienceV2() {
       timestamp: new Date(),
     },
   ]);
+  const [currentUser, setCurrentUser] = useState<UserResponse | null>(null);
+
+  // Fetch current user data for preview
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await AuthAPI.me();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+        // Continue without user data - preview will show placeholder
+      }
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     try {
       console.log('[FLOW] DesignExperienceV2 mounted', { ts: new Date().toISOString() });
     } catch {}
   }, []);
+
+  // Reset hasStartedGuidedFlow when mode changes away from 'guided'
+  useEffect(() => {
+    if (mode !== 'guided') {
+      setHasStartedGuidedFlow(false);
+    }
+  }, [mode]);
 
   useEffect(() => {
     try {
@@ -118,8 +151,8 @@ export default function DesignExperienceV2() {
     try {
       const generated = await DesignExperienceAPI.generateExperience(descriptionInput.trim());
       
-      // Populate form with generated data
-      setForm({
+      // Create form data from generated experience
+      const generatedFormData: FormState = {
         title: generated.title,
         description: generated.description,
         domain: generated.domain,
@@ -133,18 +166,91 @@ export default function DesignExperienceV2() {
         whatToExpect: generated.what_to_expect,
         whatToKnow: generated.what_to_know || '',
         whatToBring: generated.what_to_bring?.join(', ') || '',
-      });
+      };
+
+      // Populate form state for UI
+      setForm(generatedFormData);
+
+      // Auto-save as draft (don't redirect, let user review first)
+      toast.info('Saving experience as draft...');
+      const saved = await saveExperienceFromData(generatedFormData, false, false);
+      
+      if (saved) {
+        toast.success('Experience generated and saved as draft! Review and edit the fields below.');
+      } else {
+        toast.warning('Experience generated but could not be auto-saved. Please save manually.');
+      }
 
       // Reset mode and redirect to step 1 (scratch experience screen)
+      // Open the form sidebar so user can see the generated data
       setMode('kickstart');
       setStep(1);
-      toast.success('Experience generated! Review and edit the fields below.');
+      setFormOpen(true); // Open the form sidebar to show generated data
     } catch (error: any) {
       console.error('Error generating experience:', error);
       toast.error(error.response?.data?.detail || error.message || 'Failed to generate experience. Please try again.');
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const saveExperienceFromData = async (formData: FormState, showSuccessToast: boolean = true, redirect: boolean = true) => {
+    // Validate required fields
+    if (!formData.title || formData.title.trim().length < 10) {
+      toast.error('Title must be at least 10 characters');
+      return false;
+    }
+    if (!formData.description || formData.description.trim().length < 100) {
+      toast.error('Description must be at least 100 characters');
+      return false;
+    }
+    if (!formData.domain) {
+      toast.error('Please select a category');
+      return false;
+    }
+    if (!formData.meetingPoint || formData.meetingPoint.trim().length === 0) {
+      toast.error('Please provide a meeting point');
+      return false;
+    }
+    if (!formData.price || parseFloat(formData.price) <= 0) {
+      toast.error('Please enter a valid price');
+      return false;
+    }
+    if (!formData.whatToExpect || formData.whatToExpect.trim().length < 50) {
+      toast.error('What to expect must be at least 50 characters');
+      return false;
+    }
+
+    setIsSaving(true);
+    try {
+      // Map form data to ExperienceCreate format
+      const experienceData = mapFormToExperienceCreate(formData);
+
+      // Create experience via API
+      await experienceAPI.createExperience(experienceData);
+
+      if (showSuccessToast) {
+        toast.success('Experience saved as draft!');
+      }
+      
+      if (redirect) {
+        // Redirect to host dashboard
+        router.push('/host-dashboard');
+      }
+      
+      return true;
+    } catch (error: any) {
+      console.error('Error saving experience:', error);
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to save experience. Please try again.';
+      toast.error(errorMessage);
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveExperience = async () => {
+    await saveExperienceFromData(form, true, true);
   };
 
   const completion = useMemo(() => {
@@ -162,9 +268,6 @@ export default function DesignExperienceV2() {
     return { basicsOk, detailsOk, mediaOk };
   }, [form, photos]);
 
-  const badge = (ok: boolean) =>
-    ok ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700';
-
   const fieldClasses = (hasError: boolean) =>
     `w-full border rounded-lg px-3 py-2 text-black focus:ring-2 ${hasError ? 'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50' : 'border-gray-300 focus:ring-terracotta-500 focus:border-terracotta-500'}`;
 
@@ -172,28 +275,23 @@ export default function DesignExperienceV2() {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Main Content Area */}
       <div className={`flex-1 transition-all duration-300 ${chatOpen && step > 0 ? 'mr-96' : ''}`}>
-        {/* Header */}
-        <div className="bg-white border-b">
-          <div className="max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-black">
-                {step === 0 ? 'Kickstart Your Experience' : 'Design Your Experience'}
-              </h1>
-              <p className="text-black/70">
-                {step === 0
-                  ? 'Choose how you want to begin. We&apos;ll guide you the rest of the way.'
-                  : 'Create a unique local adventure for travelers'}
-              </p>
-            </div>
-            <div className="hidden md:flex items-center gap-2">
-              <span className={`px-3 py-1 rounded-full text-xs ${badge(completion.basicsOk)}`}>Basics</span>
-              <span className={`px-3 py-1 rounded-full text-xs ${badge(completion.detailsOk)}`}>Logistics</span>
-              <span className={`px-3 py-1 rounded-full text-xs ${badge(completion.mediaOk)}`}>Media</span>
+        {/* Header - Only show on step 0 */}
+        {step === 0 && (
+          <div className="bg-white border-b">
+            <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-black">
+                  Kickstart Your Experience
+                </h1>
+                <p className="text-black/70">
+                  Choose how you want to begin. We&apos;ll guide you the rest of the way.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        <div className="max-w-5xl mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Step 0 - Kickstart choices */}
         {step === 0 && mode === 'kickstart' && (
           <div className="space-y-8">
@@ -222,7 +320,10 @@ export default function DesignExperienceV2() {
               </button>
 
               <button
-                onClick={() => setMode('guided')}
+                onClick={() => {
+                  setMode('guided');
+                  setHasStartedGuidedFlow(false);
+                }}
                 className="text-left bg-white rounded-xl border shadow-[0_4px_14px_rgba(0,0,0,0.06),0_2px_6px_rgba(0,0,0,0.04)] hover:shadow-[0_10px_24px_rgba(0,0,0,0.10),0_4px_10px_rgba(0,0,0,0.06)] transition p-6"
               >
                 <div className="h-9 w-9 rounded-full bg-terracotta-100 text-terracotta-600 flex items-center justify-center mb-3">
@@ -262,6 +363,7 @@ export default function DesignExperienceV2() {
             <textarea
               value={descriptionInput}
               onChange={(e) => setDescriptionInput(e.target.value)}
+              maxLength={2000}
               onKeyDown={(e) => {
                 // Handle Cmd+Enter (Mac) or Ctrl+Enter (Windows) to generate
                 const isModifierPressed = e.metaKey || e.ctrlKey;
@@ -325,70 +427,83 @@ export default function DesignExperienceV2() {
           </div>
         )}
 
-        {/* Step 0.B - Guided Questions (placeholder) */}
-        {step === 0 && mode === 'guided' && (
-          <div className="max-w-3xl mx-auto bg-white rounded-xl border shadow-sm p-8">
-            <button
-              onClick={() => setMode('kickstart')}
-              className="text-sm text-black/70 mb-6 hover:underline"
-            >
-              <span className="inline-flex items-center gap-1">
-                <Icon as={ChevronLeft} size={16} className="text-black/70" />
-                Back
-              </span>
-            </button>
-            <h3 className="text-xl font-semibold text-black mb-2">Let’s Build Together</h3>
-            <p className="text-black/70 mb-6">
-              We’ll ask you a few questions to understand your experience.
-            </p>
-            <div className="rounded-lg border bg-gray-50 p-6 text-black/70">
-              Coming soon: Interactive Q&amp;A flow
-            </div>
-            <div className="mt-6 flex items-center gap-3">
-              <button className="flex-1 bg-black text-white rounded-lg py-2 hover:bg-black/90 inline-flex items-center justify-center gap-2">
-                <Icon as={Sparkles} size={16} className="text-white" />
-                Generate My Experience
-              </button>
-              <button
-                onClick={() => setStep(1)}
-                className="px-4 py-2 rounded-lg border hover:bg-gray-50"
-              >
-                Skip
-              </button>
-            </div>
-          </div>
+        {/* Step 0.B - Guided Questions Intro */}
+        {step === 0 && mode === 'guided' && !hasStartedGuidedFlow && (
+          <GuidedQAIntro
+            onStart={() => setHasStartedGuidedFlow(true)}
+            onCancel={() => {
+              setMode('kickstart');
+              setHasStartedGuidedFlow(false);
+            }}
+          />
         )}
 
-        {/* Progress */}
-        {step > 0 && (
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              {[1, 2, 3, 4].map((n) => (
-                <div
-                  key={n}
-                  className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium ${
-                    step >= n ? 'bg-terracotta-500 text-white' : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {n}
-                </div>
-              ))}
-            </div>
-            <span className="text-sm text-black/70">Step {step} of 4</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-terracotta-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(step / 4) * 100}%` }}
-            />
-          </div>
-        </div>
+        {/* Step 0.C - Guided Questions Flow */}
+        {step === 0 && mode === 'guided' && hasStartedGuidedFlow && (
+          <GuidedQAFlow
+            onComplete={async (generated) => {
+              // Create form data from generated experience
+              const generatedFormData: FormState = {
+                title: generated.title,
+                description: generated.description,
+                domain: generated.domain,
+                theme: generated.theme || '',
+                duration: generated.duration_minutes,
+                maxCapacity: generated.max_capacity,
+                price: generated.price_inr ? generated.price_inr.toString() : '',
+                neighborhood: generated.neighborhood || '',
+                meetingPoint: generated.meeting_point || '',
+                requirements: generated.requirements?.join(', ') || '',
+                whatToExpect: generated.what_to_expect,
+                whatToKnow: generated.what_to_know || '',
+                whatToBring: generated.what_to_bring?.join(', ') || '',
+              };
+
+              // Populate form state for UI
+              setForm(generatedFormData);
+
+              // Auto-save as draft (don't redirect, let user review first)
+              toast.info('Saving experience as draft...');
+              const saved = await saveExperienceFromData(generatedFormData, false, false);
+              
+              if (saved) {
+                toast.success('Experience generated and saved as draft! Review and edit the fields below.');
+              } else {
+                toast.warning('Experience generated but could not be auto-saved. Please save manually.');
+              }
+
+              // Reset mode and redirect to step 1 (form editing screen)
+              setMode('kickstart');
+              setHasStartedGuidedFlow(false);
+              setStep(1);
+            }}
+            onCancel={() => {
+              setMode('kickstart');
+              setHasStartedGuidedFlow(false);
+            }}
+          />
         )}
 
-        {/* Card */}
+
+        {/* Form and Preview Layout */}
         {step > 0 && (
-        <div className="bg-white rounded-xl border shadow-sm p-8">
+        <div className="relative">
+          {/* Form Card - Sidebar when open */}
+          {formOpen && (
+            <>
+              <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setFormOpen(false)} />
+              <div className="fixed inset-y-0 left-0 z-50 w-full max-w-xl bg-white border-r shadow-xl overflow-y-auto">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-semibold text-black">Edit Experience</h2>
+                    <button
+                      onClick={() => setFormOpen(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <Icon as={ChevronLeft} size={20} />
+                    </button>
+                  </div>
+                  <div className="space-y-6">
           {step === 1 && (
             <div className="space-y-6">
               <h2 className="text-xl font-semibold text-black">Basic Information</h2>
@@ -401,6 +516,7 @@ export default function DesignExperienceV2() {
                   type="text"
                   value={form.title}
                   onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                  maxLength={2000}
                   placeholder="e.g., Mumbai Street Food Adventure with Local Guide"
                   className={fieldClasses(form.title.trim().length > 0 && form.title.trim().length < 10)}
                 />
@@ -414,6 +530,7 @@ export default function DesignExperienceV2() {
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                  maxLength={2000}
                   rows={4}
                   placeholder="Describe what makes your experience unique and exciting..."
                   className={fieldClasses(form.description.trim().length > 0 && form.description.trim().length < 100)}
@@ -487,6 +604,7 @@ export default function DesignExperienceV2() {
                   type="text"
                   value={form.neighborhood}
                   onChange={(e) => setForm((p) => ({ ...p, neighborhood: e.target.value }))}
+                  maxLength={2000}
                   placeholder="e.g., Colaba, Bandra, Andheri"
                   className={fieldClasses(form.neighborhood.trim().length === 0)}
                 />
@@ -501,6 +619,7 @@ export default function DesignExperienceV2() {
                   type="text"
                   value={form.meetingPoint}
                   onChange={(e) => setForm((p) => ({ ...p, meetingPoint: e.target.value }))}
+                  maxLength={2000}
                   placeholder="e.g., Gateway of India, Main Entrance"
                   className={fieldClasses(form.meetingPoint.trim().length === 0)}
                 />
@@ -514,6 +633,7 @@ export default function DesignExperienceV2() {
                 <textarea
                   value={form.whatToExpect}
                   onChange={(e) => setForm((p) => ({ ...p, whatToExpect: e.target.value }))}
+                  maxLength={2000}
                   rows={3}
                   placeholder="Describe the unique highlights and special moments..."
                   className={fieldClasses(form.whatToExpect.trim().length > 0 && form.whatToExpect.trim().length < 50)}
@@ -532,6 +652,7 @@ export default function DesignExperienceV2() {
                 <textarea
                   value={form.requirements}
                   onChange={(e) => setForm((p) => ({ ...p, requirements: e.target.value }))}
+                  maxLength={2000}
                   rows={2}
                   placeholder="Any age restrictions, fitness requirements, etc..."
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
@@ -543,6 +664,7 @@ export default function DesignExperienceV2() {
                 <textarea
                   value={form.whatToBring}
                   onChange={(e) => setForm((p) => ({ ...p, whatToBring: e.target.value }))}
+                  maxLength={2000}
                   rows={2}
                   placeholder="Items participants should bring (comfortable shoes, camera, etc.)"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
@@ -554,6 +676,7 @@ export default function DesignExperienceV2() {
                 <textarea
                   value={form.whatToKnow}
                   onChange={(e) => setForm((p) => ({ ...p, whatToKnow: e.target.value }))}
+                  maxLength={2000}
                   rows={3}
                   placeholder="Important information, cancellation policy, weather considerations, etc."
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
@@ -680,11 +803,49 @@ export default function DesignExperienceV2() {
               </button>
             ) : (
               <div className="flex gap-3">
-                <button className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                <button
+                  onClick={handleSaveExperience}
+                  disabled={isSaving || !completion.basicsOk || !completion.detailsOk}
+                  className="px-6 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                >
+                  {isSaving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Icon as={CheckCircle2} size={16} className="text-white" />
+                      Save as Draft
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => router.push('/host-dashboard')}
+                  className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                >
                   ← Back to Dashboard
                 </button>
               </div>
             )}
+          </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Preview Card - Centered on screen */}
+          <div className="flex justify-center items-start min-h-[calc(100vh-200px)] py-8">
+            <div className="w-full" style={{ maxWidth: '400px' }}>
+              <ExperiencePreviewCard
+                form={form}
+                host={currentUser}
+                photos={photos}
+                onEdit={() => setFormOpen(true)}
+                onSubmit={handleSaveExperience}
+              />
+            </div>
           </div>
         </div>
         )}

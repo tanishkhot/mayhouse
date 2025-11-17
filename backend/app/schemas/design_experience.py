@@ -86,3 +86,30 @@ class ExperienceGenerationResponse(BaseModel):
     what_to_know: Optional[str] = None
 
 
+class QAAnswer(BaseModel):
+    """Schema for a single Q&A answer."""
+    question_id: str = Field(..., description="Question identifier (e.g., 'q1', 'q2')")
+    question_text: str = Field(..., description="The question text")
+    answer: Optional[str] = Field(None, description="Text answer for textarea questions")
+    structured_data: Optional[Dict[str, Any]] = Field(
+        None, description="Structured data for number/structured questions"
+    )
+    photo_ids: Optional[List[str]] = Field(None, description="Photo IDs for photo questions")
+    answered_at: str = Field(..., description="ISO timestamp when answered")
+    character_count: Optional[int] = Field(None, description="Character count for text answers")
+
+
+class QASaveRequest(BaseModel):
+    """Request schema for saving Q&A answers to a session."""
+    session_id: str = Field(..., description="Design session ID")
+    qa_answers: List[QAAnswer] = Field(..., description="List of Q&A answers")
+
+
+class QAGenerationRequest(BaseModel):
+    """Request schema for generating experience from Q&A answers."""
+    qa_answers: List[QAAnswer] = Field(
+        ..., 
+        description="List of Q&A answers to extract experience data from"
+    )
+
+

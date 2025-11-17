@@ -10,15 +10,6 @@ interface ProfileHeaderProps {
 }
 
 export function ProfileHeader({ profile, isOwnProfile, onEditClick }: ProfileHeaderProps) {
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   const stats = profile.host_stats;
   const isSuperhost = stats && stats.experience_count >= 5 && stats.review_count >= 10 && (stats.avg_rating || 0) >= 4.8;
 
@@ -38,9 +29,12 @@ export function ProfileHeader({ profile, isOwnProfile, onEditClick }: ProfileHea
                   className="w-24 h-24 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-terracotta-500 flex items-center justify-center text-white text-2xl font-bold">
-                  {getInitials(profile.full_name)}
-                </div>
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src="/user-image.png"
+                  alt={profile.full_name}
+                  className="w-24 h-24 rounded-full object-cover object-center scale-125"
+                />
               )}
               {/* Verified Badge */}
               {profile.wallet_address && (

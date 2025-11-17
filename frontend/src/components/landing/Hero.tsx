@@ -59,7 +59,12 @@ export function Hero() {
               />
               <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur rounded-xl p-4 shadow-lg">
                 <div className="flex items-start gap-3">
-                  <div className="h-12 w-12 rounded-full bg-terracotta-500 flex-shrink-0" />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/user-image.png"
+                    alt="Featured Host"
+                    className="h-12 w-12 rounded-full object-cover object-center scale-125 flex-shrink-0"
+                  />
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground">Featured Host</p>
                     <h4>Maria&apos;s Hidden Barcelona</h4>

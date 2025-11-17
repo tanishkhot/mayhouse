@@ -37,7 +37,7 @@ interface Experience {
   duration_minutes: number;
   price_inr: string;
   neighborhood: string;
-  status: 'draft' | 'submitted' | 'approved' | 'rejected';
+  status: 'draft' | 'submitted' | 'approved' | 'rejected' | 'archived';
   admin_feedback?: string;
   created_at: string;
   updated_at: string;
@@ -82,6 +82,8 @@ const HostDashboardContent = () => {
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
   const [allExperiences, setAllExperiences] = useState<Experience[]>([]);
   const [experiencePhotos, setExperiencePhotos] = useState<Record<string, string>>({});
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   
   // Experience creation state
   const [step, setStep] = useState(1);
@@ -148,11 +150,12 @@ const HostDashboardContent = () => {
       // Fetch cover photos for all experiences
       fetchExperiencePhotos(allData.map((exp: Experience) => exp.id));
       
-      // Filter experiences based on current filter
+      // Filter experiences based on current filter and exclude archived ones
+      const nonArchivedData = allData.filter((exp: Experience) => exp.status !== 'archived');
       if (filter === 'all') {
-        setExperiences(allData);
+        setExperiences(nonArchivedData);
       } else {
-        const filteredData = allData.filter((exp: Experience) => exp.status === filter);
+        const filteredData = nonArchivedData.filter((exp: Experience) => exp.status === filter);
         setExperiences(filteredData);
       }
     } catch (err: unknown) {
@@ -196,6 +199,42 @@ const HostDashboardContent = () => {
       console.error('Error submitting experience:', err);
       setError(err instanceof Error ? err.message : 'Failed to submit experience');
       alert('Failed to submit experience. Please try again.');
+    }
+  };
+
+  const handleDeleteExperience = async () => {
+    if (deleteConfirmText !== 'DELETE') {
+      return;
+    }
+
+    if (selectedExperience) {
+      try {
+        const token = localStorage.getItem('mayhouse_token');
+        if (!token) {
+          setError('Authentication required');
+          return;
+        }
+
+        // Archive the experience (soft delete)
+        // Note: DELETE requests with 204 status don't return a body, so we need to handle that
+        // host_id is now extracted from the authorization token on the backend
+        await api.delete(`/experiences/${selectedExperience.id}`, {
+          validateStatus: (status) => status === 204 || status < 500, // Accept 204 and any non-server error
+        });
+
+        // Close modals and refresh
+        setSelectedExperience(null);
+        setShowDeleteConfirm(false);
+        setDeleteConfirmText('');
+
+        // Refresh experiences list
+        fetchExperiences();
+      } catch (err: any) {
+        console.error('Error archiving experience:', err);
+        const errorMessage = err?.response?.data?.detail || err?.message || 'Failed to archive experience';
+        setError(errorMessage);
+        alert(`Failed to archive experience: ${errorMessage}`);
+      }
     }
   };
   
@@ -881,22 +920,85 @@ const HostDashboardContent = () => {
                     </div>
                   )}
 
-                  <div className="flex justify-end space-x-3">
-                    {selectedExperience.status === 'draft' && (
-                      <button
-                        onClick={() => handleSubmitForReview(selectedExperience.id)}
-                        className="px-6 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
-                      >
-                        Submit for Review
-                      </button>
-                    )}
+                  <div className="flex justify-between items-center">
                     <button
-                      onClick={() => setSelectedExperience(null)}
-                      className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                      onClick={() => {
+                        setShowDeleteConfirm(true);
+                        setDeleteConfirmText('');
+                      }}
+                      className="px-6 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
                     >
-                      Close
+                      Delete
                     </button>
+                    <div className="flex space-x-3">
+                      {selectedExperience.status === 'draft' && (
+                        <button
+                          onClick={() => handleSubmitForReview(selectedExperience.id)}
+                          className="px-6 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
+                        >
+                          Submit for Review
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setSelectedExperience(null)}
+                        className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                      >
+                        Close
+                      </button>
+                    </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && selectedExperience && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-black">Delete Experience</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  This will remove the experience from your drafts. This action cannot be undone.
+                </p>
+              </div>
+              <div className="p-6">
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Type <strong>DELETE</strong> to confirm:
+                  </label>
+                  <input
+                    type="text"
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && deleteConfirmText === 'DELETE') {
+                        handleDeleteExperience();
+                      }
+                    }}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    placeholder="DELETE"
+                    autoFocus
+                  />
+                </div>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => {
+                      setShowDeleteConfirm(false);
+                      setDeleteConfirmText('');
+                    }}
+                    className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteExperience}
+                    disabled={deleteConfirmText !== 'DELETE'}
+                    className="px-6 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             </div>

@@ -244,35 +244,45 @@ async def submit_experience_for_review(
 @host_router.delete(
     "/{experience_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete Experience",
-    description="Delete an experience (draft or rejected only)",
+    summary="Archive Experience",
+    description="Archive an experience (soft delete - sets status to archived)",
 )
 async def delete_experience(
     experience_id: str = Path(..., description="Experience ID"),
-    host_id: str = Query(
-        ..., description="Host User ID (temporary - will be from auth later)"
-    ),
+    authorization: str = Header(None),
 ) -> None:
     """
-    Delete an experience.
+    Archive an experience (soft delete - sets status to archived).
 
     Requirements:
     - Experience must be in 'draft' or 'rejected' status
-    - Cannot delete 'submitted' or 'approved' experiences
-    - This action is permanent and cannot be undone
+    - Cannot archive 'submitted' or 'approved' experiences
+    - This archives the experience (does not delete from database)
     """
-    # Get experience to verify ownership and status
-    experience = await experience_service.get_experience_by_id(experience_id, host_id)
-
-    if experience.status not in [ExperienceStatus.DRAFT, ExperienceStatus.REJECTED]:
+    # Extract host_id from authorization token
+    if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Cannot delete experience with status '{experience.status}'. Only draft or rejected experiences can be deleted.",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid authorization header",
         )
-
-    # TODO: Implement actual deletion in service
-    # For now, we'll just return success
-    return None
+    
+    token = authorization.replace("Bearer ", "")
+    payload = verify_token(token)
+    
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+    
+    host_id = payload.get("sub")
+    if not host_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User ID not found in token",
+        )
+    
+    await experience_service.archive_experience(experience_id, host_id)
 
 
 # =============================================

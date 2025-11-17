@@ -175,11 +175,12 @@ export default function Navbar() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="gap-2">
-                        <div className="h-6 w-6 rounded-full bg-terracotta-500 flex items-center justify-center">
-                          <span className="text-white text-xs font-semibold">
-                            {address?.slice(2, 4).toUpperCase()}
-                          </span>
-                        </div>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/user-image.png"
+                          alt="User"
+                          className="h-6 w-6 rounded-full object-cover object-center scale-125"
+                        />
                         <span className="hidden lg:inline">Account</span>
                       </Button>
                     </DropdownMenuTrigger>

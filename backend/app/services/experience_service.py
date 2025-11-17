@@ -335,6 +335,57 @@ class ExperienceService:
                 detail="Failed to update experience",
             )
 
+    async def archive_experience(
+        self, experience_id: str, host_id: str
+    ) -> ExperienceResponse:
+        """Archive an experience (soft delete - sets status to archived)."""
+        try:
+            service_client = self._get_service_client()
+
+            # Get current experience to verify ownership and status
+            current_exp = await self.get_experience_by_id(experience_id, host_id)
+
+            # Only allow archiving for draft or rejected experiences
+            if current_exp.status not in [
+                ExperienceStatus.DRAFT,
+                ExperienceStatus.REJECTED,
+            ]:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Cannot archive experience with status '{current_exp.status}'. Only draft or rejected experiences can be archived.",
+                )
+
+            # Update status to archived
+            update_record = {
+                "status": ExperienceStatus.ARCHIVED.value,
+                "updated_at": datetime.utcnow().isoformat(),
+            }
+
+            # Update experience
+            response = (
+                service_client.table("experiences")
+                .update(update_record)
+                .eq("id", experience_id)
+                .execute()
+            )
+
+            if not response.data:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to archive experience",
+                )
+
+            return self._map_to_experience_response(response.data[0])
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error archiving experience: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to archive experience",
+            )
+
     # =============================================
     # ADMIN EXPERIENCE MANAGEMENT
     # =============================================

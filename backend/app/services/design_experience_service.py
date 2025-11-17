@@ -17,6 +17,7 @@ from app.schemas.design_experience import (
     StepMediaReorder,
     DesignSessionReview,
     ExperienceGenerationResponse,
+    QAAnswer,
 )
 from app.schemas.experience import ExperienceStatus
 
@@ -295,6 +296,138 @@ Be creative but realistic. Focus on authentic, local experiences that travelers 
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to generate experience: {str(e)}"
+            )
+
+    async def save_qa_answers(
+        self, session_id: str, host_id: str, qa_answers: list[QAAnswer]
+    ) -> Dict[str, Any]:
+        """
+        Save Q&A answers to a design session.
+        
+        Args:
+            session_id: Design session ID
+            host_id: Host user ID
+            qa_answers: List of Q&A answers to save
+            
+        Returns:
+            Updated session record
+        """
+        now = _utcnow_iso()
+        
+        # Convert Pydantic models to dicts for JSONB storage
+        qa_answers_dict = [qa.model_dump(exclude_none=True) for qa in qa_answers]
+        
+        update = {
+            "qa_answers": qa_answers_dict,
+            "updated_at": now,
+            "last_saved_at": now,
+        }
+        
+        res = (
+            self._sessions()
+            .update(update)
+            .eq("id", session_id)
+            .eq("host_id", host_id)
+            .execute()
+        )
+        
+        if not res.data:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        return res.data[0]
+
+    async def generate_from_qa(
+        self, user_id: str, qa_answers: list[QAAnswer]
+    ) -> Dict[str, Any]:
+        """
+        Generate experience fields from Q&A answers using LangChain + Groq.
+        
+        Args:
+            user_id: User ID (for future use in personalization)
+            qa_answers: List of Q&A answers from the guided flow
+            
+        Returns:
+            Dictionary with generated experience fields matching ExperienceGenerationResponse schema
+        """
+        settings = get_settings()
+        
+        # Check if Groq API key is configured
+        if not settings.groq_api_key:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="AI service not configured. Please contact support."
+            )
+        
+        try:
+            import os
+            from langchain_groq import ChatGroq
+            from langchain_core.prompts import ChatPromptTemplate
+            
+            # Set Groq API key in environment if not already set
+            if not os.getenv("GROQ_API_KEY") and settings.groq_api_key:
+                os.environ["GROQ_API_KEY"] = settings.groq_api_key
+            
+            # Initialize Groq model
+            llm = ChatGroq(
+                model="llama-3.3-70b-versatile",
+                temperature=0.7,
+                max_tokens=2000,
+            )
+            
+            # Create structured output chain using Pydantic schema
+            structured_llm = llm.with_structured_output(ExperienceGenerationResponse)
+            
+            # Build context from Q&A answers
+            qa_context = "\n\n".join([
+                f"Q{qa.question_id}: {qa.question_text}\nA: {qa.answer or (qa.structured_data if qa.structured_data else 'N/A')}"
+                for qa in qa_answers
+            ])
+            
+            # Create prompt template
+            prompt = ChatPromptTemplate.from_messages([
+                ("system", """You are an expert travel experience curator for Mayhouse, a platform for authentic, local experiences.
+
+Your task is to analyze Q&A answers from a host and generate structured data that will help them create a compelling experience listing.
+
+Guidelines:
+- Extract key information from the Q&A answers: location, activity type, duration, capacity, pricing
+- Generate an engaging title (10-80 characters) that captures the essence
+- Create a refined, detailed description (100-2000 characters) that expands on the host's answers
+- Identify the unique element ("what_to_expect") that makes this experience special
+- Determine the appropriate domain: "food", "culture", "art", "history", "nature", "nightlife", "photography", or "other"
+- Suggest a theme if applicable (e.g., "Local Markets & Heritage", "Street Food Tour", "Sunset Photography")
+- Infer duration in minutes (typically 60-480 minutes, default to 180 if unclear)
+- Suggest max_capacity (typically 1-4 travelers for intimate experiences)
+- Extract neighborhood and meeting_point from the answers
+- Generate relevant requirements (e.g., ["Age 18+", "Moderate fitness level"])
+- Suggest what_to_bring items (e.g., ["Comfortable walking shoes", "Camera"])
+- Provide important safety/contextual information in what_to_know
+
+Be creative but realistic. Focus on authentic, local experiences that travelers would genuinely want to book.
+Use the Q&A answers as your primary source of information."""),
+                ("human", "Generate experience data from these Q&A answers:\n\n{qa_context}")
+            ])
+            
+            # Create chain
+            chain = prompt | structured_llm
+            
+            # Invoke the chain
+            result = chain.invoke({"qa_context": qa_context})
+            
+            # Convert Pydantic model to dict
+            return result.model_dump(exclude_none=False)
+            
+        except ImportError as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"AI dependencies not installed: {str(e)}"
+            )
+        except Exception as e:
+            # Log the error for debugging
+            print(f"Error generating experience from Q&A: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to generate experience from Q&A: {str(e)}"
             )
 
 

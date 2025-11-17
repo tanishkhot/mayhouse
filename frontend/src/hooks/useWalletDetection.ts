@@ -5,28 +5,35 @@ import { useState, useEffect } from 'react';
 export function useWalletDetection() {
   const [hasWallet, setHasWallet] = useState(false);
   const [isMetaMask, setIsMetaMask] = useState(false);
-  const [isDetecting, setIsDetecting] = useState(true);
+  // Initialize based on environment to avoid synchronous setState in effect
+  const [isDetecting, setIsDetecting] = useState(() => typeof window !== 'undefined');
 
   useEffect(() => {
     // Check if we're in browser environment
     if (typeof window === 'undefined') {
-      setIsDetecting(false);
       return;
     }
 
-    // Check for EIP-1193 provider (most wallets inject this)
-    const ethereum = (window as any).ethereum;
-    
-    if (ethereum) {
-      setHasWallet(true);
-      // Check if it's specifically MetaMask
-      setIsMetaMask(ethereum.isMetaMask === true);
-    } else {
-      setHasWallet(false);
-      setIsMetaMask(false);
-    }
+    // Batch state updates to avoid cascading renders
+    // Use setTimeout to defer state updates and batch them
+    const updateState = () => {
+      // Check for EIP-1193 provider (most wallets inject this)
+      const ethereum = (window as any).ethereum;
+      
+      if (ethereum) {
+        setHasWallet(true);
+        // Check if it's specifically MetaMask
+        setIsMetaMask(ethereum.isMetaMask === true);
+      } else {
+        setHasWallet(false);
+        setIsMetaMask(false);
+      }
 
-    setIsDetecting(false);
+      setIsDetecting(false);
+    };
+
+    // Defer state updates to next tick to batch them
+    const timeoutId = setTimeout(updateState, 0);
 
     // Listen for wallet installation
     const handleEthereum = () => {
@@ -49,6 +56,7 @@ export function useWalletDetection() {
     }, 1000);
 
     return () => {
+      clearTimeout(timeoutId);
       window.removeEventListener('ethereum#initialized', handleEthereum);
       clearInterval(interval);
     };

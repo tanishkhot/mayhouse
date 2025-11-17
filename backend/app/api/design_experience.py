@@ -15,6 +15,9 @@ from app.schemas.design_experience import (
     DesignSessionReview,
     ExperienceGenerationRequest,
     ExperienceGenerationResponse,
+    QASaveRequest,
+    QAGenerationRequest,
+    QAAnswer,
 )
 
 router = APIRouter(prefix="/design-experience", tags=["Design Experience"])
@@ -130,6 +133,44 @@ async def generate_experience(
     generated = await design_experience_service.generate_from_description(
         user_id, 
         body.description
+    )
+    return ExperienceGenerationResponse(**generated)
+
+
+@router.patch("/session/{session_id}/qa-answers")
+async def save_qa_answers(
+    session_id: str,
+    body: QASaveRequest,
+    authorization: str = Header(None),
+):
+    """
+    Save Q&A answers to a design session.
+    Stores answers from the guided "Let's Build Together" flow.
+    """
+    user_id = await _get_user_id_from_auth(authorization)
+    updated = await design_experience_service.save_qa_answers(
+        session_id, user_id, body.qa_answers
+    )
+    return {
+        "session_id": updated["id"],
+        "updated_at": updated["updated_at"],
+        "qa_answers_count": len(body.qa_answers)
+    }
+
+
+@router.post("/generate-from-qa", response_model=ExperienceGenerationResponse)
+async def generate_from_qa(
+    body: QAGenerationRequest,
+    authorization: str = Header(None),
+):
+    """
+    Generate experience fields from Q&A answers.
+    Takes array of question-answer pairs and extracts structured experience data using AI.
+    """
+    user_id = await _get_user_id_from_auth(authorization)
+    generated = await design_experience_service.generate_from_qa(
+        user_id, 
+        body.qa_answers
     )
     return ExperienceGenerationResponse(**generated)
 

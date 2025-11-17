@@ -60,9 +60,12 @@ export function Testimonials() {
               </p>
 
               <div className="flex items-center gap-3 pt-4 border-t">
-                <div className="h-12 w-12 rounded-full bg-terracotta-500 flex items-center justify-center flex-shrink-0 text-white">
-                  {testimonial.name.split(' ').map(n => n[0]).join('')}
-                </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/user-image.png"
+                  alt={testimonial.name}
+                  className="h-12 w-12 rounded-full object-cover object-center scale-125 flex-shrink-0"
+                />
                 <div className="flex-1">
                   <p>{testimonial.name}</p>
                   <p className="text-sm text-muted-foreground">

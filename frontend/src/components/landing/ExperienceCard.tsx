@@ -33,6 +33,8 @@ export interface ExperienceCardProps {
   ctaLabel?: string;
   ctaHref?: string;
   onCtaClick?: (id: string) => void;
+  ctaIcon?: React.ReactNode;
+  ctaClassName?: string;
 }
 
 export function ExperienceCard({
@@ -57,6 +59,8 @@ export function ExperienceCard({
   ctaLabel = 'Book now',
   ctaHref,
   onCtaClick,
+  ctaIcon,
+  ctaClassName,
 }: ExperienceCardProps) {
   const numericPrice = Number(price);
   const formattedPrice = Number.isFinite(numericPrice)
@@ -147,7 +151,21 @@ export function ExperienceCard({
           )}
           
           <div className="flex items-center gap-2 mb-3">
-            <div className="h-8 w-8 rounded-full bg-terracotta-500 flex-shrink-0" />
+            {host.avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={host.avatar}
+                alt={host.name}
+                className="h-8 w-8 rounded-full object-cover flex-shrink-0"
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src="/user-image.png"
+                alt={host.name}
+                className="h-8 w-8 rounded-full object-cover object-center scale-125 flex-shrink-0"
+              />
+            )}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1">
                 <p className="text-sm truncate">{host.name}</p>
@@ -187,7 +205,7 @@ export function ExperienceCard({
           </div>
           <Button
             size="sm"
-            className="bg-terracotta-500 hover:bg-terracotta-600"
+            className={ctaClassName || "bg-terracotta-500 hover:bg-terracotta-600"}
             onClick={handleCtaClick}
             onMouseEnter={() => {
               // Prefetch data when hovering over the button
@@ -204,6 +222,7 @@ export function ExperienceCard({
               }
             }}
           >
+            {ctaIcon && <span className="mr-1.5">{ctaIcon}</span>}
             {ctaLabel}
           </Button>
         </div>
