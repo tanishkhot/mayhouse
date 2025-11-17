@@ -79,6 +79,30 @@ export default function DesignExperienceV2() {
     } catch {}
   }, [step]);
 
+  // Keyboard shortcut: Cmd+Enter (Mac) or Ctrl+Enter (Windows) to generate experience
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only trigger when on the describe step (step 0, mode 'describe')
+      if (step === 0 && mode === 'describe') {
+        // Check for Cmd+Enter (Mac) or Ctrl+Enter (Windows)
+        const isModifierPressed = e.metaKey || e.ctrlKey;
+        if (isModifierPressed && e.key === 'Enter') {
+          // Only trigger if button is not disabled
+          if (!isGenerating && descriptionInput.trim() && descriptionInput.trim().length >= 20) {
+            e.preventDefault();
+            handleGenerateExperience();
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, mode, isGenerating, descriptionInput]);
+
   const handleGenerateExperience = async () => {
     if (!descriptionInput.trim()) {
       toast.error('Please enter a description of your experience');
@@ -238,6 +262,16 @@ export default function DesignExperienceV2() {
             <textarea
               value={descriptionInput}
               onChange={(e) => setDescriptionInput(e.target.value)}
+              onKeyDown={(e) => {
+                // Handle Cmd+Enter (Mac) or Ctrl+Enter (Windows) to generate
+                const isModifierPressed = e.metaKey || e.ctrlKey;
+                if (isModifierPressed && e.key === 'Enter') {
+                  if (!isGenerating && descriptionInput.trim() && descriptionInput.trim().length >= 20) {
+                    e.preventDefault();
+                    handleGenerateExperience();
+                  }
+                }
+              }}
               className="w-full min-h-[160px] border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
               placeholder="Example: A sunset heritage walk through old Bangalore markets where we discover century‑old spice merchants, family‑run sweet shops, and hidden temples..."
             />
@@ -268,6 +302,11 @@ export default function DesignExperienceV2() {
               >
                 Skip
               </button>
+            </div>
+            <div className="mt-2 text-xs text-gray-500 text-center">
+              Press <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">
+                {typeof window !== 'undefined' && (navigator.platform.toUpperCase().indexOf('MAC') >= 0 || navigator.userAgent.toUpperCase().indexOf('MAC') >= 0) ? '⌘' : 'Ctrl'}
+              </kbd> + <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Enter</kbd> to generate
             </div>
             <div className="mt-6 rounded-lg border bg-gray-50 p-4 text-sm text-black/80">
               <div className="mb-2 inline-flex items-center gap-2">

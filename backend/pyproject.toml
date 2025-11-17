@@ -1,0 +1,25 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Mayhouse ETH Backend API"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi==0.118.0",
+    "uvicorn==0.37.0",
+    "python-dotenv==1.1.1",
+    "pydantic==2.11.9",
+    "pydantic-settings==2.11.0",
+    "supabase>=2.20.0",
+    "PyJWT==2.10.1",
+    "python-jose[cryptography]==3.5.0",
+    "email-validator==2.3.0",
+    "eth-account>=0.13.1",
+    "web3==7.6.0",
+    "hexbytes>=1.2.0",
+    "eip712>=0.1.0",
+    "requests>=2.31.0",
+    "python-multipart==0.0.9",
+    "langchain>=0.3.0",
+    "langchain-groq>=0.1.0",
+    "langchain-core>=0.3.0",
+]

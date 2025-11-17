@@ -10,11 +10,13 @@ from datetime import datetime, timezone
 from fastapi import HTTPException, status
 from supabase import Client
 from app.core.database import get_service_client
+from app.core.config import get_settings
 from app.schemas.design_experience import (
     StepBasicsPayload,
     StepLogisticsPayload,
     StepMediaReorder,
     DesignSessionReview,
+    ExperienceGenerationResponse,
 )
 from app.schemas.experience import ExperienceStatus
 
@@ -212,42 +214,88 @@ class DesignExperienceService:
 
     async def generate_from_description(self, user_id: str, description: str) -> Dict[str, Any]:
         """
-        Generate experience fields from a natural language description.
-        
-        TODO: Integrate LangChain flow here to generate structured experience data.
-        For now, returns a placeholder structure that matches the expected response.
+        Generate experience fields from a natural language description using LangChain + Groq.
         
         Args:
             user_id: User ID (for future use in personalization)
             description: Natural language description of the experience
             
         Returns:
-            Dictionary with generated experience fields
+            Dictionary with generated experience fields matching ExperienceGenerationResponse schema
         """
-        # TODO: Replace this with actual LangChain AI generation
-        # This is a placeholder that returns a structured response
-        # The LangChain flow will be added here to:
-        # 1. Parse the description
-        # 2. Extract key information (location, activity type, duration, etc.)
-        # 3. Generate appropriate fields (title, description, domain, etc.)
-        # 4. Return structured data
+        settings = get_settings()
         
-        # Placeholder response - will be replaced with AI generation
-        return {
-            "title": "Generated Experience Title",  # Will be AI-generated
-            "description": description,  # Refined version of input
-            "what_to_expect": "Generated unique element description",  # AI-generated
-            "domain": "culture",  # AI-extracted from description
-            "theme": None,  # AI-extracted if applicable
-            "duration_minutes": 180,  # AI-inferred from description
-            "max_capacity": 4,  # Default, can be AI-suggested
-            "price_inr": None,  # Will be suggested or left empty
-            "neighborhood": None,  # AI-extracted from description
-            "meeting_point": None,  # AI-extracted from description
-            "requirements": [],  # AI-extracted from description
-            "what_to_bring": [],  # AI-extracted from description
-            "what_to_know": None,  # AI-generated safety/important info
-        }
+        # Check if Groq API key is configured
+        if not settings.groq_api_key:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="AI service not configured. Please contact support."
+            )
+        
+        try:
+            import os
+            from langchain_groq import ChatGroq
+            from langchain_core.prompts import ChatPromptTemplate
+            
+            # Set Groq API key in environment if not already set (LangChain reads from env)
+            if not os.getenv("GROQ_API_KEY") and settings.groq_api_key:
+                os.environ["GROQ_API_KEY"] = settings.groq_api_key
+            
+            # Initialize Groq model
+            llm = ChatGroq(
+                model="llama-3.3-70b-versatile",
+                temperature=0.7,
+                max_tokens=2000,
+            )
+            
+            # Create structured output chain using Pydantic schema
+            structured_llm = llm.with_structured_output(ExperienceGenerationResponse)
+            
+            # Create prompt template
+            prompt = ChatPromptTemplate.from_messages([
+                ("system", """You are an expert travel experience curator for Mayhouse, a platform for authentic, local experiences.
+
+Your task is to analyze a user's description of a travel experience and generate structured data that will help them create a compelling experience listing.
+
+Guidelines:
+- Extract key information: location, activity type, duration, capacity, pricing
+- Generate an engaging title (10-80 characters) that captures the essence
+- Create a refined, detailed description (100-2000 characters) that expands on the user's input
+- Identify the unique element ("what_to_expect") that makes this experience special
+- Determine the appropriate domain: "culture", "adventure", "food", "nature", "wellness", "nightlife", or "other"
+- Suggest a theme if applicable (e.g., "Local Markets & Heritage", "Street Food Tour", "Sunset Photography")
+- Infer duration in minutes (typically 60-480 minutes, default to 180 if unclear)
+- Suggest max_capacity (typically 1-4 travelers for intimate experiences)
+- Extract neighborhood and meeting_point from the description if mentioned
+- Generate relevant requirements (e.g., ["Age 18+", "Moderate fitness level"])
+- Suggest what_to_bring items (e.g., ["Comfortable walking shoes", "Camera"])
+- Provide important safety/contextual information in what_to_know
+
+Be creative but realistic. Focus on authentic, local experiences that travelers would genuinely want to book."""),
+                ("human", "Generate experience data from this description:\n\n{description}")
+            ])
+            
+            # Create chain
+            chain = prompt | structured_llm
+            
+            # Invoke the chain
+            result = chain.invoke({"description": description})
+            
+            # Convert Pydantic model to dict
+            return result.model_dump(exclude_none=False)
+            
+        except ImportError as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"AI dependencies not installed: {str(e)}"
+            )
+        except Exception as e:
+            # Log the error for debugging
+            print(f"Error generating experience: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to generate experience: {str(e)}"
+            )
 
 
 design_experience_service = DesignExperienceService()

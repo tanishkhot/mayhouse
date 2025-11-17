@@ -26,6 +26,8 @@ def generate_nonce(wallet_address: str) -> tuple[str, str]:
     """
     # Normalize address
     wallet_address = wallet_address.lower()
+    
+    print(f"🔑 Generating nonce for address: {wallet_address}")
 
     # Generate random nonce
     nonce = secrets.token_hex(32)
@@ -37,9 +39,13 @@ def generate_nonce(wallet_address: str) -> tuple[str, str]:
         "timestamp": timestamp,
         "expires_at": timestamp + NONCE_EXPIRY_SECONDS,
     }
+    
+    print(f"✅ Nonce stored. Expires at: {timestamp + NONCE_EXPIRY_SECONDS} (in {NONCE_EXPIRY_SECONDS}s)")
 
     # Create message to sign
     message = f"Sign this message to authenticate with Mayhouse.\n\nNonce: {nonce}\nTimestamp: {timestamp}"
+    
+    print(f"📝 Message to sign: {repr(message)}")
 
     return nonce, message
 
@@ -58,19 +64,28 @@ def verify_signature(wallet_address: str, signature: str) -> bool:
     try:
         # Normalize address
         wallet_address = wallet_address.lower()
+        
+        print(f"🔍 Verifying signature for address: {wallet_address}")
+        print(f"📦 Nonce store keys: {list(_nonce_store.keys())}")
 
         # Get nonce from store
         nonce_data = _nonce_store.get(wallet_address)
         if not nonce_data:
+            print(f"❌ No nonce found for address: {wallet_address}")
+            print(f"   Available addresses in store: {list(_nonce_store.keys())}")
             return False
 
         # Check expiry
-        if time.time() > nonce_data["expires_at"]:
+        current_time = time.time()
+        if current_time > nonce_data["expires_at"]:
+            print(f"❌ Nonce expired for address: {wallet_address}")
+            print(f"   Current time: {current_time}, Expires at: {nonce_data['expires_at']}")
             del _nonce_store[wallet_address]
             return False
 
         # Reconstruct message
         message = f"Sign this message to authenticate with Mayhouse.\n\nNonce: {nonce_data['nonce']}\nTimestamp: {nonce_data['timestamp']}"
+        print(f"📝 Reconstructed message: {repr(message)}")
 
         # Verify signature
         w3 = Web3()
@@ -78,16 +93,23 @@ def verify_signature(wallet_address: str, signature: str) -> bool:
         recovered_address = w3.eth.account.recover_message(
             message_hash, signature=signature
         )
+        
+        print(f"🔐 Recovered address: {recovered_address.lower()}")
+        print(f"🎯 Expected address: {wallet_address}")
 
         # Clean up nonce after verification attempt
         if wallet_address in _nonce_store:
             del _nonce_store[wallet_address]
 
         # Compare addresses (case-insensitive)
-        return recovered_address.lower() == wallet_address.lower()
+        is_valid = recovered_address.lower() == wallet_address.lower()
+        print(f"{'✅' if is_valid else '❌'} Signature verification: {'VALID' if is_valid else 'INVALID'}")
+        return is_valid
 
     except Exception as e:
-        print(f"Error verifying signature: {e}")
+        print(f"❌ Error verifying signature: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 
