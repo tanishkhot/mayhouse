@@ -18,6 +18,7 @@ from app.api.blockchain import router as blockchain_router
 from app.api.experience_photos import router as experience_photos_router
 from app.api.users import public_router as users_public_router, user_router as users_user_router
 from app.api.design_experience import router as design_experience_router
+from app.api.oauth import router as oauth_router
 
 settings = get_settings()
 
@@ -53,6 +54,7 @@ app.include_router(health_router)
 app.include_router(explore_router)
 app.include_router(wallet_auth_router)  # Wallet authentication endpoints
 app.include_router(auth_router)  # General auth endpoints (/auth/me)
+app.include_router(oauth_router)  # OAuth endpoints (/auth/oauth)
 app.include_router(host_application_user_router)  # Host application user endpoints
 app.include_router(host_application_admin_router)  # Host application admin endpoints
 app.include_router(experience_host_router)  # Experience management host endpoints
@@ -80,6 +82,7 @@ async def root():
         "health": "/health/",
         "explore": "/explore/",
         "wallet_auth": "/auth/wallet",
+        "oauth": "/auth/oauth",
         "host_applications": "/users/host-application",
         "admin_host_applications": "/admin/host-applications",
         "experiences": "/experiences",

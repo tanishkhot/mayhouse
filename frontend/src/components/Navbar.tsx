@@ -33,12 +33,12 @@ export default function Navbar() {
   const hideNavbar = pathname === '/login' || pathname === '/signup';
 
   useEffect(() => {
-    // Check if user has valid token
+    // Check if user has valid token (works for both OAuth and wallet auth)
     const token = getAccessToken();
     React.startTransition(() => {
-      setIsAuthenticated(!!token && isConnected);
+      setIsAuthenticated(!!token);
     });
-  }, [isConnected, pathname]);
+  }, [pathname]);
 
   const handleDisconnect = () => {
     clearAuthData();

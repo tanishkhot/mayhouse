@@ -15,6 +15,8 @@ from typing import Optional
 async def get_user_from_token(authorization: str) -> dict:
     """
     Extract and validate user from authorization header.
+    
+    Supports both Supabase tokens (from OAuth) and custom JWT tokens (from wallet auth).
 
     Args:
         authorization: Authorization header with Bearer token
@@ -32,6 +34,37 @@ async def get_user_from_token(authorization: str) -> dict:
         )
 
     token = authorization.replace("Bearer ", "")
+    
+    # First try Supabase Auth validation (for OAuth users)
+    try:
+        from app.core.config import get_settings
+        from supabase import create_client
+        
+        settings = get_settings()
+        if settings.supabase_service_key:
+            supabase = create_client(
+                settings.supabase_url, settings.supabase_service_key
+            )
+        else:
+            from app.core.database import get_db
+            supabase = get_db()
+        
+        user_response = supabase.auth.get_user(token)
+        
+        if user_response.user:
+            # Get user profile from our database
+            user_id = user_response.user.id
+            db_response = (
+                supabase.table("users").select("*").eq("id", user_id).execute()
+            )
+            
+            if db_response.data:
+                return db_response.data[0]
+    except Exception:
+        # If Supabase validation fails, try custom JWT validation
+        pass
+    
+    # Try custom JWT validation (for wallet auth users)
     payload = verify_token(token)
 
     if not payload:
