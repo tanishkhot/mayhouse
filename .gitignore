@@ -1,0 +1,5 @@
+
+# Backup env files with secrets
+backend/.env.bak
+backend/.env.bak2
+*.env.bak*
