@@ -15,6 +15,7 @@ interface ExperiencePreviewCardProps {
   photos: Array<{ id: string; url: string; isCover: boolean; caption?: string }>;
   onEdit?: () => void;
   onSubmit?: () => void;
+  onPreview?: () => void;
 }
 
 export default function ExperiencePreviewCard({
@@ -23,6 +24,7 @@ export default function ExperiencePreviewCard({
   photos,
   onEdit,
   onSubmit,
+  onPreview,
 }: ExperiencePreviewCardProps) {
   const [rotateY, setRotateY] = useState(0);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -102,9 +104,9 @@ export default function ExperiencePreviewCard({
       {/* Experience Card */}
       <ExperienceCard
         {...cardProps}
-        onSelect={() => {}} // No-op for preview
+        onSelect={onPreview || (() => {})} // Call onPreview when card clicked
         ctaLabel="Edit Experience"
-        onCtaClick={onEdit || (() => {})} // Call onEdit when clicked
+        onCtaClick={onEdit || (() => {})} // Call onEdit when CTA clicked
         ctaIcon={<Icon as={Edit3} size={16} className="text-white" />}
         ctaClassName="bg-black hover:bg-black/90 text-white"
       />

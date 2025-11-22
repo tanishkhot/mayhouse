@@ -9,8 +9,11 @@ import EventRunScheduler from '@/components/EventRunScheduler';
 import { ExperienceCard } from '@/components/landing/ExperienceCard';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { api } from '@/lib/api';
+import { api, AuthAPI, UserResponse } from '@/lib/api';
 import DesignExperienceV2 from '@/components/design-experience-v2/DesignExperienceV2';
+import { ExperiencePreviewModal } from '@/components/experience-preview';
+import { normalizeExperienceResponse, convertPhotosToArray } from '@/lib/experience-preview-normalizer';
+import { ExperienceResponse, experienceAPI } from '@/lib/experience-api';
 
 // Add custom styles for text clamping
 const textClampStyles = `
@@ -84,6 +87,13 @@ const HostDashboardContent = () => {
   const [experiencePhotos, setExperiencePhotos] = useState<Record<string, string>>({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  
+  // Preview modal state
+  const [previewExperience, setPreviewExperience] = useState<ExperienceResponse | null>(null);
+  const [previewPhotos, setPreviewPhotos] = useState<ExperiencePhoto[]>([]);
+  const [loadingPreview, setLoadingPreview] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserResponse | null>(null);
   
   // Experience creation state
   const [step, setStep] = useState(1);
@@ -166,8 +176,62 @@ const HostDashboardContent = () => {
     }
   }, [filter, fetchExperiencePhotos]);
 
-  const handleViewExperience = (experience: Experience) => {
-    setSelectedExperience(experience);
+  // Fetch current user on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await AuthAPI.me();
+        setCurrentUser(user);
+      } catch (err) {
+        console.error('Failed to fetch current user:', err);
+        // Continue without user data
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const handleViewExperience = async (experience: Experience) => {
+    setLoadingPreview(true);
+    setPreviewError(null);
+    try {
+      // Get current user to extract host_id (required by backend)
+      const user = currentUser || await AuthAPI.me();
+      if (!user || !user.id) {
+        throw new Error('User authentication required');
+      }
+
+      // Fetch full experience details - backend requires host_id as query param
+      const fullExperience = await api.get<ExperienceResponse>(
+        `/experiences/${experience.id}?host_id=${user.id}`
+      ).then(r => r.data);
+      
+      // Fetch full photo objects
+      let photos: ExperiencePhoto[] = [];
+      try {
+        const photosResponse = await api.get(`/experiences/${experience.id}/photos`);
+        photos = photosResponse.data as ExperiencePhoto[];
+      } catch (err) {
+        // Fallback: create photo object from URL if available
+        if (experiencePhotos[experience.id]) {
+          photos = [{
+            id: experience.id,
+            photo_url: experiencePhotos[experience.id],
+            is_cover_photo: true,
+            display_order: 0
+          }];
+        }
+      }
+      
+      setPreviewPhotos(photos);
+      setPreviewExperience(fullExperience);
+      // Keep selectedExperience for backward compatibility with old modal
+      setSelectedExperience(experience);
+    } catch (err) {
+      setPreviewError(err instanceof Error ? err.message : 'Failed to load experience');
+      console.error('Error loading experience preview:', err);
+    } finally {
+      setLoadingPreview(false);
+    }
   };
 
   const handleSubmitForReview = async (experienceId: string) => {
@@ -871,86 +935,24 @@ const HostDashboardContent = () => {
           </div>
         </div>
 
-        {/* Experience Details Modal */}
-        {selectedExperience && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-              <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-black">Experience Details</h3>
-                <button
-                  onClick={() => setSelectedExperience(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="p-6">
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="font-semibold mb-2 text-black">Basic Information</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-black">
-                      <div><strong>Title:</strong> {selectedExperience.title}</div>
-                      <div>
-                        <strong>Status:</strong>
-                        <span className={`ml-2 px-2 py-1 rounded-full text-xs ${getStatusColor(selectedExperience.status)}`}>
-                          {getStatusLabel(selectedExperience.status)}
-                        </span>
-                      </div>
-                      <div><strong>Domain:</strong> {selectedExperience.experience_domain}</div>
-                      <div><strong>Duration:</strong> {selectedExperience.duration_minutes} minutes</div>
-                      <div><strong>Price:</strong> ₹{selectedExperience.price_inr} per person</div>
-                      <div><strong>Location:</strong> {selectedExperience.neighborhood}</div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold mb-2 text-black">Description</h4>
-                    <div className="bg-gray-50 p-4 rounded-lg text-black text-sm">
-                      <p><strong>Promise:</strong> {selectedExperience.promise}</p>
-                      <p className="mt-2"><strong>Full Description:</strong> {selectedExperience.description}</p>
-                    </div>
-                  </div>
-
-                  {selectedExperience.admin_feedback && (
-                    <div>
-                      <h4 className="font-semibold mb-2 text-black">Admin Feedback</h4>
-                      <p className="text-black bg-yellow-50 p-3 rounded border border-yellow-200">
-                        {selectedExperience.admin_feedback}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center">
-                    <button
-                      onClick={() => {
-                        setShowDeleteConfirm(true);
-                        setDeleteConfirmText('');
-                      }}
-                      className="px-6 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
-                    >
-                      Delete
-                    </button>
-                    <div className="flex space-x-3">
-                      {selectedExperience.status === 'draft' && (
-                        <button
-                          onClick={() => handleSubmitForReview(selectedExperience.id)}
-                          className="px-6 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
-                        >
-                          Submit for Review
-                        </button>
-                      )}
-                      <button
-                        onClick={() => setSelectedExperience(null)}
-                        className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-                      >
-                        Close
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Experience Preview Modal */}
+        {previewExperience && (
+          <ExperiencePreviewModal
+            experience={normalizeExperienceResponse(previewExperience, previewPhotos)}
+            photos={convertPhotosToArray(previewPhotos)}
+            host={currentUser}
+            onClose={() => {
+              setPreviewExperience(null);
+              setPreviewPhotos([]);
+              setPreviewError(null);
+              setSelectedExperience(null); // Also clear old modal state
+            }}
+            mode="saved"
+            showStatus={true}
+            status={previewExperience.status}
+            isLoading={loadingPreview}
+            error={previewError}
+          />
         )}
 
         {/* Delete Confirmation Modal */}

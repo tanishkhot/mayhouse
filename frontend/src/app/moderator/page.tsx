@@ -6,8 +6,11 @@ import { getHostApplications, reviewHostApplication, getHostApplicationDetails, 
 import type { HostApplication } from '@/lib/host-application-api';
 import { AdminOnlyRoute } from '@/components/ProtectedRoute';
 import { ModeratorSkeleton } from '@/components/skeletons';
-import { AuthAPI, api } from '@/lib/api';
+import { AuthAPI, api, UserResponse } from '@/lib/api';
 import type { EventRunSummary } from '@/lib/event-run-api';
+import { ExperiencePreviewModal } from '@/components/experience-preview';
+import { normalizeModeratorExperience, convertPhotosToArray } from '@/lib/experience-preview-normalizer';
+import { ExperiencePhoto } from '@/lib/experience-preview-types';
 
 // Define interfaces for moderator data
 interface ModeratorExperience {
@@ -87,6 +90,13 @@ const ModeratorDashboard = () => {
   const [experiences, setExperiences] = useState<ModeratorExperience[]>([]);
   const [selectedExperience, setSelectedExperience] = useState<ModeratorExperience | null>(null);
   const [experienceFilter, setExperienceFilter] = useState<'all' | 'submitted' | 'approved' | 'rejected'>('all');
+  
+  // Preview modal state
+  const [previewExperience, setPreviewExperience] = useState<ModeratorExperience | null>(null);
+  const [previewPhotos, setPreviewPhotos] = useState<ExperiencePhoto[]>([]);
+  const [previewHost, setPreviewHost] = useState<UserResponse | null>(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   
   // Event Runs management state
   // Using any for now as admin API may return additional fields
@@ -185,6 +195,8 @@ const ModeratorDashboard = () => {
   };
 
   const handleViewExperience = async (experienceId: string) => {
+    setLoadingPreview(true);
+    setPreviewError(null);
     try {
       const token = localStorage.getItem('mayhouse_token');
       if (!token) {
@@ -192,11 +204,49 @@ const ModeratorDashboard = () => {
         return;
       }
       
+      // Fetch experience details
       const response = await api.get(`/admin/experiences/${experienceId}`);
-      const data = response.data;
-      setSelectedExperience(data);
+      const experience = response.data as ModeratorExperience;
+      
+      // Fetch photos - try admin endpoint first, fallback to regular endpoint
+      let photos: ExperiencePhoto[] = [];
+      try {
+        const photosResponse = await api.get(`/admin/experiences/${experienceId}/photos`);
+        photos = photosResponse.data as ExperiencePhoto[];
+      } catch (err) {
+        // Fallback to regular endpoint if admin endpoint doesn't exist
+        try {
+          const photosResponse = await api.get(`/experiences/${experienceId}/photos`);
+          photos = photosResponse.data as ExperiencePhoto[];
+        } catch (err2) {
+          console.warn('Could not fetch photos for experience:', err2);
+          photos = [];
+        }
+      }
+      
+      // Fetch host info if available (extract host_id from experience if available)
+      let host: UserResponse | null = null;
+      try {
+        const hostId = (experience as any).host_id;
+        if (hostId) {
+          const hostResponse = await api.get(`/users/${hostId}/profile`);
+          host = hostResponse.data;
+        }
+      } catch (err) {
+        console.warn('Could not fetch host info:', err);
+        // Continue without host info
+      }
+      
+      setPreviewPhotos(photos);
+      setPreviewHost(host);
+      setPreviewExperience(experience);
+      // Keep setSelectedExperience for backward compatibility with existing modal
+      setSelectedExperience(experience);
     } catch (err: unknown) {
+      setPreviewError(err instanceof Error ? err.message : 'Failed to fetch experience details');
       setError(err instanceof Error ? err.message : 'Failed to fetch experience details');
+    } finally {
+      setLoadingPreview(false);
     }
   };
 
@@ -869,143 +919,25 @@ const ModeratorDashboard = () => {
           </div>
         )}
 
-        {/* Experience Details Modal */}
-        {selectedExperience && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-              <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-black">Experience Details</h3>
-                <button
-                  onClick={() => setSelectedExperience(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="p-6">
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="font-semibold mb-2 text-black">Experience Information</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-black">
-                      <div>
-                        <strong>Title:</strong> {selectedExperience.title}
-                      </div>
-                      <div>
-                        <strong>Status:</strong>
-                        <span className={`ml-2 px-2 py-1 rounded-full text-xs ${getStatusColor(selectedExperience.status)}`}>
-                          {selectedExperience.status.toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <strong>Created:</strong> {new Date(selectedExperience.created_at).toLocaleDateString()}
-                      </div>
-                      <div>
-                        <strong>Updated:</strong> {new Date(selectedExperience.updated_at).toLocaleDateString()}
-                      </div>
-                      <div>
-                        <strong>Domain:</strong> {selectedExperience.experience_domain}
-                      </div>
-                      <div>
-                        <strong>Duration:</strong> {selectedExperience.duration_minutes} minutes
-                      </div>
-                      <div>
-                        <strong>Price:</strong> ₹{selectedExperience.price_inr} per person
-                      </div>
-                      <div>
-                        <strong>Capacity:</strong> {selectedExperience.traveler_max_capacity} people
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold mb-2 text-black">Description</h4>
-                    <div className="bg-gray-50 p-4 rounded-lg text-black text-sm space-y-3">
-                      <div>
-                        <strong className="block mb-1">Promise:</strong>
-                        <p className="break-words whitespace-pre-wrap">{selectedExperience.promise}</p>
-                      </div>
-                      <div>
-                        <strong className="block mb-1">Full Description:</strong>
-                        <p className="break-words whitespace-pre-wrap">{selectedExperience.description}</p>
-                      </div>
-                      <div>
-                        <strong className="block mb-1">Unique Element:</strong>
-                        <p className="break-words whitespace-pre-wrap">{selectedExperience.unique_element}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold mb-2 text-black">Location & Meeting</h4>
-                    <div className="bg-gray-50 p-4 rounded-lg text-black text-sm space-y-2">
-                      <div>
-                        <strong className="block mb-1">Neighborhood:</strong>
-                        <p className="break-words">{selectedExperience.neighborhood}</p>
-                      </div>
-                      <div>
-                        <strong className="block mb-1">Meeting Landmark:</strong>
-                        <p className="break-words">{selectedExperience.meeting_landmark}</p>
-                      </div>
-                      <div>
-                        <strong className="block mb-1">Meeting Details:</strong>
-                        <p className="break-words whitespace-pre-wrap">{selectedExperience.meeting_point_details}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold mb-2 text-black">Inclusions & Guidelines</h4>
-                    <div className="bg-gray-50 p-4 rounded-lg text-black text-sm space-y-2">
-                      <div>
-                        <strong className="block mb-1">Inclusions:</strong>
-                        <p className="break-words">{selectedExperience.inclusions?.join(', ')}</p>
-                      </div>
-                      <div>
-                        <strong className="block mb-1">What to Bring:</strong>
-                        <p className="break-words">{selectedExperience.traveler_should_bring?.join(', ')}</p>
-                      </div>
-                      {selectedExperience.experience_safety_guidelines && (
-                        <div>
-                          <strong className="block mb-1">Safety Guidelines:</strong>
-                          <p className="break-words whitespace-pre-wrap">{selectedExperience.experience_safety_guidelines}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {selectedExperience.admin_feedback && (
-                    <div>
-                      <h4 className="font-semibold mb-2 text-black">Admin Feedback</h4>
-                      <p className="text-black bg-yellow-50 p-3 rounded border border-yellow-200 break-words whitespace-pre-wrap">{selectedExperience.admin_feedback}</p>
-                    </div>
-                  )}
-
-                  {/* Review Actions in Detail View */}
-                  {selectedExperience.status === 'submitted' && (
-                    <div className="border-t pt-6">
-                      <h4 className="font-semibold mb-4 text-black">Review Actions</h4>
-                      <div className="flex space-x-4">
-                        <button
-                          onClick={() => handleApproveExperience(selectedExperience.id)}
-                          disabled={reviewing && reviewingApplicationId === selectedExperience.id}
-                          className="px-6 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600 disabled:bg-gray-400 font-medium"
-                        >
-                          {reviewing && reviewingApplicationId === selectedExperience.id ? 'Approving...' : 'Approve Experience'}
-                        </button>
-                        <button
-                          onClick={() => openRejectForm(selectedExperience.id)}
-                          disabled={reviewing}
-                          className="px-6 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600 disabled:bg-gray-400 font-medium"
-                        >
-                          Reject Experience
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Experience Preview Modal */}
+        {previewExperience && (
+          <ExperiencePreviewModal
+            experience={normalizeModeratorExperience(previewExperience, previewPhotos)}
+            photos={convertPhotosToArray(previewPhotos)}
+            host={previewHost}
+            onClose={() => {
+              setPreviewExperience(null);
+              setPreviewPhotos([]);
+              setPreviewHost(null);
+              setPreviewError(null);
+              setSelectedExperience(null); // Also clear old modal state
+            }}
+            mode="saved"
+            showStatus={true}
+            status={previewExperience.status}
+            isLoading={loadingPreview}
+            error={previewError}
+          />
         )}
 
         {/* Event Run Details Modal */}

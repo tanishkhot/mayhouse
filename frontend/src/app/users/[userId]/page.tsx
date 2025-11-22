@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { ProfileAPI, AuthAPI } from "@/lib/api";
+import { ProfileAPI, AuthAPI, HostExperience } from "@/lib/api";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { AboutSection } from "@/components/profile/AboutSection";
 import { HostExperiencesSection } from "@/components/profile/HostExperiencesSection";
@@ -10,12 +10,24 @@ import { ReviewsSection } from "@/components/profile/ReviewsSection";
 import { HostStatsCard } from "@/components/profile/HostStatsCard";
 import { ProfileEditModal } from "@/components/profile/ProfileEditModal";
 import { ProfilePageSkeleton } from "@/components/skeletons";
-import { useState } from "react";
+import { ExperiencePreviewModal } from "@/components/experience-preview";
+import { normalizeHostExperience, convertPhotosToArray } from "@/lib/experience-preview-normalizer";
+import { experienceAPI } from "@/lib/experience-api";
+import { ExperiencePhoto } from "@/lib/experience-preview-types";
+import { api } from "@/lib/api";
+import { useState, useMemo } from "react";
 
 export default function UserProfilePage() {
   const params = useParams();
   const userId = params.userId as string;
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  
+  // Preview modal state
+  const [previewExperience, setPreviewExperience] = useState<HostExperience | null>(null);
+  const [fullExperienceDetails, setFullExperienceDetails] = useState<any>(null);
+  const [previewPhotos, setPreviewPhotos] = useState<ExperiencePhoto[]>([]);
+  const [loadingPreview, setLoadingPreview] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   // Get current user to check if viewing own profile
   const { data: currentUser } = useQuery({
@@ -90,6 +102,41 @@ export default function UserProfilePage() {
                 experiences={experiencesData.experiences}
                 totalCount={experiencesData.count}
                 hostId={userId}
+                onExperiencePreview={async (exp: HostExperience) => {
+                  setLoadingPreview(true);
+                  setPreviewError(null);
+                  try {
+                    // Fetch full experience details (HostExperience is summary only)
+                    const fullDetails = await experienceAPI.getExperience(exp.id);
+                    
+                    // Fetch photos
+                    let photos: ExperiencePhoto[] = [];
+                    try {
+                      const photosResponse = await api.get(`/experiences/${exp.id}/photos`);
+                      photos = photosResponse.data as ExperiencePhoto[];
+                    } catch (err) {
+                      console.warn('Could not fetch photos:', err);
+                      // Use cover_photo_url from HostExperience if available
+                      if (exp.cover_photo_url) {
+                        photos = [{
+                          id: exp.id,
+                          photo_url: exp.cover_photo_url,
+                          is_cover_photo: true,
+                          display_order: 0
+                        }];
+                      }
+                    }
+                    
+                    setFullExperienceDetails(fullDetails);
+                    setPreviewPhotos(photos);
+                    setPreviewExperience(exp);
+                  } catch (err) {
+                    setPreviewError(err instanceof Error ? err.message : 'Failed to load experience');
+                    console.error('Error loading experience:', err);
+                  } finally {
+                    setLoadingPreview(false);
+                  }
+                }}
               />
             )}
 
@@ -109,6 +156,27 @@ export default function UserProfilePage() {
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           profile={profile}
+        />
+      )}
+
+      {/* Experience Preview Modal */}
+      {previewExperience && fullExperienceDetails && (
+        <ExperiencePreviewModal
+          experience={useMemo(() => 
+            normalizeHostExperience(previewExperience, fullExperienceDetails),
+            [previewExperience, fullExperienceDetails]
+          )}
+          photos={convertPhotosToArray(previewPhotos)}
+          host={profile}
+          onClose={() => {
+            setPreviewExperience(null);
+            setFullExperienceDetails(null);
+            setPreviewPhotos([]);
+            setPreviewError(null);
+          }}
+          mode="saved"
+          isLoading={loadingPreview}
+          error={previewError}
         />
       )}
     </div>

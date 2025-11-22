@@ -22,8 +22,11 @@ import GuidedQAIntro from './GuidedQAIntro';
 import { experienceAPI } from '@/lib/experience-api';
 import { mapFormToExperienceCreate } from '@/lib/experience-mapper';
 import { useRouter } from 'next/navigation';
-import { AuthAPI, UserResponse } from '@/lib/api';
+import { AuthAPI, UserResponse, api } from '@/lib/api';
 import ExperiencePreviewCard from './ExperiencePreviewCard';
+import { ExperiencePreviewModal } from '@/components/experience-preview';
+import { normalizeFormState } from '@/lib/experience-preview-normalizer';
+import { PhotoArray } from '@/lib/experience-preview-types';
 
 type FormState = {
   title: string;
@@ -78,6 +81,8 @@ export default function DesignExperienceV2() {
     },
   ]);
   const [currentUser, setCurrentUser] = useState<UserResponse | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [readyToSubmit, setReadyToSubmit] = useState(false);
 
   // Fetch current user data for preview
   useEffect(() => {
@@ -92,6 +97,11 @@ export default function DesignExperienceV2() {
     };
     fetchUser();
   }, []);
+
+  // Check if form has minimum data for preview
+  const canShowPreview = useMemo(() => {
+    return form.title.trim().length >= 10 && form.description.trim().length >= 50;
+  }, [form]);
 
   useEffect(() => {
     try {
@@ -198,27 +208,27 @@ export default function DesignExperienceV2() {
     // Validate required fields
     if (!formData.title || formData.title.trim().length < 10) {
       toast.error('Title must be at least 10 characters');
-      return false;
+      return null;
     }
     if (!formData.description || formData.description.trim().length < 100) {
       toast.error('Description must be at least 100 characters');
-      return false;
+      return null;
     }
     if (!formData.domain) {
       toast.error('Please select a category');
-      return false;
+      return null;
     }
     if (!formData.meetingPoint || formData.meetingPoint.trim().length === 0) {
       toast.error('Please provide a meeting point');
-      return false;
+      return null;
     }
     if (!formData.price || parseFloat(formData.price) <= 0) {
       toast.error('Please enter a valid price');
-      return false;
+      return null;
     }
     if (!formData.whatToExpect || formData.whatToExpect.trim().length < 50) {
       toast.error('What to expect must be at least 50 characters');
-      return false;
+      return null;
     }
 
     setIsSaving(true);
@@ -227,7 +237,7 @@ export default function DesignExperienceV2() {
       const experienceData = mapFormToExperienceCreate(formData);
 
       // Create experience via API
-      await experienceAPI.createExperience(experienceData);
+      const createdExperience = await experienceAPI.createExperience(experienceData);
 
       if (showSuccessToast) {
         toast.success('Experience saved as draft!');
@@ -238,19 +248,45 @@ export default function DesignExperienceV2() {
         router.push('/host-dashboard');
       }
       
-      return true;
+      return createdExperience;
     } catch (error: any) {
       console.error('Error saving experience:', error);
       const errorMessage = error.response?.data?.detail || error.message || 'Failed to save experience. Please try again.';
       toast.error(errorMessage);
-      return false;
+      return null;
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleSaveExperience = async () => {
-    await saveExperienceFromData(form, true, true);
+    const createdExperience = await saveExperienceFromData(form, true, true);
+    
+    // If ready to submit and experience was created, submit for review
+    if (readyToSubmit && createdExperience?.id) {
+      try {
+        const user = currentUser || await AuthAPI.me();
+        if (!user || !user.id) {
+          toast.error('User authentication required');
+          return;
+        }
+
+        await api.post(`/experiences/${createdExperience.id}/submit`, {
+          host_id: user.id,
+          submission_data: {
+            submission_notes: 'Ready for admin review',
+            ready_for_review: true
+          }
+        });
+
+        toast.success('Experience submitted for review!');
+        router.push('/host-dashboard');
+      } catch (error: any) {
+        console.error('Error submitting experience:', error);
+        toast.error('Experience saved, but failed to submit for review. You can submit it from your dashboard.');
+        router.push('/host-dashboard');
+      }
+    }
   };
 
   const completion = useMemo(() => {
@@ -775,10 +811,23 @@ export default function DesignExperienceV2() {
               )}
 
               <div className="border border-green-200 rounded-lg p-6 bg-green-50 shadow-[0_10px_24px_rgba(16,185,129,0.10),0_4px_10px_rgba(16,185,129,0.06)]">
-                <h3 className="text-lg font-semibold text-green-900 mb-2">Ready to submit?</h3>
-                <p className="text-sm text-green-800">
-                  Save this as draft now and submit for review later from your dashboard.
-                </p>
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="ready-to-submit"
+                    checked={readyToSubmit}
+                    onChange={(e) => setReadyToSubmit(e.target.checked)}
+                    className="mt-1 w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
+                  />
+                  <div className="flex-1">
+                    <label htmlFor="ready-to-submit" className="cursor-pointer">
+                      <h3 className="text-lg font-semibold text-green-900 mb-2">Ready to submit?</h3>
+                      <p className="text-sm text-green-800">
+                        Save this as draft now and submit for review later from your dashboard.
+                      </p>
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -811,12 +860,12 @@ export default function DesignExperienceV2() {
                   {isSaving ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Saving...
+                      {readyToSubmit ? 'Submitting...' : 'Saving...'}
                     </>
                   ) : (
                     <>
                       <Icon as={CheckCircle2} size={16} className="text-white" />
-                      Save as Draft
+                      {readyToSubmit ? 'Submit for Review' : 'Save as Draft'}
                     </>
                   )}
                 </button>
@@ -844,6 +893,13 @@ export default function DesignExperienceV2() {
                 photos={photos}
                 onEdit={() => setFormOpen(true)}
                 onSubmit={handleSaveExperience}
+                onPreview={() => {
+                  if (canShowPreview) {
+                    setShowPreviewModal(true);
+                  } else {
+                    toast.error('Please fill in title and description (min 10 and 50 characters) to preview');
+                  }
+                }}
               />
             </div>
           </div>
@@ -862,6 +918,17 @@ export default function DesignExperienceV2() {
           onToggle={() => setChatOpen(!chatOpen)}
           messages={chatMessages}
           setMessages={setChatMessages}
+        />
+      )}
+
+      {/* Experience Preview Modal */}
+      {showPreviewModal && (
+        <ExperiencePreviewModal
+          experience={useMemo(() => normalizeFormState(form, photos as PhotoArray), [form, photos])}
+          photos={photos as PhotoArray}
+          host={currentUser}
+          onClose={() => setShowPreviewModal(false)}
+          mode="preview"
         />
       )}
     </div>

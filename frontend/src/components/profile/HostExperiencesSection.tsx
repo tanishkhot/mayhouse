@@ -3,18 +3,19 @@
 import { HostExperience } from "@/lib/api";
 import { MapPin, Star } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 
 interface HostExperiencesSectionProps {
   experiences: HostExperience[];
   totalCount: number;
   hostId: string;
+  onExperiencePreview?: (experience: HostExperience) => void;
 }
 
 export function HostExperiencesSection({
   experiences,
   totalCount,
   hostId,
+  onExperiencePreview,
 }: HostExperiencesSectionProps) {
   const formatDomain = (domain: string) => {
     return domain
@@ -50,10 +51,10 @@ export function HostExperiencesSection({
       <div className="overflow-x-auto pb-4 -mx-6 px-6">
         <div className="flex space-x-4 min-w-max">
           {experiences.map((exp) => (
-            <Link
+            <div
               key={exp.id}
-              href={`/experiences/${exp.id}/runs`}
-              className="flex-shrink-0 w-80 group"
+              onClick={() => onExperiencePreview?.(exp)}
+              className="flex-shrink-0 w-80 group cursor-pointer"
             >
               <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
                 {/* Cover Image */}
@@ -96,7 +97,7 @@ export function HostExperiencesSection({
                   </div>
                 </div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </div>
