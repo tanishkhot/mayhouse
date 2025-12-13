@@ -59,3 +59,24 @@ class BookingSummary(BaseModel):
     class Config:
         json_encoders = {Decimal: lambda v: float(v)}
 
+
+class BookingCostRequest(BaseModel):
+    """Request to calculate booking cost."""
+
+    event_run_id: str = Field(..., description="Database event run ID")
+    seat_count: int = Field(..., ge=1, le=4, description="Number of seats to book")
+
+
+class BookingCostResponse(BaseModel):
+    """Response with booking cost breakdown."""
+
+    event_run_id: str
+    seat_count: int
+    price_per_seat_inr: Decimal
+    total_price_inr: Decimal
+    stake_inr: Decimal  # 20% of total price (refundable deposit)
+    total_cost_inr: Decimal  # price + stake
+
+    class Config:
+        json_encoders = {Decimal: lambda v: float(v)}
+

@@ -46,8 +46,28 @@ export interface BookingSummary {
   };
 }
 
+export interface BookingCostRequest {
+  event_run_id: string;
+  seat_count: number;
+}
+
+export interface BookingCostResponse {
+  event_run_id: string;
+  seat_count: number;
+  price_per_seat_inr: number;
+  total_price_inr: number;
+  stake_inr: number;
+  total_cost_inr: number;
+}
+
 // Bookings API Methods
 export const BookingsAPI = {
+  /**
+   * Calculate booking cost
+   */
+  calculateCost: (request: BookingCostRequest) =>
+    api.post<BookingCostResponse>('/bookings/calculate-cost', request).then((r) => r.data),
+
   /**
    * Create a new booking
    */

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BlockchainAPI } from '@/lib/blockchain-api';
 import { BookingsAPI } from '@/lib/bookings-api';
 
 interface BookEventButtonProps {
@@ -44,7 +43,7 @@ export default function BookEventButton({
     const fetchCost = async () => {
       setLoadingCost(true);
       try {
-        const response = await BlockchainAPI.calculateBookingCost({
+        const response = await BookingsAPI.calculateCost({
           event_run_id: eventRunId,
           seat_count: seatCount
         });

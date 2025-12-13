@@ -3,10 +3,12 @@ Bookings API endpoints for creating and managing bookings.
 """
 
 from typing import List
+from decimal import Decimal
 from fastapi import APIRouter, HTTPException, status, Header, Path
 
-from app.schemas.booking import BookingCreate, BookingResponse, BookingSummary
+from app.schemas.booking import BookingCreate, BookingResponse, BookingSummary, BookingCostRequest, BookingCostResponse
 from app.services.booking_service import booking_service
+from app.core.database import get_service_client
 from app.core.jwt_utils import verify_token
 
 
@@ -51,6 +53,64 @@ def get_user_id_from_auth(authorization: str) -> str:
         )
 
     return user_id
+
+
+@router.post(
+    "/calculate-cost",
+    response_model=BookingCostResponse,
+    summary="Calculate Booking Cost",
+    description="Calculate total cost including 20% stake for booking an event",
+)
+async def calculate_booking_cost(
+    request: BookingCostRequest,
+) -> BookingCostResponse:
+    """
+    Calculate the total cost for booking an event.
+
+    Returns:
+    - Ticket price
+    - 20% refundable deposit (refundable if attended)
+    - Total cost to pay
+
+    All amounts in INR only.
+    """
+    # Get event run from database
+    service_client = get_service_client()
+    response = (
+        service_client.table("event_runs")
+        .select("*, experiences(price_inr)")
+        .eq("id", request.event_run_id)
+        .execute()
+    )
+
+    if not response.data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Event run not found"
+        )
+
+    event_run = response.data[0]
+
+    # Get price (special pricing or base price)
+    price_per_seat_inr = Decimal(
+        str(
+            event_run.get("special_pricing_inr")
+            or event_run["experiences"]["price_inr"]
+        )
+    )
+
+    # Calculate costs in INR
+    total_price_inr = price_per_seat_inr * request.seat_count
+    stake_inr = total_price_inr * Decimal("0.20")  # 20% refundable deposit
+    total_cost_inr = total_price_inr + stake_inr
+
+    return BookingCostResponse(
+        event_run_id=request.event_run_id,
+        seat_count=request.seat_count,
+        price_per_seat_inr=price_per_seat_inr,
+        total_price_inr=total_price_inr,
+        stake_inr=stake_inr,
+        total_cost_inr=total_cost_inr,
+    )
 
 
 @router.post(

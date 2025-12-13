@@ -88,15 +88,39 @@ class TestBookingFlow:
             }
         ]
         mock_booking_service.get_user_bookings.return_value = mock_bookings
-
+    
         response = client.get(
             "/bookings/my",
             headers={"Authorization": "Bearer valid-token"}
         )
-
+    
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
         assert len(data) == 1
         assert data[0]["id"] == "booking-123"
+
+    def test_calculate_booking_cost(self):
+        """Test calculating booking cost"""
+        # Mock DB response for event run
+        mock_response = MagicMock()
+        mock_response.data = [{
+            "id": "run-123",
+            "special_pricing_inr": None,
+            "experiences": {"price_inr": 1500.0}
+        }]
+        
+        with patch("app.api.bookings.get_service_client") as mock_db_client:
+            mock_db_client.return_value.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_response
+
+            response = client.post(
+                "/bookings/calculate-cost",
+                json={"event_run_id": "run-123", "seat_count": 2}
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["total_price_inr"] == 3000.0  # 1500 * 2
+            assert data["stake_inr"] == 600.0         # 20% of 3000
+            assert data["total_cost_inr"] == 3600.0
 
