@@ -1,20 +1,56 @@
 'use client';
 
-import { useAccount } from 'wagmi';
-import { useGetUserBookings, useGetBooking, formatEthValue, BookingStatus } from '@/lib/contract';
+import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ProfileAPI, formatPrice } from '@/lib/api';
+import { toast } from 'sonner';
+
+// Define types based on backend response
+interface Booking {
+  id: string;
+  event_run_id: string;
+  seat_count: number;
+  total_amount_inr: number;
+  booking_status: string;
+  created_at: string;
+  event_run?: {
+    id: string;
+    start_datetime: string;
+    end_datetime: string;
+    status: string;
+    experiences?: {
+      id: string;
+      title: string;
+      experience_domain: string;
+    };
+  };
+}
 
 export default function UserBookings() {
-  const { address, isConnected } = useAccount();
-  const { data: bookingIds, isLoading, error } = useGetUserBookings(address);
+  const [bookings, setBookings] = useState<Booking[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!isConnected) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-600">Please connect your wallet to view your bookings</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        setIsLoading(true);
+        // Fetch bookings from backend (Web2)
+        const data = await ProfileAPI.getBookings();
+        // Handle case where API returns object or array
+        const bookingList = Array.isArray(data) ? data : []; 
+        setBookings(bookingList as Booking[]);
+      } catch (err: any) {
+        console.error('Failed to fetch bookings:', err);
+        setError(err.message || 'Failed to load bookings');
+        // Don't show toast on initial load to avoid annoyance, just show error UI
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBookings();
+  }, []);
 
   if (isLoading) {
     return (
@@ -40,22 +76,27 @@ export default function UserBookings() {
       <div className="text-center py-12">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
           <p className="text-red-800 font-semibold mb-2">Error loading bookings</p>
-          <p className="text-sm text-red-600">{error.message}</p>
+          <p className="text-sm text-red-600">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 transition"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
-  if (!bookingIds || bookingIds.length === 0) {
+  if (!bookings || bookings.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md mx-auto">
           <p className="text-gray-800 font-semibold mb-2">No bookings found</p>
           <p className="text-sm text-gray-600 mb-4">You haven&apos;t made any bookings yet</p>
-          <div className="text-left text-xs text-gray-500 bg-white p-3 rounded border border-gray-200">
-            <p className="font-mono mb-1">Connected: {address?.substring(0, 10)}...{address?.substring(38)}</p>
-            <p className="font-mono">Contract: 0x09aB6...1eAD5</p>
-          </div>
+          <a href="/explore" className="text-terracotta-600 hover:underline">
+            Explore Experiences
+          </a>
         </div>
       </div>
     );
@@ -64,111 +105,102 @@ export default function UserBookings() {
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold mb-4 text-gray-900">Your Bookings</h2>
-      {(bookingIds as readonly bigint[]).map((bookingId) => (
-        <BookingCard key={bookingId.toString()} bookingId={Number(bookingId)} />
+      {bookings.map((booking) => (
+        <BookingCard key={booking.id} booking={booking} />
       ))}
     </div>
   );
 }
 
-function BookingCard({ bookingId }: { bookingId: number }) {
-  const { data: bookingData, isLoading } = useGetBooking(bookingId);
-
-  if (isLoading || !bookingData) {
-    return (
-      <div className="bg-white rounded-lg shadow p-6 space-y-4">
-        <Skeleton className="h-6 w-1/4" />
-        <div className="grid grid-cols-2 gap-4">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-full" />
-        </div>
-      </div>
-    );
-  }
-
-  const booking = bookingData as any;
-  const statusLabels = ['Active', 'Completed', 'No Show', 'Cancelled'];
+function BookingCard({ booking }: { booking: Booking }) {
+  const statusLabels: Record<string, string> = {
+    confirmed: 'Confirmed',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+    pending: 'Pending',
+  };
   
-  const getStatusClasses = (status: number) => {
-    switch(status) {
-      case 0: return 'bg-orange-100 text-orange-800';
-      case 1: return 'bg-green-100 text-green-800';
-      case 2: return 'bg-red-100 text-red-800';
-      case 3: return 'bg-gray-100 text-gray-800';
+  const getStatusClasses = (status: string) => {
+    switch(status.toLowerCase()) {
+      case 'pending': return 'bg-orange-100 text-orange-800';
+      case 'confirmed': return 'bg-green-100 text-green-800';
+      case 'completed': return 'bg-blue-100 text-blue-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
+  const experienceTitle = booking.event_run?.experiences?.title || 'Unknown Experience';
+  const eventDate = booking.event_run?.start_datetime 
+    ? new Date(booking.event_run.start_datetime).toLocaleDateString(undefined, { 
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+      })
+    : 'Date TBA';
+  const eventTime = booking.event_run?.start_datetime
+    ? new Date(booking.event_run.start_datetime).toLocaleTimeString(undefined, {
+        hour: '2-digit', minute: '2-digit'
+      })
+    : '';
+
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
+    <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-200">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="text-xl font-bold text-gray-900">Booking #{bookingId}</h3>
-          <p className="text-gray-600 text-sm">Event Run #{booking.eventRunId.toString()}</p>
+          <h3 className="text-xl font-bold text-gray-900">{experienceTitle}</h3>
+          <p className="text-gray-600 text-sm mt-1">Booking #{booking.id.substring(0, 8)}</p>
         </div>
-        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusClasses(booking.status)}`}>
-          {statusLabels[booking.status]}
+        <span className={`px-3 py-1 rounded-full text-sm font-semibold capitalize ${getStatusClasses(booking.booking_status)}`}>
+          {statusLabels[booking.booking_status] || booking.booking_status}
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-2 gap-y-4 gap-x-8 mb-4">
         <div>
-          <p className="text-sm text-gray-600">Seats Booked</p>
-          <p className="font-semibold text-gray-900">{booking.seatCount.toString()}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-600">Payment</p>
-          <p className="font-semibold text-gray-900">{formatEthValue(booking.totalPayment)} ETH</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-600">Your Stake</p>
-          <p className="font-semibold text-orange-600">{formatEthValue(booking.userStake)} ETH</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-600">Booked At</p>
+          <p className="text-xs text-gray-500 uppercase tracking-wider">Date & Time</p>
           <p className="font-semibold text-gray-900">
-            {new Date(Number(booking.bookedAt) * 1000).toLocaleDateString()}
+            {eventDate}
+            {eventTime && <span className="block text-sm text-gray-600">{eventTime}</span>}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider">Seats</p>
+          <p className="font-semibold text-gray-900">{booking.seat_count} {booking.seat_count === 1 ? 'Person' : 'People'}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider">Total Paid</p>
+          <p className="font-semibold text-gray-900">{formatPrice(booking.total_amount_inr)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider">Location</p>
+          <p className="font-semibold text-gray-900 capitalize">
+            {booking.event_run?.experiences?.experience_domain || 'Mumbai'}
           </p>
         </div>
       </div>
 
       {/* Status Messages */}
-      {booking.status === BookingStatus.Active && (
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-sm text-orange-800">
-          <p className="font-semibold">Upcoming Event</p>
-          <p className="text-xs mt-1">
-            Make sure to attend! You&apos;ll get your {formatEthValue(booking.userStake)} ETH stake back.
-          </p>
+      {booking.booking_status === 'confirmed' && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800 flex items-start gap-2">
+          <svg className="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <p className="font-semibold">Booking Confirmed</p>
+            <p className="text-xs mt-1">
+              Your spot is secured. Please arrive 10 minutes early at the meeting point.
+            </p>
+          </div>
         </div>
       )}
 
-      {booking.status === BookingStatus.Completed && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800">
-          <p className="font-semibold">Event Completed</p>
-          <p className="text-xs mt-1">
-            Your {formatEthValue(booking.userStake)} ETH stake has been returned. Thanks for attending!
-          </p>
-        </div>
-      )}
-
-      {booking.status === BookingStatus.NoShow && (
+      {booking.booking_status === 'cancelled' && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
-          <p className="font-semibold">No Show</p>
+          <p className="font-semibold">Booking Cancelled</p>
           <p className="text-xs mt-1">
-            You missed this event. Your {formatEthValue(booking.userStake)} ETH stake was forfeited.
-          </p>
-        </div>
-      )}
-
-      {booking.status === BookingStatus.Cancelled && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-800">
-          <p className="font-semibold">Event Cancelled</p>
-          <p className="text-xs mt-1">
-            This event was cancelled. Your payment and stake have been refunded.
+            Refund has been processed to your original payment method.
           </p>
         </div>
       )}
     </div>
   );
 }
-

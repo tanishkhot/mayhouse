@@ -34,6 +34,8 @@ class StepBasicsPayload(BaseModel):
 class StepLogisticsPayload(BaseModel):
     neighborhood: Optional[str] = None
     meeting_point: Optional[str] = None
+    latitude: Optional[float] = Field(default=None, ge=-90, le=90)
+    longitude: Optional[float] = Field(default=None, ge=-180, le=180)
     traveler_max_capacity: Optional[int] = Field(default=None, ge=1, le=4)
     price_inr: Optional[float] = Field(default=None, gt=0)
     requirements: Optional[List[str]] = None

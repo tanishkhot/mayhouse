@@ -14,6 +14,8 @@ export type ExperienceResponse = {
   neighborhood: string;
   meeting_landmark?: string;
   meeting_point_details?: string;
+  latitude?: number;
+  longitude?: number;
   duration_minutes: number;
   traveler_min_capacity?: number;
   traveler_max_capacity?: number;
@@ -45,6 +47,8 @@ export type ExperienceCreate = {
   neighborhood?: string;
   meeting_landmark: string;
   meeting_point_details: string;
+  latitude?: number;
+  longitude?: number;
   duration_minutes: number;
   traveler_min_capacity?: number;
   traveler_max_capacity: number;

@@ -339,7 +339,7 @@ export const ProfileAPI = {
     if (params?.status_filter) searchParams.append("status_filter", params.status_filter);
     if (params?.limit) searchParams.append("limit", params.limit.toString());
     
-    const url = `/users/bookings${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    const url = `/bookings/my${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
     return api.get<Record<string, any>>(url).then((r) => r.data);
   },
   getFavorites: (limit = 10) =>
@@ -436,6 +436,8 @@ export const DesignExperienceAPI = {
   upsertLogistics: (sessionId: string, payload: {
     neighborhood?: string;
     meeting_point?: string;
+    latitude?: number;
+    longitude?: number;
     traveler_max_capacity?: number;
     price_inr?: number;
     requirements?: string[] | null;

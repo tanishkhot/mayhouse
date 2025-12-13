@@ -93,6 +93,12 @@ class ExperienceCreate(BaseModel):
     meeting_point_details: str = Field(
         ..., max_length=500, description="Detailed meeting instructions"
     )
+    latitude: Optional[Decimal] = Field(
+        None, ge=-90, le=90, description="Latitude coordinate"
+    )
+    longitude: Optional[Decimal] = Field(
+        None, ge=-180, le=180, description="Longitude coordinate"
+    )
 
     # Experience Logistics
     duration_minutes: int = Field(
@@ -147,6 +153,8 @@ class ExperienceUpdate(BaseModel):
     neighborhood: Optional[str] = Field(None, max_length=100)
     meeting_landmark: Optional[str] = Field(None, max_length=200)
     meeting_point_details: Optional[str] = Field(None, max_length=500)
+    latitude: Optional[Decimal] = Field(None, ge=-90, le=90)
+    longitude: Optional[Decimal] = Field(None, ge=-180, le=180)
     duration_minutes: Optional[int] = Field(None, ge=30, le=480)
     traveler_max_capacity: Optional[int] = Field(None, ge=1, le=4)
     price_inr: Optional[Decimal] = Field(None, gt=0)
@@ -175,6 +183,8 @@ class ExperienceResponse(BaseModel):
     neighborhood: Optional[str]
     meeting_landmark: str
     meeting_point_details: str
+    latitude: Optional[Decimal]
+    longitude: Optional[Decimal]
     duration_minutes: int
     traveler_min_capacity: int
     traveler_max_capacity: int
@@ -194,6 +204,7 @@ class ExperienceResponse(BaseModel):
 
     class Config:
         from_attributes = True
+        json_encoders = {Decimal: lambda v: float(v)}
 
 
 class ExperienceSummary(BaseModel):
@@ -215,6 +226,7 @@ class ExperienceSummary(BaseModel):
 
     class Config:
         from_attributes = True
+        json_encoders = {Decimal: lambda v: float(v)}
 
 
 # =============================================

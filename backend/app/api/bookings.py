@@ -96,6 +96,34 @@ async def create_booking(
 
 
 @router.get(
+    "/my",
+    response_model=List[dict],
+    summary="Get My Bookings",
+    description="Get all bookings for the authenticated user",
+)
+async def get_my_bookings(
+    authorization: str = Header(None),
+) -> List[dict]:
+    """
+    Get all bookings for the current user.
+
+    Returns:
+    - List of bookings with event run details
+    - Sorted by creation date (newest first)
+    """
+    user_id = get_user_id_from_auth(authorization)
+
+    try:
+        bookings = await booking_service.get_user_bookings(user_id=user_id)
+        return bookings
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch bookings: {str(e)}",
+        )
+
+
+@router.get(
     "/{booking_id}",
     response_model=dict,
     summary="Get Booking Details",
@@ -123,33 +151,5 @@ async def get_booking(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch booking: {str(e)}",
-        )
-
-
-@router.get(
-    "/my",
-    response_model=List[dict],
-    summary="Get My Bookings",
-    description="Get all bookings for the authenticated user",
-)
-async def get_my_bookings(
-    authorization: str = Header(None),
-) -> List[dict]:
-    """
-    Get all bookings for the current user.
-
-    Returns:
-    - List of bookings with event run details
-    - Sorted by creation date (newest first)
-    """
-    user_id = get_user_id_from_auth(authorization)
-
-    try:
-        bookings = await booking_service.get_user_bookings(user_id=user_id)
-        return bookings
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch bookings: {str(e)}",
         )
 

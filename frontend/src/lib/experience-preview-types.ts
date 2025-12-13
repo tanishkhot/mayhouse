@@ -39,6 +39,8 @@ export interface NormalizedExperienceData {
   neighborhood: string;
   meetingPoint?: string;
   meetingPointDetails?: string;
+  latitude?: number;
+  longitude?: number;
   duration: number; // in minutes
   minCapacity?: number;
   maxCapacity?: number;

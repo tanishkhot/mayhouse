@@ -62,6 +62,8 @@ class ExperienceService:
                 "neighborhood": experience_data.neighborhood,
                 "meeting_landmark": experience_data.meeting_landmark,
                 "meeting_point_details": experience_data.meeting_point_details,
+                "latitude": experience_data.latitude,
+                "longitude": experience_data.longitude,
                 "duration_minutes": experience_data.duration_minutes,
                 "traveler_min_capacity": experience_data.traveler_min_capacity,
                 "traveler_max_capacity": experience_data.traveler_max_capacity,
@@ -270,6 +272,10 @@ class ExperienceService:
                 update_record["meeting_point_details"] = (
                     update_data.meeting_point_details
                 )
+            if update_data.latitude is not None:
+                update_record["latitude"] = update_data.latitude
+            if update_data.longitude is not None:
+                update_record["longitude"] = update_data.longitude
             if update_data.duration_minutes is not None:
                 update_record["duration_minutes"] = update_data.duration_minutes
             if update_data.traveler_min_capacity is not None:
@@ -502,6 +508,8 @@ class ExperienceService:
             neighborhood=data.get("neighborhood"),
             meeting_landmark=data["meeting_landmark"],
             meeting_point_details=data["meeting_point_details"],
+            latitude=data.get("latitude"),
+            longitude=data.get("longitude"),
             duration_minutes=data["duration_minutes"],
             traveler_min_capacity=data["traveler_min_capacity"],
             traveler_max_capacity=data["traveler_max_capacity"],

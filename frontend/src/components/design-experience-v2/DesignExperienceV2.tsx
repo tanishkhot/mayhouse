@@ -13,6 +13,7 @@ import {
   ChevronRight,
   CheckCircle2,
 } from 'lucide-react';
+import { MapPicker } from '@/components/ui/map-picker';
 import Icon from '../ui/icon';
 import { DesignExperienceAPI } from '@/lib/design-experience-api';
 import { toast } from 'sonner';
@@ -38,6 +39,8 @@ type FormState = {
   price: string;
   neighborhood: string;
   meetingPoint: string;
+  latitude?: number;
+  longitude?: number;
   requirements: string;
   whatToExpect: string;
   whatToKnow: string;
@@ -54,6 +57,8 @@ const INITIAL: FormState = {
   price: '',
   neighborhood: '',
   meetingPoint: '',
+  latitude: undefined,
+  longitude: undefined,
   requirements: '',
   whatToExpect: '',
   whatToKnow: '',
@@ -651,14 +656,33 @@ export default function DesignExperienceV2() {
                   <Icon as={MapPin} size={16} className="text-terracotta-600" />
                   <span>Meeting Point *</span>
                 </label>
-                <input
-                  type="text"
-                  value={form.meetingPoint}
-                  onChange={(e) => setForm((p) => ({ ...p, meetingPoint: e.target.value }))}
-                  maxLength={2000}
-                  placeholder="e.g., Gateway of India, Main Entrance"
-                  className={fieldClasses(form.meetingPoint.trim().length === 0)}
-                />
+                <div className="space-y-2">
+                  <div className="h-[300px] w-full rounded-lg overflow-hidden border border-gray-200">
+                    <MapPicker
+                      value={form.latitude && form.longitude ? { lat: form.latitude, lng: form.longitude, name: form.meetingPoint } : undefined}
+                      onChange={(loc) => {
+                        setForm((p) => ({
+                          ...p,
+                          meetingPoint: loc.name,
+                          latitude: loc.lat,
+                          longitude: loc.lng
+                        }));
+                      }}
+                      height="100%"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    value={form.meetingPoint}
+                    onChange={(e) => setForm((p) => ({ ...p, meetingPoint: e.target.value }))}
+                    maxLength={2000}
+                    placeholder="e.g., Gateway of India, Main Entrance (or select on map)"
+                    className={fieldClasses(form.meetingPoint.trim().length === 0)}
+                  />
+                  <p className="text-xs text-gray-500">
+                    Search or click on the map to set the precise location. You can also edit the address text manually.
+                  </p>
+                </div>
               </div>
 
               <div>
