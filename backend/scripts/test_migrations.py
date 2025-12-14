@@ -36,7 +36,7 @@ def test_experiences_table():
             "inclusions", "traveler_should_bring", "accessibility_notes",
             "weather_contingency_plan", "photo_sharing_consent_required",
             "experience_safety_guidelines", "status", "admin_feedback",
-            "created_at", "updated_at", "approved_at", "approved_by"
+            "route_data", "created_at", "updated_at", "approved_at", "approved_by"
         ]
         
         print(f"\n📋 Checking required columns...")
@@ -139,6 +139,71 @@ def test_table_indexes():
         print(f"⚠️  Index test warning: {e}")
         return True  # Don't fail on index tests, they're indirect
 
+def test_route_data_column():
+    """Test that experiences table has route_data JSONB column"""
+    print("\n🔍 Testing Route Data Column...")
+    print("=" * 50)
+    
+    try:
+        service_client = get_service_client()
+        
+        # Check if table exists
+        result = service_client.table("experiences").select("id").limit(1).execute()
+        print("✅ experiences table exists")
+        
+        # Try to query route_data column
+        try:
+            result = service_client.table("experiences").select("id,route_data").limit(1).execute()
+            print("✅ route_data column exists")
+            
+            # Check if it's JSONB by examining the data structure
+            # JSONB columns in Supabase return as dict/list when queried
+            if result.data:
+                for row in result.data:
+                    route_data = row.get("route_data")
+                    if route_data is not None:
+                        # Check if it's a dict (JSONB object) or empty dict
+                        if isinstance(route_data, dict):
+                            if route_data == {}:
+                                print("✅ route_data is properly formatted as JSONB (empty object, default value)")
+                            else:
+                                # Check for expected structure
+                                if "waypoints" in route_data:
+                                    waypoints = route_data.get("waypoints", [])
+                                    if isinstance(waypoints, list):
+                                        print(f"✅ route_data is properly formatted as JSONB with waypoints array (found {len(waypoints)} waypoints)")
+                                    else:
+                                        print(f"⚠️  route_data exists but waypoints may not be in expected format: {type(waypoints)}")
+                                else:
+                                    print("✅ route_data is properly formatted as JSONB object")
+                        else:
+                            print(f"⚠️  route_data exists but may not be in expected format: {type(route_data)}")
+                    else:
+                        print("✅ route_data column exists (null values are valid)")
+            
+            # Test that we can query route_data with waypoints structure
+            # This verifies JSONB operations work
+            try:
+                # Try to find experiences with route_data that has waypoints
+                result = service_client.table("experiences").select("id,route_data").limit(10).execute()
+                experiences_with_routes = [r for r in result.data if r.get("route_data") and isinstance(r.get("route_data"), dict) and r.get("route_data").get("waypoints")]
+                if experiences_with_routes:
+                    print(f"✅ Found {len(experiences_with_routes)} experience(s) with route_data containing waypoints")
+                else:
+                    print("✅ route_data column is queryable (no experiences with waypoints found yet, which is expected)")
+            except Exception as e:
+                print(f"⚠️  route_data query test: {e}")
+            
+            return True
+            
+        except Exception as e:
+            print(f"❌ route_data column may not exist: {e}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Error testing route_data column: {e}")
+        return False
+
 def test_data_types():
     """Test that data types match schema expectations"""
     print("\n🔍 Testing Data Types...")
@@ -194,6 +259,7 @@ def main():
     # Run tests
     results.append(("Experiences Table", test_experiences_table()))
     results.append(("Design Sessions Q&A Column", test_design_sessions_qa_answers()))
+    results.append(("Route Data Column", test_route_data_column()))
     results.append(("Table Indexes", test_table_indexes()))
     results.append(("Data Types", test_data_types()))
     
