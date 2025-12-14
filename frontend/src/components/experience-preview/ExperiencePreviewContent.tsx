@@ -6,6 +6,7 @@ import { NormalizedExperienceData, PhotoArray } from '@/lib/experience-preview-t
 import { UserResponse } from '@/lib/api';
 import { ExperienceStatus } from '@/lib/experience-api';
 import { formatDuration, formatPrice, getCategoryDisplayName } from '@/lib/experience-preview-normalizer';
+import { MapPicker, type Waypoint } from '@/components/ui/map-picker';
 
 interface ExperiencePreviewContentProps {
   experience: NormalizedExperienceData;
@@ -222,6 +223,35 @@ export default function ExperiencePreviewContent({
                     {experience.safetyGuidelines}
                   </p>
                 </div>
+              </div>
+            )}
+
+            {/* Route Overview */}
+            {experience.routeData?.waypoints && experience.routeData.waypoints.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Walking Route</h2>
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <MapPicker
+                    routeWaypoints={experience.routeData.waypoints as Waypoint[]}
+                    readOnly={true}
+                    showSearch={false}
+                    height="400px"
+                    defaultCenter={
+                      experience.routeData.waypoints[0]
+                        ? {
+                            lat: experience.routeData.waypoints[0].lat,
+                            lng: experience.routeData.waypoints[0].lng,
+                          }
+                        : experience.latitude && experience.longitude
+                          ? { lat: experience.latitude, lng: experience.longitude }
+                          : undefined
+                    }
+                  />
+                </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  This route includes {experience.routeData.waypoints.length} waypoint
+                  {experience.routeData.waypoints.length !== 1 ? 's' : ''} for your walking experience.
+                </p>
               </div>
             )}
 

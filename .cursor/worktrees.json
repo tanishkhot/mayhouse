@@ -1,0 +1,12 @@
+{
+  "setup-worktree": [
+    "echo 'Setting up Frontend...'",
+    "cd frontend && npm install",
+    "echo 'Setting up Backend...'",
+    "cd backend && pip install -r requirements.txt",
+    "echo 'Copying Environment Files...'",
+    "cp \"$ROOT_WORKTREE_PATH/backend/.env\" backend/.env || echo 'No backend .env found'",
+    "cp \"$ROOT_WORKTREE_PATH/frontend/.env.local\" frontend/.env.local || echo 'No frontend .env.local found'"
+  ]
+}
+

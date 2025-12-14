@@ -34,6 +34,7 @@ interface ModeratorExperience {
   experience_safety_guidelines: string;
   moderator_feedback?: string;
   admin_feedback?: string;
+  route_data?: any;
 }
 
 interface ModeratorEventRun {

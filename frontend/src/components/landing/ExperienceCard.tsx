@@ -1,6 +1,6 @@
 'use client';
 
-import { MouseEvent } from 'react';
+import React, { MouseEvent } from 'react';
 import { Heart, Users, Clock, Shield, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

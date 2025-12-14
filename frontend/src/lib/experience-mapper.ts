@@ -1,4 +1,4 @@
-import { ExperienceCreate } from './experience-api';
+import { ExperienceCreate, ExperienceResponse } from './experience-api';
 
 /**
  * Form state type matching DesignExperienceV2
@@ -13,6 +13,16 @@ export type FormState = {
   price: string;
   neighborhood: string;
   meetingPoint: string;
+  latitude?: number;
+  longitude?: number;
+  waypoints?: Array<{
+    id: string;
+    lat: number;
+    lng: number;
+    name: string;
+    type: 'start' | 'stop' | 'end';
+    description?: string;
+  }>;
   requirements: string;
   whatToExpect: string;
   whatToKnow: string;
@@ -92,6 +102,9 @@ export function mapFormToExperienceCreate(form: FormState): ExperienceCreate {
     neighborhood: form.neighborhood || undefined,
     meeting_landmark: meetingLandmark,
     meeting_point_details: meetingPointDetails,
+    latitude: form.latitude,
+    longitude: form.longitude,
+    route_data: form.waypoints ? { waypoints: form.waypoints } : undefined,
     duration_minutes: form.duration,
     traveler_min_capacity: 1, // Default
     traveler_max_capacity: form.maxCapacity,
@@ -133,5 +146,55 @@ function extractInclusions(description: string): string[] | null {
   }
 
   return null;
+}
+
+/**
+ * Maps ExperienceResponse from API to FormState for editing
+ * Handles route_data deserialization and array-to-string conversions
+ */
+export function mapExperienceResponseToForm(experience: ExperienceResponse): FormState {
+  // Combine meeting_landmark and meeting_point_details into meetingPoint
+  const meetingPoint = experience.meeting_landmark 
+    ? (experience.meeting_point_details 
+        ? `${experience.meeting_landmark}, ${experience.meeting_point_details}`
+        : experience.meeting_landmark)
+    : experience.meeting_point_details || '';
+
+  // Convert arrays to comma-separated strings
+  const requirements = experience.accessibility_notes?.join(', ') || '';
+  const whatToBring = experience.traveler_should_bring?.join(', ') || '';
+  
+  // Use unique_element as whatToExpect, fallback to promise if unique_element is missing
+  const whatToExpect = experience.unique_element || experience.promise || '';
+  
+  // Deserialize route_data.waypoints if present
+  // Ensure waypoints match Waypoint type (name must be string, not optional)
+  const waypoints = (experience.route_data?.waypoints || []).map((wp: any) => ({
+    id: wp.id || `waypoint-${Date.now()}`,
+    lat: wp.lat,
+    lng: wp.lng,
+    name: wp.name || 'Unnamed Waypoint', // Ensure name is always a string
+    type: wp.type || 'stop',
+    description: wp.description,
+  }));
+
+  return {
+    title: experience.title || '',
+    description: experience.description || '',
+    domain: experience.experience_domain || '',
+    theme: experience.experience_theme || '',
+    duration: experience.duration_minutes || 180,
+    maxCapacity: experience.traveler_max_capacity || 4,
+    price: experience.price_inr?.toString() || '',
+    neighborhood: experience.neighborhood || '',
+    meetingPoint: meetingPoint,
+    latitude: experience.latitude,
+    longitude: experience.longitude,
+    waypoints: waypoints,
+    requirements: requirements,
+    whatToExpect: whatToExpect,
+    whatToKnow: experience.experience_safety_guidelines || '',
+    whatToBring: whatToBring,
+  };
 }
 

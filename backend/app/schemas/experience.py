@@ -99,6 +99,9 @@ class ExperienceCreate(BaseModel):
     longitude: Optional[Decimal] = Field(
         None, ge=-180, le=180, description="Longitude coordinate"
     )
+    route_data: Optional[Dict[str, Any]] = Field(
+        None, description="Route waypoints and geometry (JSONB)"
+    )
 
     # Experience Logistics
     duration_minutes: int = Field(
@@ -155,6 +158,7 @@ class ExperienceUpdate(BaseModel):
     meeting_point_details: Optional[str] = Field(None, max_length=500)
     latitude: Optional[Decimal] = Field(None, ge=-90, le=90)
     longitude: Optional[Decimal] = Field(None, ge=-180, le=180)
+    route_data: Optional[Dict[str, Any]] = Field(None, description="Route waypoints and geometry")
     duration_minutes: Optional[int] = Field(None, ge=30, le=480)
     traveler_max_capacity: Optional[int] = Field(None, ge=1, le=4)
     price_inr: Optional[Decimal] = Field(None, gt=0)
@@ -185,6 +189,7 @@ class ExperienceResponse(BaseModel):
     meeting_point_details: str
     latitude: Optional[Decimal]
     longitude: Optional[Decimal]
+    route_data: Optional[Dict[str, Any]]
     duration_minutes: int
     traveler_min_capacity: int
     traveler_max_capacity: int
@@ -217,6 +222,7 @@ class ExperienceSummary(BaseModel):
     experience_domain: str
     city: str
     neighborhood: Optional[str]
+    route_data: Optional[Dict[str, Any]] = None
     duration_minutes: int
     traveler_max_capacity: int
     price_inr: Decimal

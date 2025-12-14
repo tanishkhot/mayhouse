@@ -56,5 +56,15 @@ export interface NormalizedExperienceData {
   moderatorFeedback?: string;
   createdAt?: string;
   updatedAt?: string;
+  routeData?: {
+    waypoints: Array<{
+      id: string;
+      lat: number;
+      lng: number;
+      name?: string;
+      type?: 'start' | 'stop' | 'end';
+      description?: string;
+    }>;
+  };
 }
 

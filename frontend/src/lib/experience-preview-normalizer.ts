@@ -50,6 +50,7 @@ type ModeratorExperience = {
   experience_safety_guidelines: string;
   moderator_feedback?: string;
   admin_feedback?: string;
+  route_data?: any;
 };
 
 /**
@@ -139,6 +140,9 @@ export function normalizeExperienceResponse(
     adminFeedback: exp.admin_feedback,
     createdAt: exp.created_at,
     updatedAt: exp.updated_at,
+    routeData: exp.route_data && exp.route_data.waypoints
+      ? { waypoints: exp.route_data.waypoints }
+      : undefined,
   };
 }
 
@@ -173,6 +177,9 @@ export function normalizeModeratorExperience(
     adminFeedback: exp.admin_feedback,
     createdAt: exp.created_at,
     updatedAt: exp.updated_at,
+    routeData: exp.route_data && exp.route_data.waypoints
+      ? { waypoints: exp.route_data.waypoints }
+      : undefined,
   };
 }
 
@@ -220,6 +227,9 @@ export function normalizeHostExperience(
     adminFeedback: fullDetails.admin_feedback,
     createdAt: fullDetails.created_at || exp.created_at,
     updatedAt: fullDetails.updated_at,
+    routeData: fullDetails.route_data && fullDetails.route_data.waypoints
+      ? { waypoints: fullDetails.route_data.waypoints }
+      : undefined,
   };
 }
 

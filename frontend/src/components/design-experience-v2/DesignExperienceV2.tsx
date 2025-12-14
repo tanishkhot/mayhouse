@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef, useLayoutEffect } from 'react';
 import {
   Sparkles,
   Edit3,
@@ -12,8 +12,13 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
+  Maximize2,
+  Minimize2,
+  X,
+  Plus,
+  Map as MapIcon,
 } from 'lucide-react';
-import { MapPicker } from '@/components/ui/map-picker';
+import { MapPicker, type Waypoint } from '@/components/ui/map-picker';
 import Icon from '../ui/icon';
 import { DesignExperienceAPI } from '@/lib/design-experience-api';
 import { toast } from 'sonner';
@@ -22,12 +27,13 @@ import GuidedQAFlow from './GuidedQAFlow';
 import GuidedQAIntro from './GuidedQAIntro';
 import { experienceAPI } from '@/lib/experience-api';
 import { mapFormToExperienceCreate } from '@/lib/experience-mapper';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthAPI, UserResponse, api } from '@/lib/api';
 import ExperiencePreviewCard from './ExperiencePreviewCard';
 import { ExperiencePreviewModal } from '@/components/experience-preview';
 import { normalizeFormState } from '@/lib/experience-preview-normalizer';
 import { PhotoArray } from '@/lib/experience-preview-types';
+import { mapExperienceResponseToForm } from '@/lib/experience-mapper';
 
 type FormState = {
   title: string;
@@ -41,6 +47,7 @@ type FormState = {
   meetingPoint: string;
   latitude?: number;
   longitude?: number;
+  waypoints?: Waypoint[];
   requirements: string;
   whatToExpect: string;
   whatToKnow: string;
@@ -59,6 +66,7 @@ const INITIAL: FormState = {
   meetingPoint: '',
   latitude: undefined,
   longitude: undefined,
+  waypoints: [],
   requirements: '',
   whatToExpect: '',
   whatToKnow: '',
@@ -67,6 +75,7 @@ const INITIAL: FormState = {
 
 export default function DesignExperienceV2() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(0);
   const [mode, setMode] = useState<'kickstart' | 'describe' | 'guided'>('kickstart');
   const [hasStartedGuidedFlow, setHasStartedGuidedFlow] = useState(false);
@@ -88,6 +97,196 @@ export default function DesignExperienceV2() {
   const [currentUser, setCurrentUser] = useState<UserResponse | null>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [readyToSubmit, setReadyToSubmit] = useState(false);
+  const [isMapExpanded, setIsMapExpanded] = useState(false);
+  
+  // Edit Mode State
+  const [experienceId, setExperienceId] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isLoadingExperience, setIsLoadingExperience] = useState(false);
+  
+  // Route Planner State
+  const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
+  const [activeWaypointId, setActiveWaypointId] = useState<string | null>(null);
+
+  // Initialize waypoints from form data if empty (but not if we're loading from edit mode)
+  useEffect(() => {
+    // Don't initialize if we're loading an experience (edit mode) or if waypoints already exist
+    if (isLoadingExperience) {
+      return;
+    }
+    
+    // Only initialize if waypoints are empty and we have coordinates
+    // Also check if form.waypoints is empty (to avoid overwriting loaded route_data)
+    if (waypoints.length === 0 && 
+        (!form.waypoints || form.waypoints.length === 0) &&
+        form.latitude && 
+        form.longitude) {
+      setWaypoints([{
+        id: 'start',
+        lat: form.latitude,
+        lng: form.longitude,
+        name: form.meetingPoint || 'Start Point',
+        type: 'start'
+      }]);
+      setActiveWaypointId('start');
+    }
+  }, [form.latitude, form.longitude, form.meetingPoint, form.waypoints, waypoints.length, isLoadingExperience]); // Only run if form has data and waypoints are empty
+
+  const handleWaypointChange = (location: { lat: number; lng: number; name: string }) => {
+    // If no active waypoint or waypoints list is empty, treat as standard meeting point update
+    if (!activeWaypointId && waypoints.length === 0) {
+       setForm((p) => ({
+          ...p,
+          meetingPoint: location.name,
+          latitude: location.lat,
+          longitude: location.lng
+        }));
+        // Also init waypoints
+        const newWaypoints: Waypoint[] = [{
+          id: 'start',
+          lat: location.lat,
+          lng: location.lng,
+          name: location.name,
+          type: 'start'
+        }];
+        setWaypoints(newWaypoints);
+        // Sync waypoints to form
+        setForm(p => ({ ...p, waypoints: newWaypoints }));
+        setActiveWaypointId('start');
+        return;
+    }
+
+    const targetId = activeWaypointId || (waypoints.length > 0 ? waypoints[0].id : 'start');
+
+    const updatedWaypoints = waypoints.map(wp => {
+      if (wp.id === targetId) {
+        return { ...wp, lat: location.lat, lng: location.lng, name: location.name };
+      }
+      return wp;
+    });
+
+    setWaypoints(updatedWaypoints);
+    // Sync waypoints to form
+    setForm(p => ({ ...p, waypoints: updatedWaypoints }));
+
+    // If we just updated the start point, sync back to form
+    if (targetId === 'start' || (waypoints.find(w => w.id === targetId)?.type === 'start')) {
+        setForm((p) => ({
+          ...p,
+          meetingPoint: location.name,
+          latitude: location.lat,
+          longitude: location.lng,
+          waypoints: updatedWaypoints
+        }));
+    }
+  };
+
+  const addWaypoint = () => {
+    const lastPoint = waypoints[waypoints.length - 1];
+    // Offset slightly so it doesn't overlap perfectly
+    const newLat = lastPoint ? lastPoint.lat + 0.002 : (form.latitude || 19.0760);
+    const newLng = lastPoint ? lastPoint.lng + 0.002 : (form.longitude || 72.8777);
+    
+    const newId = `stop-${Date.now()}`;
+    const newWaypoint: Waypoint = {
+      id: newId,
+      lat: newLat,
+      lng: newLng,
+      name: 'New Stop',
+      type: 'stop'
+    };
+
+    setWaypoints(prev => {
+        // Ensure the last one is marked as 'end' if we have > 1, but we are appending...
+        // Actually, let's keep it simple: Start -> Stop -> Stop -> End.
+        // If we add a point, it becomes the new "End" if we want, or just a "Stop".
+        // Let's just make them all 'stop' except the first one.
+        // Or if we want strictly Start/End semantics:
+        // The last one is End. The ones in middle are Stops.
+        
+        const newWaypoints = [...prev, newWaypoint];
+        
+        // Fix types
+        const updated = newWaypoints.map((wp, idx) => ({
+            ...wp,
+            type: idx === 0 ? 'start' : (idx === newWaypoints.length - 1 ? 'end' : 'stop')
+        })) as Waypoint[];
+        
+        // Sync to form immediately
+        setForm(p => ({ ...p, waypoints: updated }));
+        
+        return updated;
+    });
+    
+    setActiveWaypointId(newId);
+  };
+
+  const removeWaypoint = (id: string) => {
+    if (id === 'start') {
+        toast.error("Cannot remove the start point (Meeting Point).");
+        return;
+    }
+    setWaypoints(prev => {
+        const filtered = prev.filter(w => w.id !== id);
+         // Re-assign types
+        const updated = filtered.map((wp, idx) => ({
+            ...wp,
+            type: idx === 0 ? 'start' : (idx === filtered.length - 1 ? 'end' : 'stop')
+        })) as Waypoint[];
+        
+        // Sync to form
+        setForm(p => ({ ...p, waypoints: updated }));
+        
+        return updated;
+    });
+    if (activeWaypointId === id) {
+        setActiveWaypointId('start');
+    }
+  };
+
+  // Refs for intelligent resizing
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const [mapContainerStyle, setMapContainerStyle] = useState<React.CSSProperties>({});
+
+  // Intelligent map resizing layout effect
+  useLayoutEffect(() => {
+    const calculateLayout = () => {
+      // Logic:
+      // 1. If screen is mobile/small tablet (< 1024px), map is full screen overlay (handled by CSS classes).
+      // 2. If screen is desktop (>= 1024px) AND sidebar is open AND map is expanded:
+      //    Calculate actual sidebar width and apply as marginLeft to map container.
+      //    Map width = 100% - sidebar width.
+      
+      const isDesktop = window.innerWidth >= 1024; // lg breakpoint
+      
+      if (isDesktop && formOpen && isMapExpanded && sidebarRef.current) {
+        const sidebarWidth = sidebarRef.current.offsetWidth;
+        setMapContainerStyle({
+          marginLeft: `${sidebarWidth}px`,
+          width: `calc(100% - ${sidebarWidth}px)`,
+        });
+      } else {
+        // Reset styles for mobile or collapsed states (let CSS classes handle it)
+        setMapContainerStyle({});
+      }
+    };
+
+    // Run on mount, resize, and state changes
+    calculateLayout();
+    window.addEventListener('resize', calculateLayout);
+    
+    // Also use ResizeObserver for more robust sidebar size tracking
+    let resizeObserver: ResizeObserver | null = null;
+    if (sidebarRef.current) {
+      resizeObserver = new ResizeObserver(calculateLayout);
+      resizeObserver.observe(sidebarRef.current);
+    }
+
+    return () => {
+      window.removeEventListener('resize', calculateLayout);
+      if (resizeObserver) resizeObserver.disconnect();
+    };
+  }, [isMapExpanded, formOpen]);
 
   // Fetch current user data for preview
   useEffect(() => {
@@ -102,6 +301,89 @@ export default function DesignExperienceV2() {
     };
     fetchUser();
   }, []);
+
+  // Load experience function for edit mode
+  const loadExperience = async (expId: string) => {
+    setIsLoadingExperience(true);
+    try {
+      // Fetch experience data
+      const experience = await experienceAPI.getExperience(expId);
+      
+      // Fetch photos
+      let experiencePhotos: Array<{ id: string; url: string; isCover: boolean; caption?: string }> = [];
+      try {
+        const photosResponse = await api.get(`/experiences/${expId}/photos`);
+        const photosData = photosResponse.data as Array<{
+          id: string;
+          photo_url: string;
+          is_cover_photo: boolean;
+          caption?: string;
+        }>;
+        experiencePhotos = photosData.map((photo) => ({
+          id: photo.id,
+          url: photo.photo_url,
+          isCover: photo.is_cover_photo,
+          caption: photo.caption,
+        }));
+      } catch (err) {
+        console.warn('Could not fetch photos for experience:', err);
+        // Continue without photos
+      }
+
+      // Map experience to form state
+      const formData = mapExperienceResponseToForm(experience);
+      
+      // Deserialize route_data.waypoints into waypoints state (use mapped formData.waypoints)
+      if (formData.waypoints && formData.waypoints.length > 0) {
+        setWaypoints(formData.waypoints as Waypoint[]);
+        // Set first waypoint as active
+        setActiveWaypointId(formData.waypoints[0]?.id || null);
+      } else {
+        // No route data, initialize empty waypoints
+        setWaypoints([]);
+        setActiveWaypointId(null);
+      }
+      
+      // Set form state (after waypoints are set to avoid type issues)
+      setForm(formData as FormState);
+      
+      // Set photos
+      setPhotos(experiencePhotos);
+      
+      // Set edit mode state
+      setExperienceId(expId);
+      setIsEditMode(true);
+      
+      // Navigate to step 1 (form editing) if we have route data, otherwise stay at current step
+      if (experience.route_data?.waypoints && experience.route_data.waypoints.length > 0) {
+        setStep(1); // Go to step 1 where route planning is
+        setFormOpen(true); // Open the form sidebar
+      } else {
+        setStep(1);
+        setFormOpen(true);
+      }
+      
+      toast.success('Experience loaded for editing');
+    } catch (error: any) {
+      console.error('Error loading experience:', error);
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to load experience';
+      toast.error(errorMessage);
+      // Reset edit mode on error
+      setIsEditMode(false);
+      setExperienceId(null);
+    } finally {
+      setIsLoadingExperience(false);
+    }
+  };
+
+  // Detect edit mode from URL params
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId && !isEditMode && !isLoadingExperience) {
+      loadExperience(editId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Check if form has minimum data for preview
   const canShowPreview = useMemo(() => {
@@ -209,7 +491,7 @@ export default function DesignExperienceV2() {
     }
   };
 
-  const saveExperienceFromData = async (formData: FormState, showSuccessToast: boolean = true, redirect: boolean = true) => {
+    const saveExperienceFromData = async (formData: FormState, showSuccessToast: boolean = true, redirect: boolean = true) => {
     // Validate required fields
     if (!formData.title || formData.title.trim().length < 10) {
       toast.error('Title must be at least 10 characters');
@@ -238,14 +520,77 @@ export default function DesignExperienceV2() {
 
     setIsSaving(true);
     try {
-      // Map form data to ExperienceCreate format
-      const experienceData = mapFormToExperienceCreate(formData);
+      // Get current user for host_id (needed for update)
+      const user = currentUser || await AuthAPI.me();
+      if (!user || !user.id) {
+        toast.error('User authentication required');
+        return null;
+      }
 
-      // Create experience via API
-      const createdExperience = await experienceAPI.createExperience(experienceData);
+      // Create a copy of form data and ensure waypoints are included
+      // If waypoints exist in component state but not in form (sync issue), use component state
+      const finalFormData = {
+        ...formData,
+        waypoints: formData.waypoints && formData.waypoints.length > 0 
+          ? formData.waypoints 
+          : waypoints // Use local state if form prop is empty
+      };
 
-      if (showSuccessToast) {
-        toast.success('Experience saved as draft!');
+      // Map form data to ExperienceCreate format (works for both create and update)
+      const experienceData = mapFormToExperienceCreate(finalFormData);
+
+      let savedExperience;
+      
+      // Check if we're in edit mode
+      if (isEditMode && experienceId) {
+        // Update existing experience
+        // Convert ExperienceCreate to ExperienceUpdate (all fields optional)
+        const updateData: any = {
+          title: experienceData.title,
+          promise: experienceData.promise,
+          description: experienceData.description,
+          unique_element: experienceData.unique_element,
+          host_story: experienceData.host_story,
+          experience_domain: experienceData.experience_domain,
+          experience_theme: experienceData.experience_theme,
+          country: experienceData.country,
+          city: experienceData.city,
+          neighborhood: experienceData.neighborhood,
+          meeting_landmark: experienceData.meeting_landmark,
+          meeting_point_details: experienceData.meeting_point_details,
+          latitude: experienceData.latitude,
+          longitude: experienceData.longitude,
+          route_data: experienceData.route_data,
+          duration_minutes: experienceData.duration_minutes,
+          traveler_min_capacity: experienceData.traveler_min_capacity,
+          traveler_max_capacity: experienceData.traveler_max_capacity,
+          price_inr: experienceData.price_inr,
+          inclusions: experienceData.inclusions,
+          traveler_should_bring: experienceData.traveler_should_bring,
+          accessibility_notes: experienceData.accessibility_notes,
+          weather_contingency_plan: experienceData.weather_contingency_plan,
+          photo_sharing_consent_required: experienceData.photo_sharing_consent_required,
+          experience_safety_guidelines: experienceData.experience_safety_guidelines,
+        };
+
+        savedExperience = await experienceAPI.updateExperience(experienceId, updateData, user.id);
+
+        if (showSuccessToast) {
+          toast.success('Experience updated!');
+        }
+      } else {
+        // Create new experience
+        savedExperience = await experienceAPI.createExperience(experienceData);
+
+        if (showSuccessToast) {
+          toast.success('Experience saved as draft!');
+        }
+        
+        // Set experienceId for future updates
+        if (savedExperience?.id) {
+          setExperienceId(savedExperience.id);
+          setIsEditMode(true);
+        }
       }
       
       if (redirect) {
@@ -253,7 +598,7 @@ export default function DesignExperienceV2() {
         router.push('/host-dashboard');
       }
       
-      return createdExperience;
+      return savedExperience;
     } catch (error: any) {
       console.error('Error saving experience:', error);
       const errorMessage = error.response?.data?.detail || error.message || 'Failed to save experience. Please try again.';
@@ -265,10 +610,10 @@ export default function DesignExperienceV2() {
   };
 
   const handleSaveExperience = async () => {
-    const createdExperience = await saveExperienceFromData(form, true, true);
+    const savedExperience = await saveExperienceFromData(form, true, true);
     
-    // If ready to submit and experience was created, submit for review
-    if (readyToSubmit && createdExperience?.id) {
+    // If ready to submit and experience was saved, submit for review
+    if (readyToSubmit && savedExperience?.id) {
       try {
         const user = currentUser || await AuthAPI.me();
         if (!user || !user.id) {
@@ -276,7 +621,7 @@ export default function DesignExperienceV2() {
           return;
         }
 
-        await api.post(`/experiences/${createdExperience.id}/submit`, {
+        await api.post(`/experiences/${savedExperience.id}/submit`, {
           host_id: user.id,
           submission_data: {
             submission_notes: 'Ready for admin review',
@@ -308,6 +653,9 @@ export default function DesignExperienceV2() {
     const mediaOk = photos.length > 0;
     return { basicsOk, detailsOk, mediaOk };
   }, [form, photos]);
+
+  // Calculate preview data at top level to avoid conditional hook usage
+  const previewExperience = useMemo(() => normalizeFormState(form, photos as PhotoArray), [form, photos]);
 
   const fieldClasses = (hasError: boolean) =>
     `w-full border rounded-lg px-3 py-2 text-black focus:ring-2 ${hasError ? 'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50' : 'border-gray-300 focus:ring-terracotta-500 focus:border-terracotta-500'}`;
@@ -378,7 +726,13 @@ export default function DesignExperienceV2() {
             </div>
 
             <div className="text-center pt-4">
-              <button onClick={() => setStep(1)} className="text-sm text-black/70 underline">
+              <button 
+                onClick={() => {
+                  setStep(1);
+                  setFormOpen(true);
+                }} 
+                className="text-sm text-black/70 underline"
+              >
                 Start from scratch instead
               </button>
             </div>
@@ -532,11 +886,23 @@ export default function DesignExperienceV2() {
           {/* Form Card - Sidebar when open */}
           {formOpen && (
             <>
-              <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setFormOpen(false)} />
-              <div className="fixed inset-y-0 left-0 z-50 w-full max-w-xl bg-white border-r shadow-xl overflow-y-auto">
+              {!isMapExpanded && (
+                <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setFormOpen(false)} />
+              )}
+              <div ref={sidebarRef} className="fixed inset-y-0 left-0 z-50 w-full max-w-xl bg-white border-r shadow-xl overflow-y-auto">
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-black">Edit Experience</h2>
+                    <div>
+                      <h2 className="text-xl font-semibold text-black">
+                        {isEditMode ? 'Edit Experience' : 'Create Experience'}
+                      </h2>
+                      {isEditMode && form.title && (
+                        <p className="text-sm text-gray-600 mt-1">{form.title}</p>
+                      )}
+                      {isLoadingExperience && (
+                        <p className="text-sm text-gray-500 mt-1">Loading experience...</p>
+                      )}
+                    </div>
                     <button
                       onClick={() => setFormOpen(false)}
                       className="text-gray-500 hover:text-gray-700"
@@ -617,8 +983,9 @@ export default function DesignExperienceV2() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-black mb-2">Max Participants *</label>
+                  <label htmlFor="max-capacity" className="block text-sm font-medium text-black mb-2">Max Participants *</label>
                   <input
+                    id="max-capacity"
                     type="number"
                     value={form.maxCapacity}
                     onChange={(e) => setForm((p) => ({ ...p, maxCapacity: parseInt(e.target.value || '1', 10) }))}
@@ -628,8 +995,9 @@ export default function DesignExperienceV2() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-black mb-2">Price per Person (₹) *</label>
+                  <label htmlFor="price" className="block text-sm font-medium text-black mb-2">Price per Person (₹) *</label>
                   <input
+                    id="price"
                     type="number"
                     value={form.price}
                     onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
@@ -652,36 +1020,149 @@ export default function DesignExperienceV2() {
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-black mb-2">
-                  <Icon as={MapPin} size={16} className="text-terracotta-600" />
-                  <span>Meeting Point *</span>
-                </label>
-                <div className="space-y-2">
-                  <div className="h-[300px] w-full rounded-lg overflow-hidden border border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="flex items-center gap-2 text-sm font-medium text-black">
+                    <Icon as={MapPin} size={16} className="text-terracotta-600" />
+                    <span>Meeting Point *</span>
+                  </label>
+                  <button
+                    onClick={() => setIsMapExpanded(!isMapExpanded)}
+                    className="text-xs text-terracotta-600 hover:text-terracotta-700 flex items-center font-medium"
+                  >
+                    {isMapExpanded ? (
+                      <>
+                        <Icon as={Minimize2} size={12} className="mr-1" /> Collapse Map
+                      </>
+                    ) : (
+                      <>
+                        <Icon as={Maximize2} size={12} className="mr-1" /> Expand Map
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  {/* Map Container */}
+                  <div className="h-[350px] w-full rounded-lg overflow-hidden border border-gray-200 relative">
                     <MapPicker
-                      value={form.latitude && form.longitude ? { lat: form.latitude, lng: form.longitude, name: form.meetingPoint } : undefined}
-                      onChange={(loc) => {
-                        setForm((p) => ({
-                          ...p,
-                          meetingPoint: loc.name,
-                          latitude: loc.lat,
-                          longitude: loc.lng
-                        }));
-                      }}
+                      value={
+                        activeWaypointId 
+                          ? waypoints.find(w => w.id === activeWaypointId)
+                          : (form.latitude && form.longitude ? { lat: form.latitude, lng: form.longitude, name: form.meetingPoint } : undefined)
+                      }
+                      onChange={handleWaypointChange}
                       height="100%"
+                      routeWaypoints={waypoints}
+                      activeWaypointIndex={waypoints.findIndex(w => w.id === activeWaypointId)}
                     />
+                    
+                    {/* Active Stop Indicator Overlay */}
+                    {activeWaypointId && waypoints.length > 0 && (
+                      <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-medium shadow-sm border border-gray-200 text-terracotta-600">
+                        Editing: {waypoints.find(w => w.id === activeWaypointId)?.name || 'Selected Stop'}
+                      </div>
+                    )}
                   </div>
-                  <input
-                    type="text"
-                    value={form.meetingPoint}
-                    onChange={(e) => setForm((p) => ({ ...p, meetingPoint: e.target.value }))}
-                    maxLength={2000}
-                    placeholder="e.g., Gateway of India, Main Entrance (or select on map)"
-                    className={fieldClasses(form.meetingPoint.trim().length === 0)}
-                  />
-                  <p className="text-xs text-gray-500">
-                    Search or click on the map to set the precise location. You can also edit the address text manually.
-                  </p>
+
+                  {/* ROUTE PLANNING CONTROLS */}
+                  {waypoints.length === 0 ? (
+                    /* 1. Big "Plan a Route" Button */
+                    <button
+                      onClick={() => {
+                        // Initialize route with current meeting point as start
+                        const startPoint = {
+                            id: 'start',
+                            lat: form.latitude || 19.0760,
+                            lng: form.longitude || 72.8777,
+                            name: form.meetingPoint || 'Meeting Point',
+                            type: 'start' as const
+                        };
+                        setWaypoints([startPoint]);
+                        setActiveWaypointId('start');
+                        toast.info("Route planning started! Add stops to create a path.");
+                      }}
+                      className="w-full py-4 bg-white border-2 border-dashed border-terracotta-200 rounded-xl text-terracotta-600 font-medium hover:bg-terracotta-50 hover:border-terracotta-300 transition-all flex items-center justify-center gap-2 group"
+                    >
+                      <div className="p-2 bg-terracotta-100 rounded-full group-hover:bg-terracotta-200 transition-colors">
+                        <Icon as={MapIcon} size={20} className="text-terracotta-600" />
+                      </div>
+                      <span>Plan a Walking Route with Multiple Stops</span>
+                    </button>
+                  ) : (
+                    /* 2. Active Route List */
+                    <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-900">Your Route</h4>
+                              <p className="text-xs text-gray-500">{waypoints.length} stops • Click a stop to search/edit location</p>
+                            </div>
+                            <button 
+                              onClick={addWaypoint} 
+                              className="px-3 py-1.5 bg-terracotta-500 text-white text-xs font-medium rounded-lg hover:bg-terracotta-600 flex items-center gap-1 shadow-sm transition-all"
+                            >
+                                <Icon as={Plus} size={14} /> Add Stop
+                            </button>
+                        </div>
+                        <div className="max-h-[300px] overflow-y-auto divide-y divide-gray-100">
+                            {waypoints.map((wp, index) => (
+                                <div 
+                                    key={wp.id}
+                                    onClick={() => setActiveWaypointId(wp.id)}
+                                    className={`px-4 py-3 flex items-center justify-between cursor-pointer transition-all ${
+                                      activeWaypointId === wp.id 
+                                        ? 'bg-terracotta-50 border-l-4 border-l-terracotta-500 pl-3' 
+                                        : 'hover:bg-gray-50 border-l-4 border-l-transparent pl-3'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 shadow-sm ${
+                                          wp.type === 'start' ? 'bg-green-500' : wp.type === 'end' ? 'bg-red-500' : 'bg-blue-500'
+                                        }`}>
+                                            {index + 1}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className={`text-sm font-medium truncate ${activeWaypointId === wp.id ? 'text-terracotta-900' : 'text-gray-700'}`}>
+                                              {wp.name || `Stop ${index + 1}`}
+                                            </p>
+                                            <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">{wp.type}</p>
+                                        </div>
+                                    </div>
+                                    {wp.type !== 'start' && (
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); removeWaypoint(wp.id); }}
+                                            className="text-gray-400 hover:text-red-500 p-2 hover:bg-red-50 rounded-full transition-colors"
+                                            title="Remove Stop"
+                                        >
+                                            <Icon as={Trash2} size={14} />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                  )}
+
+                  {/* Meeting Point Input (Synced with Start) */}
+                  <div>
+                    <input
+                      type="text"
+                      value={form.meetingPoint}
+                      onChange={(e) => {
+                          setForm((p) => ({ ...p, meetingPoint: e.target.value }));
+                          // Sync with start point in route
+                          if (waypoints.length > 0) {
+                             setWaypoints(prev => prev.map(w => w.id === 'start' ? { ...w, name: e.target.value } : w));
+                          }
+                      }}
+                      maxLength={2000}
+                      placeholder="e.g., Gateway of India, Main Entrance"
+                      className={fieldClasses(form.meetingPoint.trim().length === 0)}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {waypoints.length > 0 
+                        ? "This is your Start Point (Stop 1). Edit it here or select it in the list above to search on the map."
+                        : "The first point (Meeting Point) is where you will meet your guests."}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -884,12 +1365,20 @@ export default function DesignExperienceV2() {
                   {isSaving ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      {readyToSubmit ? 'Submitting...' : 'Saving...'}
+                      {readyToSubmit 
+                        ? 'Submitting...' 
+                        : isEditMode 
+                          ? 'Updating...' 
+                          : 'Saving...'}
                     </>
                   ) : (
                     <>
                       <Icon as={CheckCircle2} size={16} className="text-white" />
-                      {readyToSubmit ? 'Submit for Review' : 'Save as Draft'}
+                      {readyToSubmit 
+                        ? 'Submit for Review' 
+                        : isEditMode 
+                          ? 'Update Experience' 
+                          : 'Save as Draft'}
                     </>
                   )}
                 </button>
@@ -909,22 +1398,103 @@ export default function DesignExperienceV2() {
           )}
 
           {/* Preview Card - Centered on screen */}
-          <div className="flex justify-center items-start min-h-[calc(100vh-200px)] py-8">
-            <div className="w-full" style={{ maxWidth: '400px' }}>
-              <ExperiencePreviewCard
-                form={form}
-                host={currentUser}
-                photos={photos}
-                onEdit={() => setFormOpen(true)}
-                onSubmit={handleSaveExperience}
-                onPreview={() => {
-                  if (canShowPreview) {
-                    setShowPreviewModal(true);
-                  } else {
-                    toast.error('Please fill in title and description (min 10 and 50 characters) to preview');
-                  }
-                }}
-              />
+          <div className="flex justify-center items-start min-h-[calc(100vh-200px)] py-8 transition-all duration-300">
+            <div
+              style={mapContainerStyle}
+              className={`transition-all duration-300 ${
+                isMapExpanded
+                  ? `w-full h-[calc(100vh-6rem)] px-4 lg:px-0 fixed lg:static inset-0 z-50 lg:z-0 bg-white lg:bg-transparent pt-16 lg:pt-0`
+                  : 'w-full max-w-[400px]'
+              }`}
+            >
+              {isMapExpanded ? (
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden h-full border border-gray-200 flex flex-col">
+                  <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
+                    <h3 className="font-medium text-gray-900 flex items-center">
+                      <Icon as={MapPin} size={16} className="mr-2 text-terracotta-500" />
+                      Select Location
+                    </h3>
+                    <button
+                      onClick={() => setIsMapExpanded(false)}
+                      className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                      <Icon as={X} size={16} />
+                    </button>
+                  </div>
+                  <div className="flex-1 relative min-h-0">
+                    <MapPicker
+                      value={
+                        activeWaypointId 
+                          ? waypoints.find(w => w.id === activeWaypointId)
+                          : (form.latitude && form.longitude ? { lat: form.latitude, lng: form.longitude, name: form.meetingPoint } : undefined)
+                      }
+                      onChange={handleWaypointChange}
+                      height="100%"
+                      routeWaypoints={waypoints}
+                      activeWaypointIndex={waypoints.findIndex(w => w.id === activeWaypointId)}
+                    />
+                    {/* Expanded Map Controls */}
+                    <div className="absolute bottom-6 right-6 z-50 flex flex-col gap-2">
+                       <button
+                         onClick={addWaypoint}
+                         className="bg-white p-3 rounded-full shadow-lg hover:bg-gray-50 text-terracotta-600 border border-gray-200"
+                         title="Add Stop"
+                       >
+                         <Icon as={Plus} size={24} />
+                       </button>
+                    </div>
+                    {/* Route List Overlay in Expanded Mode */}
+                    {waypoints.length > 0 && (
+                        <div className="absolute top-4 left-4 z-50 w-64 bg-white rounded-lg shadow-lg border border-gray-200 max-h-[calc(100%-2rem)] overflow-hidden flex flex-col">
+                            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                <h4 className="font-medium text-gray-900">Itinerary</h4>
+                            </div>
+                            <div className="overflow-y-auto p-0">
+                                {waypoints.map((wp, index) => (
+                                    <div 
+                                        key={wp.id}
+                                        onClick={() => setActiveWaypointId(wp.id)}
+                                        className={`px-4 py-3 border-b border-gray-100 last:border-0 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors ${activeWaypointId === wp.id ? 'bg-terracotta-50 border-l-4 border-l-terracotta-500' : ''}`}
+                                    >
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 ${wp.type === 'start' ? 'bg-green-500' : wp.type === 'end' ? 'bg-red-500' : 'bg-blue-500'}`}>
+                                                {index + 1}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-medium text-gray-900 truncate">{wp.name}</p>
+                                            </div>
+                                        </div>
+                                        {wp.type !== 'start' && (
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); removeWaypoint(wp.id); }}
+                                                className="text-gray-400 hover:text-red-500 p-1"
+                                            >
+                                                <Icon as={X} size={14} />
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <ExperiencePreviewCard
+                  form={form}
+                  host={currentUser}
+                  photos={photos}
+                  onEdit={() => setFormOpen(true)}
+                  onSubmit={handleSaveExperience}
+                  onPreview={() => {
+                    if (canShowPreview) {
+                      setShowPreviewModal(true);
+                    } else {
+                      toast.error('Please fill in title and description (min 10 and 50 characters) to preview');
+                    }
+                  }}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -948,7 +1518,7 @@ export default function DesignExperienceV2() {
       {/* Experience Preview Modal */}
       {showPreviewModal && (
         <ExperiencePreviewModal
-          experience={useMemo(() => normalizeFormState(form, photos as PhotoArray), [form, photos])}
+          experience={previewExperience}
           photos={photos as PhotoArray}
           host={currentUser}
           onClose={() => setShowPreviewModal(false)}
