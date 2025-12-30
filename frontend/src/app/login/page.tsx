@@ -111,6 +111,14 @@ export default function LoginPage() {
     // Use NEXT_PUBLIC_API_BASE_URL if set, otherwise default to localhost for dev
     const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
     const oauthUrl = `${backendUrl}/auth/oauth/google/login`;
+    try {
+      console.log('[OAUTH] start google oauth', {
+        from: window.location.origin,
+        fromHref: window.location.href,
+        to: oauthUrl,
+        backendUrl,
+      });
+    } catch {}
     window.location.href = oauthUrl;
   };
 

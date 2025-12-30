@@ -57,7 +57,7 @@ async function handleRequest(
     const searchParams = url.searchParams.toString();
     const fullPath = `${BACKEND_BASE_URL}/${path}${searchParams ? `?${searchParams}` : ''}`;
 
-    console.log(`🔄 Proxying ${method} request to: ${fullPath}`);
+    console.log(`[PROXY] ${method} ${url.pathname}${url.search ? url.search : ''} -> ${fullPath}`);
 
     const headers: HeadersInit = {
       'Content-Type': 'application/json',

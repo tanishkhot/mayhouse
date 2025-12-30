@@ -19,6 +19,30 @@ export const getAccessToken = () => {
   }
 };
 
+export const getAnonymousUserId = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    const storageKey = "mayhouse_anonymous_user_id";
+    let anonId = localStorage.getItem(storageKey);
+    if (!anonId) {
+      if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+        anonId = crypto.randomUUID();
+      } else {
+        const s4 = () =>
+          Math.floor((1 + Math.random()) * 0x10000)
+            .toString(16)
+            .substring(1);
+        anonId = `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
+      }
+      localStorage.setItem(storageKey, anonId);
+    }
+    return anonId;
+  } catch (error) {
+    console.error("Error getting anonymous user id:", error);
+    return null;
+  }
+};
+
 export const setAccessToken = (token: string | null) => {
   if (typeof window === "undefined") return;
   try {
@@ -96,9 +120,14 @@ export const api = axios.create({
 // Attach Authorization header if token exists
 api.interceptors.request.use((config) => {
   const token = getAccessToken();
+  config.headers = config.headers || {};
   if (token) {
-    config.headers = config.headers || {};
     config.headers["Authorization"] = `Bearer ${token}`;
+  } else {
+    const anonId = getAnonymousUserId();
+    if (anonId) {
+      config.headers["X-Anonymous-User-Id"] = anonId;
+    }
   }
   return config;
 }, (error) => {

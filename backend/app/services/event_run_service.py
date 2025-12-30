@@ -189,7 +189,9 @@ class EventRunService:
         # Fetch host details separately
         host_response = (
             service_client.table("users")
-            .select("id, full_name")  # wallet_address commented out - not needed for regular payments
+            .select(
+                "id, full_name"
+            )  # wallet_address commented out - not needed for regular payments
             # .select("id, full_name, wallet_address")  # Web3: Uncomment if wallet address needed
             .eq("id", experience["host_id"])
             .execute()
@@ -788,8 +790,6 @@ class EventRunService:
                 users!experiences_host_id_fkey (
                     id,
                     full_name
-                    # wallet_address  # Commented out - not needed for regular payments
-                    # Web3: Uncomment wallet_address if needed
                 ),
                 experience_photos!experience_photos_experience_id_fkey (
                     photo_url,
@@ -827,7 +827,7 @@ class EventRunService:
                 experience = run.get("experiences")
                 if not experience:
                     continue  # Skip if experience data is missing
-                
+
                 host = experience.get("users")
                 if not host:
                     continue  # Skip if host data is missing
@@ -838,7 +838,9 @@ class EventRunService:
                 )
 
                 # Calculate effective price (special pricing overrides base price)
-                effective_price = run.get("special_pricing_inr") or experience.get("price_inr")
+                effective_price = run.get("special_pricing_inr") or experience.get(
+                    "price_inr"
+                )
                 if not effective_price:
                     continue  # Skip if no price available
 
@@ -857,14 +859,27 @@ class EventRunService:
                         )
 
                 # Build explore event run object
+                # Parse datetime safely
+                try:
+                    start_dt = datetime.fromisoformat(
+                        run["start_datetime"].replace("Z", "+00:00")
+                    )
+                except (ValueError, AttributeError) as e:
+                    print(f"Error parsing start_datetime for run {run.get('id')}: {e}")
+                    continue  # Skip this run if datetime parsing fails
+
+                try:
+                    end_dt = datetime.fromisoformat(
+                        run["end_datetime"].replace("Z", "+00:00")
+                    )
+                except (ValueError, AttributeError) as e:
+                    print(f"Error parsing end_datetime for run {run.get('id')}: {e}")
+                    continue  # Skip this run if datetime parsing fails
+
                 explore_run = ExploreEventRun(
                     id=run["id"],
-                    start_datetime=datetime.fromisoformat(
-                        run["start_datetime"].replace("Z", "+00:00")
-                    ),
-                    end_datetime=datetime.fromisoformat(
-                        run["end_datetime"].replace("Z", "+00:00")
-                    ),
+                    start_datetime=start_dt,
+                    end_datetime=end_dt,
                     max_capacity=run["max_capacity"],
                     available_spots=available_spots,
                     price_inr=Decimal(str(effective_price)),
@@ -892,8 +907,11 @@ class EventRunService:
             except Exception as e:
                 # Log error but continue processing other runs
                 import logging
+
                 logger = logging.getLogger(__name__)
-                logger.error(f"Error processing event run {run.get('id', 'unknown')}: {str(e)}")
+                logger.error(
+                    f"Error processing event run {run.get('id', 'unknown')}: {str(e)}"
+                )
                 continue
 
         return explore_runs

@@ -66,7 +66,14 @@ async def explore_upcoming_experiences(
 
         return upcoming_runs
 
+    except HTTPException:
+        raise
     except Exception as e:
+        import traceback
+
+        error_details = traceback.format_exc()
+        print(f"Error in explore_upcoming_experiences: {str(e)}")
+        print(f"Traceback: {error_details}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch upcoming experiences: {str(e)}",

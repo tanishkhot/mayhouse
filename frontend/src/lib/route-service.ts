@@ -1,51 +1,45 @@
-
-interface LatLng {
+export type RouteWaypoint = {
   lat: number;
   lng: number;
-}
+};
 
-export interface RouteResponse {
+export type WalkingRouteResult = {
   geometry: {
-    coordinates: number[][]; // [lon, lat] pairs
-    type: string;
+    type: "LineString";
+    coordinates: Array<[number, number]>;
   };
-  duration: number; // in seconds
-  distance: number; // in meters
-}
+  duration: number;
+  distance: number;
+};
 
-export async function getWalkingRoute(waypoints: LatLng[]): Promise<RouteResponse | null> {
-  if (waypoints.length < 2) return null;
-
-  // Format coordinates for OSRM: lon,lat;lon,lat;...
-  const coordinates = waypoints
-    .map(p => `${p.lng},${p.lat}`)
-    .join(';');
+export async function getWalkingRoute(
+  waypoints: RouteWaypoint[]
+): Promise<WalkingRouteResult | null> {
+  if (!waypoints || waypoints.length < 2) return null;
 
   try {
+    const encodedWaypoints = waypoints
+      .map((wp) => `${wp.lng},${wp.lat}`)
+      .join(";");
+
     const response = await fetch(
-      `https://router.project-osrm.org/route/v1/foot/${coordinates}?overview=full&geometries=geojson`
+      `/api/proxy/routes/walking?waypoints=${encodeURIComponent(encodedWaypoints)}`
     );
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch route');
-    }
+    if (!response.ok) return null;
 
-    const data = await response.json();
+    const data = (await response.json()) as any;
+    const route = data?.routes?.[0];
+    const geometry = route?.geometry;
+    const duration = route?.duration;
+    const distance = route?.distance;
 
-    if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
+    if (!geometry || typeof duration !== "number" || typeof distance !== "number") {
       return null;
     }
 
-    // Return the first (best) route
-    const route = data.routes[0];
-    return {
-      geometry: route.geometry,
-      duration: route.duration,
-      distance: route.distance
-    };
-  } catch (error) {
-    console.error('Error fetching walking route:', error);
+    return { geometry, duration, distance };
+  } catch {
     return null;
   }
 }
-

@@ -12,6 +12,11 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const processCallback = () => {
       try {
+        console.log('[OAUTH] frontend callback: start', {
+          path: window.location.pathname,
+          hasHash: Boolean(window.location.hash),
+          hasQuery: Boolean(window.location.search),
+        });
         // Extract token from hash fragment (more secure than query param)
         const hash = window.location.hash.substring(1); // Remove '#'
         const params = new URLSearchParams(hash);
@@ -45,10 +50,18 @@ export default function AuthCallbackPage() {
         if (accessToken && tokenType === 'bearer') {
           // Store token
           setAccessToken(accessToken);
+          console.log('[OAUTH] frontend callback: token stored, redirecting', {
+            tokenType,
+            tokenLen: accessToken.length,
+          });
           
           // Redirect to homepage
           router.replace('/');
         } else {
+          console.log('[OAUTH] frontend callback: missing token', {
+            tokenType,
+            hasAccessToken: Boolean(accessToken),
+          });
           setError('No access token received');
           setIsProcessing(false);
           setTimeout(() => {

@@ -3,6 +3,8 @@ OAuth API endpoints for Google Authentication
 """
 from fastapi import APIRouter, HTTPException, status, Query, Request
 from fastapi.responses import RedirectResponse
+import base64
+import json
 from app.core.config import get_settings
 from app.services.oauth_service import (
     get_google_oauth_url,
@@ -15,6 +17,32 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth/oauth", tags=["OAuth"])
+
+def _build_oauth_state(frontend_url: str) -> str:
+    payload = {
+        "v": 1,
+        "frontend_url": frontend_url,
+    }
+    raw = json.dumps(payload, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+    encoded = base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+    return f"mh1.{encoded}"
+
+def _parse_oauth_state(state: str | None) -> str | None:
+    if not state:
+        return None
+    if not state.startswith("mh1."):
+        return None
+    encoded = state[len("mh1.") :]
+    try:
+        padded = encoded + "=" * (-len(encoded) % 4)
+        raw = base64.urlsafe_b64decode(padded.encode("ascii"))
+        payload = json.loads(raw.decode("utf-8"))
+        frontend_url = payload.get("frontend_url")
+        if isinstance(frontend_url, str) and frontend_url.startswith(("http://", "https://")):
+            return frontend_url
+    except Exception:
+        return None
+    return None
 
 
 @router.get("/google/login")
@@ -40,13 +68,15 @@ async def google_oauth_login(request: Request):
             frontend_url = frontend_url.split("/")[0] + "//" + frontend_url.split("://")[1].split("/")[0]
         
         # Generate OAuth URL with state
-        auth_url, state = await get_google_oauth_url()
+        state = _build_oauth_state(frontend_url)
+        auth_url, _ = await get_google_oauth_url(state=state)
         
         # Store state in session or return it (for CSRF protection)
         # For now, we'll include it in the redirect URL
         # In production, store in Redis or session
         
         logger.info(f"Redirecting to Google OAuth: {auth_url}")
+        print(f"[OAUTH] google/login: frontend_url={frontend_url} redirecting_to_google=1 state_prefix=mh1")
         return RedirectResponse(url=auth_url)
     
     except Exception as e:
@@ -71,7 +101,9 @@ async def google_oauth_callback(
     """
     try:
         settings = get_settings()
-        frontend_url = settings.cors_origins[0] if settings.cors_origins else "http://localhost:3000"
+        state_frontend_url = _parse_oauth_state(state)
+        frontend_url = state_frontend_url or (settings.cors_origins[0] if settings.cors_origins else "http://localhost:3000")
+        print(f"[OAUTH] google/callback: received error_present={bool(error)} code_present={bool(code)} state_present={bool(state)} frontend_url={frontend_url}")
         
         # Check for OAuth errors
         if error:
@@ -90,7 +122,7 @@ async def google_oauth_callback(
         google_user_info = oauth_data["user_info"]
         
         # Get or create user in database
-        logger.info(f"Getting/creating user for email: {google_user_info.get('email')}")
+        logger.info("Getting/creating user for Google OAuth user")
         user = await get_or_create_oauth_user(google_user_info)
         
         # Create session token
@@ -102,6 +134,7 @@ async def google_oauth_callback(
         redirect_url = f"{frontend_url}/auth/callback#access_token={access_token}&token_type=bearer"
         
         logger.info(f"Redirecting to frontend: {redirect_url.split('#')[0]}...")
+        print(f"[OAUTH] google/callback: success user_id={str(user.get('id',''))[:8]} token_len={len(access_token)} redirect_base={redirect_url.split('#')[0]}")
         return RedirectResponse(url=redirect_url)
     
     except HTTPException:
@@ -111,5 +144,6 @@ async def google_oauth_callback(
         settings = get_settings()
         frontend_url = settings.cors_origins[0] if settings.cors_origins else "http://localhost:3000"
         error_url = f"{frontend_url}/auth/callback?error=oauth_failed"
+        print(f"[OAUTH] google/callback: failure redirect_base={frontend_url}/auth/callback error=oauth_failed")
         return RedirectResponse(url=error_url)
 
