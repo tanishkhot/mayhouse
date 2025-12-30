@@ -1,6 +1,8 @@
-import { redirect } from 'next/navigation';
+'use client';
+
+import HomePage from '../page';
 
 export default function ExplorePage() {
-  redirect('/');
+  return <HomePage />;
 }
 
