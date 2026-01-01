@@ -33,6 +33,30 @@ class ExperienceService:
         """Get database service client."""
         return get_service_client()
 
+    def _decimal_to_float(self, value):
+        if value is None:
+            return None
+        try:
+            return float(value)
+        except Exception:
+            return None
+
+    def _date_to_iso(self, value):
+        if value is None:
+            return None
+        try:
+            return value.isoformat()
+        except Exception:
+            return None
+
+    def _time_to_iso(self, value):
+        if value is None:
+            return None
+        try:
+            return value.isoformat()
+        except Exception:
+            return None
+
     # =============================================
     # HOST EXPERIENCE MANAGEMENT
     # =============================================
@@ -62,9 +86,11 @@ class ExperienceService:
                 "neighborhood": experience_data.neighborhood,
                 "meeting_landmark": experience_data.meeting_landmark,
                 "meeting_point_details": experience_data.meeting_point_details,
-                "latitude": experience_data.latitude,
-                "longitude": experience_data.longitude,
+                "latitude": self._decimal_to_float(experience_data.latitude),
+                "longitude": self._decimal_to_float(experience_data.longitude),
                 "route_data": experience_data.route_data or {},
+                "first_event_run_date": self._date_to_iso(experience_data.first_event_run_date),
+                "first_event_run_time": self._time_to_iso(experience_data.first_event_run_time),
                 "duration_minutes": experience_data.duration_minutes,
                 "traveler_min_capacity": experience_data.traveler_min_capacity,
                 "traveler_max_capacity": experience_data.traveler_max_capacity,
@@ -274,11 +300,15 @@ class ExperienceService:
                     update_data.meeting_point_details
                 )
             if update_data.latitude is not None:
-                update_record["latitude"] = update_data.latitude
+                update_record["latitude"] = self._decimal_to_float(update_data.latitude)
             if update_data.longitude is not None:
-                update_record["longitude"] = update_data.longitude
+                update_record["longitude"] = self._decimal_to_float(update_data.longitude)
             if update_data.duration_minutes is not None:
                 update_record["duration_minutes"] = update_data.duration_minutes
+            if getattr(update_data, "first_event_run_date", None) is not None:
+                update_record["first_event_run_date"] = self._date_to_iso(update_data.first_event_run_date)
+            if getattr(update_data, "first_event_run_time", None) is not None:
+                update_record["first_event_run_time"] = self._time_to_iso(update_data.first_event_run_time)
             if update_data.traveler_min_capacity is not None:
                 update_record["traveler_min_capacity"] = (
                     update_data.traveler_min_capacity
@@ -512,6 +542,8 @@ class ExperienceService:
             latitude=data.get("latitude"),
             longitude=data.get("longitude"),
             route_data=data.get("route_data"),
+            first_event_run_date=data.get("first_event_run_date"),
+            first_event_run_time=data.get("first_event_run_time"),
             duration_minutes=data["duration_minutes"],
             traveler_min_capacity=data["traveler_min_capacity"],
             traveler_max_capacity=data["traveler_max_capacity"],
@@ -548,6 +580,9 @@ class ExperienceService:
             experience_domain=data["experience_domain"] or "unknown",
             city=data["city"] or "Unknown City",
             neighborhood=data.get("neighborhood"),
+            route_data=data.get("route_data"),
+            first_event_run_date=data.get("first_event_run_date"),
+            first_event_run_time=data.get("first_event_run_time"),
             duration_minutes=data["duration_minutes"] or 0,
             traveler_max_capacity=data["traveler_max_capacity"] or 0,
             price_inr=data["price_inr"] or 0,

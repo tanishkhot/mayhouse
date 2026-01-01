@@ -9,6 +9,8 @@ export type FormState = {
   domain: string;
   theme: string;
   duration: number;
+  firstEventRunDate?: string;
+  firstEventRunTime?: string;
   maxCapacity: number;
   price: string;
   neighborhood: string;
@@ -105,6 +107,8 @@ export function mapFormToExperienceCreate(form: FormState): ExperienceCreate {
     latitude: form.latitude,
     longitude: form.longitude,
     route_data: form.waypoints ? { waypoints: form.waypoints } : undefined,
+    first_event_run_date: form.firstEventRunDate && form.firstEventRunDate.trim().length > 0 ? form.firstEventRunDate : undefined,
+    first_event_run_time: form.firstEventRunTime && form.firstEventRunTime.trim().length > 0 ? form.firstEventRunTime : undefined,
     duration_minutes: form.duration,
     traveler_min_capacity: 1, // Default
     traveler_max_capacity: form.maxCapacity,
@@ -184,6 +188,10 @@ export function mapExperienceResponseToForm(experience: ExperienceResponse): For
     domain: experience.experience_domain || '',
     theme: experience.experience_theme || '',
     duration: experience.duration_minutes || 180,
+    firstEventRunDate: (experience as any).first_event_run_date || '',
+    firstEventRunTime: (experience as any).first_event_run_time
+      ? String((experience as any).first_event_run_time).slice(0, 5)
+      : '',
     maxCapacity: experience.traveler_max_capacity || 4,
     price: experience.price_inr?.toString() || '',
     neighborhood: experience.neighborhood || '',

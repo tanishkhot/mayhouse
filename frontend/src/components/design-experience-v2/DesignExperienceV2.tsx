@@ -41,6 +41,8 @@ type FormState = {
   domain: string;
   theme: string;
   duration: number;
+  firstEventRunDate?: string;
+  firstEventRunTime?: string;
   maxCapacity: number;
   price: string;
   neighborhood: string;
@@ -60,6 +62,8 @@ const INITIAL: FormState = {
   domain: '',
   theme: '',
   duration: 180,
+  firstEventRunDate: '',
+  firstEventRunTime: '',
   maxCapacity: 4,
   price: '',
   neighborhood: '',
@@ -972,6 +976,37 @@ export default function DesignExperienceV2() {
                     max={480}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
                   />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Proposed first run date (optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={form.firstEventRunDate || ''}
+                    onChange={(e) => setForm((p) => ({ ...p, firstEventRunDate: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    We will use this to prefill scheduling after approval.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Proposed first run start time (optional)
+                  </label>
+                  <input
+                    type="time"
+                    value={form.firstEventRunTime || ''}
+                    onChange={(e) => setForm((p) => ({ ...p, firstEventRunTime: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This is only a suggestion. You can change it later.
+                  </p>
                 </div>
               </div>
             </div>

@@ -17,6 +17,8 @@ export type ExperienceResponse = {
   latitude?: number;
   longitude?: number;
   route_data?: any;
+  first_event_run_date?: string;
+  first_event_run_time?: string;
   duration_minutes: number;
   traveler_min_capacity?: number;
   traveler_max_capacity?: number;
@@ -51,6 +53,8 @@ export type ExperienceCreate = {
   latitude?: number;
   longitude?: number;
   route_data?: any;
+  first_event_run_date?: string;
+  first_event_run_time?: string;
   duration_minutes: number;
   traveler_min_capacity?: number;
   traveler_max_capacity: number;
@@ -79,6 +83,8 @@ export type ExperienceUpdate = {
   latitude?: number;
   longitude?: number;
   route_data?: any;
+  first_event_run_date?: string;
+  first_event_run_time?: string;
   duration_minutes?: number;
   traveler_min_capacity?: number;
   traveler_max_capacity?: number;

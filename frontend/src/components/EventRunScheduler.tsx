@@ -79,6 +79,31 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
     return options;
   };
 
+  const isDateSelectable = (dateString: string): boolean => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const minDate = new Date(today);
+      minDate.setDate(today.getDate() + 1);
+
+      const maxDate = new Date(today);
+      maxDate.setDate(today.getDate() + 90);
+
+      const selected = new Date(`${dateString}T00:00:00`);
+      return selected >= minDate && selected <= maxDate;
+    } catch {
+      return false;
+    }
+  };
+
+  const normalizeTimeToHHMM = (timeValue: unknown): string => {
+    if (!timeValue) return '';
+    const raw = String(timeValue);
+    // Accept "HH:MM" or "HH:MM:SS"
+    if (raw.length >= 5) return raw.slice(0, 5);
+    return '';
+  };
+
   // Generate time options (9 AM to 9 PM in 30-minute intervals)
   const getTimeOptions = () => {
     const options = [];
@@ -96,6 +121,12 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
       }
     }
     return options;
+  };
+
+  const isTimeSelectable = (timeString: string): boolean => {
+    if (!timeString) return false;
+    const options = getTimeOptions();
+    return options.some((opt) => opt.value === timeString);
   };
 
   // Auto-calculate end time when start time or experience changes
@@ -137,6 +168,22 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
       }
     }
   };
+
+  // Prefill date/time from selected experience if user hasn't chosen them yet.
+  useEffect(() => {
+    if (!selectedExperienceData) return;
+
+    const proposedDate = (selectedExperienceData as any).first_event_run_date as string | undefined;
+    const proposedTime = normalizeTimeToHHMM((selectedExperienceData as any).first_event_run_time);
+
+    if (!selectedDate && proposedDate && isDateSelectable(proposedDate)) {
+      setSelectedDate(proposedDate);
+    }
+
+    if (!startTime && proposedTime && isTimeSelectable(proposedTime)) {
+      handleStartTimeChange(proposedTime);
+    }
+  }, [selectedExperienceData, selectedDate, startTime]);
 
   // Validate form
   const validateForm = (): string | null => {

@@ -7,7 +7,7 @@ Covers the complete experience lifecycle: draft → submitted → approved/rejec
 
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Dict, Any
-from datetime import datetime
+from datetime import datetime, date, time
 from decimal import Decimal
 from enum import Enum
 
@@ -102,6 +102,12 @@ class ExperienceCreate(BaseModel):
     route_data: Optional[Dict[str, Any]] = Field(
         None, description="Route waypoints and geometry (JSONB)"
     )
+    first_event_run_date: Optional[date] = Field(
+        None, description="Optional proposed first event run date"
+    )
+    first_event_run_time: Optional[time] = Field(
+        None, description="Optional proposed first event run start time"
+    )
 
     # Experience Logistics
     duration_minutes: int = Field(
@@ -153,6 +159,8 @@ class ExperienceUpdate(BaseModel):
     host_story: Optional[str] = Field(None, min_length=50, max_length=1000)
     experience_domain: Optional[ExperienceDomain] = None
     experience_theme: Optional[str] = Field(None, max_length=100)
+    country: Optional[str] = Field(None, max_length=100)
+    city: Optional[str] = Field(None, max_length=100)
     neighborhood: Optional[str] = Field(None, max_length=100)
     meeting_landmark: Optional[str] = Field(None, max_length=200)
     meeting_point_details: Optional[str] = Field(None, max_length=500)
@@ -161,7 +169,10 @@ class ExperienceUpdate(BaseModel):
     route_data: Optional[Dict[str, Any]] = Field(
         None, description="Route waypoints and geometry"
     )
+    first_event_run_date: Optional[date] = None
+    first_event_run_time: Optional[time] = None
     duration_minutes: Optional[int] = Field(None, ge=30, le=480)
+    traveler_min_capacity: Optional[int] = Field(None, ge=1, le=4)
     traveler_max_capacity: Optional[int] = Field(None, ge=1, le=4)
     price_inr: Optional[Decimal] = Field(None, gt=0)
     inclusions: Optional[List[str]] = None
@@ -192,6 +203,8 @@ class ExperienceResponse(BaseModel):
     latitude: Optional[Decimal]
     longitude: Optional[Decimal]
     route_data: Optional[Dict[str, Any]] = None
+    first_event_run_date: Optional[date] = None
+    first_event_run_time: Optional[time] = None
     duration_minutes: int
     traveler_min_capacity: int
     traveler_max_capacity: int
@@ -225,6 +238,8 @@ class ExperienceSummary(BaseModel):
     city: str
     neighborhood: Optional[str]
     route_data: Optional[Dict[str, Any]] = None
+    first_event_run_date: Optional[date] = None
+    first_event_run_time: Optional[time] = None
     duration_minutes: int
     traveler_max_capacity: int
     price_inr: Decimal
