@@ -1,0 +1,13 @@
+recorded_at_iso,env,route,metric_name,metric_value_ms,metric_id,source,notes
+2026-01-02T17:07:34Z,dev,http://localhost:3000/experiences/9fc67f29-5e2b-4901-8c84-84fb3e551c77/runs/599805e7-8237-4d6c-992c-b6af04e33768,FCP,392,v4-1767372458052-5471349436375,console,run_detail
+2026-01-02T17:07:34Z,dev,http://localhost:3000/experiences/9fc67f29-5e2b-4901-8c84-84fb3e551c77/runs/599805e7-8237-4d6c-992c-b6af04e33768,TTFB,307.1,v4-1767372458052-4369238184011,console,run_detail
+2026-01-02T17:07:34Z,dev,http://localhost:3000/experiences/9fc67f29-5e2b-4901-8c84-84fb3e551c77/runs/599805e7-8237-4d6c-992c-b6af04e33768,FCP,996,v4-1767372744806-1799789568532,console,run_detail_disable_cache
+2026-01-02T17:07:34Z,dev,http://localhost:3000/experiences/9fc67f29-5e2b-4901-8c84-84fb3e551c77/runs/599805e7-8237-4d6c-992c-b6af04e33768,TTFB,396.1,v4-1767372744806-7261024632644,console,run_detail_disable_cache
+2026-01-02T17:07:34Z,dev,http://localhost:3000/explore,FCP,716,v4-1767373449626-6540458878628,console,explore
+2026-01-02T17:07:34Z,dev,http://localhost:3000/explore,TTFB,476.5,v4-1767373449627-1633324983190,console,explore
+2026-01-02T17:07:34Z,dev,http://localhost:3000/explore,FID,5.9,v4-1767373449626-3462374607811,console,explore
+2026-01-02T17:07:34Z,dev,http://localhost:3000/explore,LCP,736,v4-1767373449626-3810448718957,console,explore
+2026-01-02T17:07:34Z,dev,http://localhost:3000/explore,ExploreApiDuration,1717,,console,EXPLORE_FETCH_METRIC_durationMs
+2026-01-02T17:07:34Z,dev,http://localhost:3000/explore,TimeToExploreDataReady,1845,,console,EXPLORE_RENDER_METRIC
+2026-01-02T17:07:34Z,dev,http://localhost:3000/explore,TimeToFirstExperienceCardRendered,1867,,console,EXPLORE_RENDER_METRIC
+
