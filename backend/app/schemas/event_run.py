@@ -156,6 +156,19 @@ class EventRunBookingSummary(BaseModel):
     available_spots: int = Field(..., description="Remaining capacity")
 
 
+class HostEventRunBooking(BaseModel):
+    """Host-visible booking details for an event run (no phone/email)."""
+
+    id: str = Field(..., description="Booking ID")
+    traveler_name: str = Field(..., description="Traveler full name")
+    traveler_count: int = Field(..., ge=1, le=4, description="Seats booked")
+    booking_status: str = Field(..., description="Booking status")
+    booked_at: datetime = Field(..., description="When the booking was created")
+    special_requests: Optional[str] = Field(
+        None, description="Traveler special requests (if provided)"
+    )
+
+
 class EventRunResponse(BaseModel):
     """Complete event run information."""
 

@@ -3,8 +3,12 @@
 import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { getAccessToken } from '@/lib/api';
 
 export function Footer() {
+  const isAuthenticated = !!getAccessToken();
+  const hostCtaHref = isAuthenticated ? '/host-dashboard' : '/login?next=/host-dashboard';
+
   return (
     <footer className="border-t bg-terracotta-50/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
@@ -22,7 +26,7 @@ export function Footer() {
           <div>
             <h4 className="mb-4 font-semibold">Hosting</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
-              <li><Link href="/design-experience" className="hover:text-foreground transition-colors">Become a host</Link></li>
+              <li><Link href={hostCtaHref} className="hover:text-foreground transition-colors">Become a host</Link></li>
               <li><Link href="/host-dashboard" className="hover:text-foreground transition-colors">Host resources</Link></li>
               <li><Link href="/host-dashboard" className="hover:text-foreground transition-colors">Community forum</Link></li>
               <li><Link href="/host-dashboard" className="hover:text-foreground transition-colors">Host stories</Link></li>

@@ -22,6 +22,7 @@ from app.schemas.event_run import (
     EventRunStatus,
     EventRunStats,
     EventRunFilterParams,
+    HostEventRunBooking,
 )
 from app.services.event_run_service import event_run_service
 from app.core.jwt_utils import verify_token
@@ -144,6 +145,56 @@ async def list_host_event_runs(
     return await event_run_service.get_host_event_runs(
         host_id=host_id, status_filter=status_filter, limit=limit, offset=offset
     )
+
+
+@host_router.get(
+    "/{event_run_id}/bookings",
+    response_model=List[HostEventRunBooking],
+    summary="List Bookings for Event Run (Host)",
+    description="Get bookings for a specific event run owned by the authenticated host",
+)
+async def list_host_event_run_bookings(
+    event_run_id: str = Path(..., description="Event Run ID"),
+    authorization: str = Header(None),
+) -> List[HostEventRunBooking]:
+    """
+    Get host-visible bookings for an event run.
+
+    Requirements:
+    - Host must be authenticated
+    - Host must own the experience associated with the event run
+    """
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid authorization header",
+        )
+
+    token = authorization.replace("Bearer ", "")
+    payload = verify_token(token)
+
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token"
+        )
+
+    host_id = payload.get("sub")
+    if not host_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
+        )
+
+    # Ownership check via event run -> experience host_id (already joined in service)
+    event_run = await event_run_service.get_event_run_by_id(
+        event_run_id, include_bookings=False
+    )
+    if event_run.host_id != host_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only view bookings for your own event runs",
+        )
+
+    return await event_run_service.get_host_event_run_bookings(event_run_id)
 
 
 @host_router.get(

@@ -20,6 +20,8 @@ type FormState = {
   price: string;
   neighborhood: string;
   meetingPoint: string;
+  latitude?: number;
+  longitude?: number;
   requirements: string;
   whatToExpect: string;
   whatToKnow: string;

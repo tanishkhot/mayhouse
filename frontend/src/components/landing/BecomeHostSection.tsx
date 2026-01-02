@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, TrendingUp, Users, Briefcase } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 import Link from 'next/link';
+import { getAccessToken } from '@/lib/api';
 
 const benefits = [
   {
@@ -24,6 +25,9 @@ const benefits = [
 ];
 
 export function BecomeHostSection() {
+  const isAuthenticated = !!getAccessToken();
+  const hostCtaHref = isAuthenticated ? '/host-dashboard' : '/login?next=/host-dashboard';
+
   return (
     <section id="hosts" className="py-20 lg:py-32 bg-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -76,7 +80,7 @@ export function BecomeHostSection() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link href="/design-experience">
+              <Link href={hostCtaHref}>
                 <Button className="bg-terracotta-500 hover:bg-terracotta-600">
                   Apply to become a host
                   <ArrowRight className="ml-2 h-5 w-5" />

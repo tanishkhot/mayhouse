@@ -72,6 +72,13 @@ const HostDashboardContent = () => {
       console.log('[FLOW] HostDashboardContent activeTab', { activeTab, ts: new Date().toISOString() });
     } catch {}
   }, [activeTab]);
+
+  // Hub pattern: creating/editing is handled in the dedicated wizard route
+  useEffect(() => {
+    if (activeTab === 'create') {
+      router.replace('/design-experience');
+    }
+  }, [activeTab, router]);
   
   // Event run management state
   const [eventRunRefreshTrigger, setEventRunRefreshTrigger] = useState(0);

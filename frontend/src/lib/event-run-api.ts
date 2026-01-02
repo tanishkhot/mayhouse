@@ -36,6 +36,15 @@ export type EventRunBookingSummary = {
   available_spots: number;
 };
 
+export type HostEventRunBooking = {
+  id: string;
+  traveler_name: string;
+  traveler_count: number;
+  booking_status: string;
+  booked_at: string;
+  special_requests?: string | null;
+};
+
 export type EventRunResponse = {
   id: string;
   experience_id: string;
@@ -95,6 +104,11 @@ export const EventRunAPI = {
 
   getEventRunDetails: (eventRunId: string) =>
     api.get<EventRunResponse>(`/hosts/event-runs/${eventRunId}`).then((r) => r.data),
+
+  getHostEventRunBookings: (eventRunId: string) =>
+    api
+      .get<HostEventRunBooking[]>(`/hosts/event-runs/${eventRunId}/bookings`)
+      .then((r) => r.data),
 
   updateEventRun: async (eventRunId: string, payload: EventRunUpdate) => {
     // Get current user to extract host_id

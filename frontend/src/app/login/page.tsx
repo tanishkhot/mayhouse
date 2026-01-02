@@ -2,7 +2,7 @@
 
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useSignMessage, useChainId } from 'wagmi';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
 import { WalletAPI } from '@/lib/wallet-api';
 import { setAccessToken, AuthAPI } from '@/lib/api';
@@ -10,6 +10,7 @@ import { useWalletDetection } from '@/hooks/useWalletDetection';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { address, isConnected, chain } = useAccount();
   const chainId = useChainId();
   const { signMessageAsync } = useSignMessage();
@@ -86,9 +87,9 @@ export default function LoginPage() {
       console.log('Authentication successful!');
       setAccessToken(authResponse.access_token);
       
-      // Always redirect to homepage after login
-      // Users can navigate to admin/host pages from navbar
-      router.replace('/');
+      // Redirect to requested destination if provided
+      const next = searchParams.get('next');
+      router.replace(next && next.startsWith('/') ? next : '/');
     } catch (err: any) {
       console.error('Authentication error:', err);
       const errorMessage = err.response?.data?.detail || err.message || 'Authentication failed';
@@ -103,7 +104,7 @@ export default function LoginPage() {
     } finally {
       setIsAuthenticating(false);
     }
-  }, [address, isAuthenticating, isChainSupported, signMessageAsync, router]);
+  }, [address, isAuthenticating, isChainSupported, signMessageAsync, router, searchParams]);
 
   const handleGoogleAuth = () => {
     // For OAuth, we need to redirect directly to the backend (bypassing the proxy)
@@ -290,26 +291,33 @@ export default function LoginPage() {
                               type="button"
                               className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
                             >
-                              {chain.hasIcon && (
+                              {(() => {
+                                const chainWithIcon = chain as unknown as {
+                                  iconUrl?: string;
+                                  iconBackground?: string;
+                                };
+
+                                if (!chainWithIcon.iconUrl) return null;
+
+                                return (
                                 <div
                                   style={{
-                                    background: chain.iconBackground,
+                                    background: chainWithIcon.iconBackground,
                                     width: 20,
                                     height: 20,
                                     borderRadius: 999,
                                     overflow: 'hidden',
                                   }}
                                 >
-                                  {chain.iconUrl && (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img
-                                      alt={chain.name ?? 'Chain icon'}
-                                      src={chain.iconUrl}
-                                      style={{ width: 20, height: 20 }}
-                                    />
-                                  )}
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    alt={chain.name ?? 'Chain icon'}
+                                    src={chainWithIcon.iconUrl}
+                                    style={{ width: 20, height: 20 }}
+                                  />
                                 </div>
-                              )}
+                                );
+                              })()}
                               <span className="text-xs">{chain.name}</span>
                             </button>
                           )}

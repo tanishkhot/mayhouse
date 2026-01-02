@@ -9,9 +9,9 @@
  * Last used: Before migration to API-based booking system
  */
 
-// import { parseEther, formatEther } from 'viem';
-// import { useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
-// import { MAYHOUSE_CONTRACT_ABI, CONTRACT_ADDRESS } from './contract-abi';
+import { parseEther, formatEther } from 'viem';
+import { useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
+import { MAYHOUSE_CONTRACT_ABI, CONTRACT_ADDRESS } from './contract-abi';
 
 // Types
 export enum EventStatus {

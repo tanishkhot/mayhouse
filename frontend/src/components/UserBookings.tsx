@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ProfileAPI, formatPrice } from '@/lib/api';
-import { toast } from 'sonner';
+import { ProfileAPI } from '@/lib/api';
+import { formatPrice } from '@/lib/experience-preview-normalizer';
 
 // Define types based on backend response
 interface Booking {

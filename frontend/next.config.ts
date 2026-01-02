@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
+  // Fix monorepo/workspace root inference (multiple lockfiles).
+  // Keep tracing within the frontend directory to avoid picking up unrelated lockfiles.
+  outputFileTracingRoot: path.join(__dirname),
   /* Performance optimizations */
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -14,6 +18,17 @@ const nextConfig: NextConfig = {
   },
   // Compress responses
   compress: true,
+  webpack: (config) => {
+    // These are optional deps for certain wallet libs. In our web build we don't need them,
+    // but webpack requires resolvable modules when they are referenced.
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      "@react-native-async-storage/async-storage": path.join(__dirname, "src/shims/async-storage.ts"),
+      "pino-pretty": path.join(__dirname, "src/shims/pino-pretty.ts"),
+    };
+    return config;
+  },
 };
 
 export default nextConfig;

@@ -30,23 +30,25 @@ export interface AISuggestion {
   confidence: number;
 }
 
+type FormState = {
+  title: string;
+  description: string;
+  domain: string;
+  theme: string;
+  duration: number;
+  maxCapacity: number;
+  price: string;
+  neighborhood: string;
+  meetingPoint: string;
+  requirements: string;
+  whatToExpect: string;
+  whatToKnow: string;
+  whatToBring: string;
+};
+
 interface AIChatSidebarProps {
-  formState: {
-    title: string;
-    description: string;
-    domain: string;
-    theme: string;
-    duration: number;
-    maxCapacity: number;
-    price: string;
-    neighborhood: string;
-    meetingPoint: string;
-    requirements: string;
-    whatToExpect: string;
-    whatToKnow: string;
-    whatToBring: string;
-  };
-  updateFormState: (updates: Partial<typeof formState>) => void;
+  formState: FormState;
+  updateFormState: (updates: Partial<FormState>) => void;
   currentStep: number;
   isOpen: boolean;
   onToggle: () => void;
@@ -66,6 +68,12 @@ export function AIChatSidebar({
   const [input, setInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const nextIdRef = useRef(0);
+
+  const createId = (prefix: string) => {
+    nextIdRef.current += 1;
+    return `${prefix}-${nextIdRef.current}`;
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -77,7 +85,7 @@ export function AIChatSidebar({
     if (!input.trim() || isThinking) return;
 
     const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
+      id: createId('user'),
       role: 'user',
       content: input.trim(),
       timestamp: new Date(),
@@ -96,7 +104,7 @@ export function AIChatSidebar({
     const lowerInput = userInput.toLowerCase();
     let assistantContent = '';
     let suggestion: AISuggestion | null = null;
-    let shouldAutoApply = false;
+    const shouldAutoApply = false;
 
     // Check if user wants to see current value
     if (lowerInput.includes('what is my') || lowerInput.includes('what\'s my') || 
@@ -135,7 +143,7 @@ export function AIChatSidebar({
         
         assistantContent = "I've created an enhanced description for you. Here's my suggestion:";
         suggestion = {
-          id: `suggestion-${Date.now()}`,
+          id: createId('suggestion'),
           field: 'description',
           currentValue: currentDesc || '(empty)',
           suggestedValue: newDescription,
@@ -158,7 +166,7 @@ export function AIChatSidebar({
         
         assistantContent = "I've crafted a more engaging title for you:";
         suggestion = {
-          id: `suggestion-${Date.now()}`,
+          id: createId('suggestion'),
           field: 'title',
           currentValue: currentTitle || '(empty)',
           suggestedValue: newTitle,
@@ -169,7 +177,7 @@ export function AIChatSidebar({
       else if (lowerInput.includes('price') || lowerInput.includes('cost')) {
         assistantContent = 'Based on similar experiences in your area, I recommend pricing between ₹1,500-₹2,500 per person. Consider your duration, group size, and unique value when setting the final price.';
         suggestion = {
-          id: `suggestion-${Date.now()}`,
+          id: createId('suggestion'),
           field: 'price',
           currentValue: formState.price || '(not set)',
           suggestedValue: '2000',
@@ -188,7 +196,7 @@ export function AIChatSidebar({
         : 'Sunset Heritage Walk Through Gandhi Bazaar';
       assistantContent = "I've analyzed your title. Here's a more engaging suggestion:";
       suggestion = {
-        id: `suggestion-${Date.now()}`,
+        id: createId('suggestion'),
         field: 'title',
         currentValue: formState.title || '(empty)',
         suggestedValue: newTitle,
@@ -203,7 +211,7 @@ export function AIChatSidebar({
         : 'Join us for an immersive journey through local culture, where you\'ll discover unique stories, traditions, and places that create lasting memories.';
       assistantContent = "I've enhanced your description with more engaging details:";
       suggestion = {
-        id: `suggestion-${Date.now()}`,
+        id: createId('suggestion'),
         field: 'description',
         currentValue: currentDesc || '(empty)',
         suggestedValue: newDescription,
@@ -217,7 +225,7 @@ export function AIChatSidebar({
     }
 
     const assistantMessage: ChatMessage = {
-      id: `assistant-${Date.now()}`,
+      id: createId('assistant'),
       role: 'assistant',
       content: assistantContent,
       suggestions: suggestion ? [suggestion] : undefined,
@@ -271,7 +279,7 @@ export function AIChatSidebar({
     
     // Add a confirmation message with the applied change
     const appliedChange: AppliedChange = {
-      id: `applied-${Date.now()}`,
+      id: createId('applied'),
       field: suggestion.field,
       oldValue: oldValue,
       newValue: suggestion.suggestedValue,
@@ -279,7 +287,7 @@ export function AIChatSidebar({
     };
     
     const confirmationMessage: ChatMessage = {
-      id: `confirmation-${Date.now()}`,
+      id: createId('confirmation'),
       role: 'assistant',
       content: `✅ Applied changes to ${getFieldLabel(suggestion.field)}`,
       timestamp: new Date(),

@@ -3,14 +3,16 @@
 import React, { useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { NormalizedExperienceData, PhotoArray } from '@/lib/experience-preview-types';
-import { UserResponse } from '@/lib/api';
+import type { PublicProfile, UserResponse } from '@/lib/api';
 import { ExperienceStatus } from '@/lib/experience-api';
 import ExperiencePreviewContent from './ExperiencePreviewContent';
+
+type PreviewHost = UserResponse | PublicProfile;
 
 interface ExperiencePreviewModalProps {
   experience: NormalizedExperienceData;
   photos?: PhotoArray;
-  host?: UserResponse | null;
+  host?: PreviewHost | null;
   onClose: () => void;
   mode?: 'preview' | 'saved';
   showStatus?: boolean;

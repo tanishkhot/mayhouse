@@ -59,5 +59,3 @@ def test_google_oauth_callback_redirects_with_token(monkeypatch, client):
     assert location.startswith("http://localhost:3000/auth/callback#")
     assert "access_token=test.jwt.token" in location
     assert "token_type=bearer" in location
-
-

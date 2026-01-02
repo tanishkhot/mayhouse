@@ -236,7 +236,7 @@ export default function GuidedQAFlow({ sessionId, onComplete, onCancel }: Guided
         
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-xl font-semibold text-black mb-2">Let's Build Together</h3>
+            <h3 className="text-xl font-semibold text-black mb-2">Let&apos;s Build Together</h3>
             <p className="text-black/70">
               Question {currentQuestionIndex + 1} of {totalQuestions}
             </p>

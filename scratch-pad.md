@@ -1,33 +1,75 @@
-# Booking Button & Cost Logic Migration Plan
+# Scratchpad: Add date/time fields to experience creation (preferred first run)
 
-**Goal**: Integrate `BookEventButton` into the Web2-first booking flow and move cost calculation logic from the legacy "Blockchain" API to the standard `Bookings` API.
+## Goal
+Add two optional fields below Category and Duration in the experience creation UI:
+- Date
+- Time
 
-## Phase 1: Backend Refactor
+Persist them to the backend on the experience record so they are available for later event-run scheduling.
 
-- [x] **Update Schemas**:
-  - Edit `backend/app/schemas/booking.py`: Add `BookingCostRequest` and `BookingCostResponse`.
-- [x] **Migrate Logic**:
-  - Edit `backend/app/api/bookings.py`: Add `/calculate-cost` endpoint using logic from `backend/app/api/blockchain.py`.
-- [x] **Verify**:
-  - Ensure new endpoint returns correct INR values (price, stake, total).
+Note: /explore shows event runs, not experiences. These fields do not directly affect /explore until a host schedules an event run.
 
-## Phase 2: Frontend API Update
+## SQL (run in Supabase SQL editor)
 
-- [x] **Update Client**:
-  - Edit `frontend/src/lib/bookings-api.ts`:
-    - Add `calculateCost` method calling `/bookings/calculate-cost`.
-    - Add/Export `BookingCostResponse` interface.
+```sql
+ALTER TABLE public.experiences
+  ADD COLUMN IF NOT EXISTS preferred_start_date date,
+  ADD COLUMN IF NOT EXISTS preferred_start_time time;
 
-## Phase 3: Frontend Component Refactor
+COMMENT ON COLUMN public.experiences.preferred_start_date IS 'Host proposed first run date (used for scheduling later)';
+COMMENT ON COLUMN public.experiences.preferred_start_time IS 'Host proposed first run time (used for scheduling later)';
 
-- [x] **Refactor Button**:
-  - Edit `frontend/src/components/BookEventButton.tsx`:
-    - Remove `BlockchainAPI` import.
-    - Import `BookingsAPI`.
-    - Replace `BlockchainAPI.calculateBookingCost` with `BookingsAPI.calculateCost`.
-    - Clean up any unused props/state related to blockchain (if any).
+-- Verify
+SELECT column_name, data_type
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name = 'experiences'
+  AND column_name IN ('preferred_start_date', 'preferred_start_time');
+```
 
-## Phase 4: Verification
+## Frontend changes
 
-- [x] **Unit Test**: Update `backend/tests/test_booking_flow.py` to test the new cost calculation endpoint.
-- [x] **Manual Check**: Verify `BookEventButton` functionality in `AllEventsListing` (via code review/logic check).
+### 1) Add form fields to DesignExperienceV2
+- Add to `FormState`:
+  - preferredStartDate?: string (YYYY-MM-DD)
+  - preferredStartTime?: string (HH:MM)
+- Add to `INITIAL` with empty string defaults.
+- Add UI inputs (type=date, type=time) below Category and Duration using existing input styles.
+
+### 2) Map fields into payload
+- Update `frontend/src/lib/experience-mapper.ts`:
+  - In `mapFormToExperienceCreate`, send:
+    - preferred_start_date
+    - preferred_start_time
+  - In `mapExperienceResponseToForm`, read:
+    - preferred_start_date
+    - preferred_start_time
+
+### 3) Types
+- Update `frontend/src/lib/experience-api.ts`:
+  - Add optional fields on ExperienceCreate/Update/Response:
+    - preferred_start_date?: string
+    - preferred_start_time?: string
+
+## Backend changes
+
+### 1) Schemas
+- Update `backend/app/schemas/experience.py`:
+  - ExperienceCreate:
+    - preferred_start_date: Optional[date]
+    - preferred_start_time: Optional[time]
+  - ExperienceUpdate:
+    - preferred_start_date: Optional[date]
+    - preferred_start_time: Optional[time]
+  - ExperienceResponse:
+    - preferred_start_date: Optional[date]
+    - preferred_start_time: Optional[time]
+
+### 2) Persist in service
+- Update `backend/app/services/experience_service.py`:
+  - In create_experience(): include preferred_start_date/time in experience_record
+  - In update_experience(): allow updating preferred_start_date/time
+  - In _map_to_experience_response(): include preferred_start_date/time
+
+## Follow-up (later)
+Use these fields to prefill or auto-suggest the first EventRun in the scheduler after approval.

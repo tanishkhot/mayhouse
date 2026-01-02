@@ -58,9 +58,14 @@ export const BlockchainAPI = {
   calculateBookingCost: (request: BookingCostRequest) =>
     api.post<BookingCostResponse>('/blockchain/calculate-booking-cost', request).then((r) => r.data),
 
-  // NOTE: Commented out - Not needed for regular payment flow
-  // Can be re-enabled if Web3 integration is restored
-  
+  /**
+   * Get current ETH price in INR
+   */
+  getETHPrice: () =>
+    api.get<ETHPriceResponse>('/blockchain/eth-price').then((r) => r.data),
+
+  // NOTE: Other web3 endpoints can be re-enabled if full Web3 integration is restored
+
   // /**
   //  * Get blockchain sync status for an event run
   //  */
@@ -79,38 +84,31 @@ export const BlockchainAPI = {
   // convertWeiToINR: (amountWei: number) =>
   //   api.get<ConversionResponse>(`/blockchain/conversion/wei-to-inr?amount_wei=${amountWei}`).then((r) => r.data),
 
-  // /**
-  //  * Get current ETH price in INR
-  //  */
-  // getETHPrice: () =>
-  //   api.get<ETHPriceResponse>('/blockchain/eth-price').then((r) => r.data),
 };
 
 // Utility functions for price formatting
-// NOTE: Commented out - Not needed for regular payment flow
-// Can be re-enabled if Web3 integration is restored
+// Note: used by UI components (e.g. PriceDisplay) even if full Web3 flow is disabled.
+export const formatETH = (weiAmount: number | string): string => {
+  // Convert to BigInt safely - handle both string and number inputs
+  let wei: bigint;
+  if (typeof weiAmount === 'string') {
+    wei = BigInt(weiAmount);
+  } else {
+    // If it's a number, convert to integer first
+    wei = BigInt(Math.floor(weiAmount));
+  }
 
-// export const formatETH = (weiAmount: number | string): string => {
-//   // Convert to BigInt safely - handle both string and number inputs
-//   let wei: bigint;
-//   if (typeof weiAmount === 'string') {
-//     wei = BigInt(weiAmount);
-//   } else {
-//     // If it's a number, convert to integer first (round if necessary)
-//     wei = BigInt(Math.floor(weiAmount));
-//   }
-//   
-//   const eth = Number(wei) / 1e18;
-//   
-//   // Format with appropriate precision
-//   if (eth >= 1) {
-//     return eth.toFixed(4) + ' ETH';
-//   } else if (eth >= 0.0001) {
-//     return eth.toFixed(6) + ' ETH';
-//   } else {
-//     return eth.toExponential(2) + ' ETH';
-//   }
-// };
+  const eth = Number(wei) / 1e18;
+
+  // Format with appropriate precision
+  if (eth >= 1) {
+    return eth.toFixed(4) + ' ETH';
+  }
+  if (eth >= 0.0001) {
+    return eth.toFixed(6) + ' ETH';
+  }
+  return eth.toExponential(2) + ' ETH';
+};
 
 export const formatINR = (amount: number): string => {
   return `₹${amount.toLocaleString('en-IN')}`;

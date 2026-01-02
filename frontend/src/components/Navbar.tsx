@@ -7,7 +7,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import React, { useState, useEffect } from 'react';
 import { getAccessToken, clearAuthData } from '@/lib/api';
-import { Menu, X, User, Heart, Calendar, Sparkles } from 'lucide-react';
+import { Menu, User, Heart, Calendar, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -24,7 +24,7 @@ import {
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { address, isConnected } = useAccount();
+  useAccount();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
@@ -140,10 +140,10 @@ export default function Navbar() {
                 {isAuthenticated && (
                   <>
                     <Link 
-                      href="/design-experience" 
+                      href="/host-dashboard" 
                       onClick={() => {
                         try {
-                          console.log('[FLOW] Navbar Host link clicked', { from: pathname, to: '/design-experience', ts: new Date().toISOString() });
+                          console.log('[FLOW] Navbar Host link clicked', { from: pathname, to: '/host-dashboard', ts: new Date().toISOString() });
                         } catch {}
                       }}
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
@@ -194,14 +194,14 @@ export default function Navbar() {
                       <DropdownMenuItem asChild>
                         <Link 
                           href="/host-dashboard" 
-                          onClick={() => { try { console.log('[FLOW] Account menu -> My Experiences', { from: pathname, to: '/host-dashboard', ts: new Date().toISOString() }); } catch {} }}
+                          onClick={() => { try { console.log('[FLOW] Account menu -> Manage Experiences', { from: pathname, to: '/host-dashboard', ts: new Date().toISOString() }); } catch {} }}
                           onMouseEnter={() => {
                             // Prefetch host dashboard data on hover
                             import('@/lib/prefetch').then(({ prefetchHostExperiences }) => prefetchHostExperiences());
                           }}
                         >
                           <Sparkles className="mr-2 h-4 w-4" />
-                          My Experiences
+                          Manage Experiences
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
@@ -249,10 +249,10 @@ export default function Navbar() {
                         </Link>
                         <Link 
                           href="/host-dashboard"
-                          onClick={() => { try { console.log('[FLOW] Mobile menu -> My Experiences', { from: pathname, to: '/host-dashboard', ts: new Date().toISOString() }); } catch {} ; setIsMenuOpen(false); }}
+                          onClick={() => { try { console.log('[FLOW] Mobile menu -> Manage Experiences', { from: pathname, to: '/host-dashboard', ts: new Date().toISOString() }); } catch {} ; setIsMenuOpen(false); }}
                           className="text-lg font-medium"
                         >
-                          My Experiences
+                          Manage Experiences
                         </Link>
                         <Link 
                           href="/design-experience"

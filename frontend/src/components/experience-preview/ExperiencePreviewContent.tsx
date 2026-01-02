@@ -3,15 +3,17 @@
 import React from 'react';
 import { Clock, Users, MapPin, Star } from 'lucide-react';
 import { NormalizedExperienceData, PhotoArray } from '@/lib/experience-preview-types';
-import { UserResponse } from '@/lib/api';
+import type { PublicProfile, UserResponse } from '@/lib/api';
 import { ExperienceStatus } from '@/lib/experience-api';
 import { formatDuration, formatPrice, getCategoryDisplayName } from '@/lib/experience-preview-normalizer';
 import { MapPicker, type Waypoint } from '@/components/ui/map-picker';
 
+type PreviewHost = UserResponse | PublicProfile;
+
 interface ExperiencePreviewContentProps {
   experience: NormalizedExperienceData;
   photos?: PhotoArray;
-  host?: UserResponse | null;
+  host?: PreviewHost | null;
   mode?: 'preview' | 'saved';
   showStatus?: boolean;
   status?: ExperienceStatus;
@@ -28,6 +30,12 @@ export default function ExperiencePreviewContent({
   // Get cover photo or first photo, or use placeholder
   const coverPhoto = photos.find((p) => p.isCover) || photos[0];
   const coverPhotoUrl = coverPhoto?.url;
+
+  const hostName = host?.full_name || 'Host';
+  const hostInitial = hostName.charAt(0) || 'H';
+  const hostBio = host?.bio || null;
+  const hostLanguages =
+    host && 'host_application' in host ? host.host_application?.languages_spoken : undefined;
 
   // Get status badge color
   const getStatusColor = (status?: ExperienceStatus) => {
@@ -260,16 +268,16 @@ export default function ExperiencePreviewContent({
               {host ? (
                 <div className="flex items-start space-x-4">
                   <div className="w-12 h-12 bg-terracotta-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {host.name?.charAt(0) || 'H'}
+                    {hostInitial}
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900">
-                      Meet your host, {host.name || 'Host'}
+                      Meet your host, {hostName}
                     </h3>
-                    {host.bio && <p className="text-gray-600 mt-2">{host.bio}</p>}
-                    {host.languages && host.languages.length > 0 && (
+                    {hostBio && <p className="text-gray-600 mt-2">{hostBio}</p>}
+                    {hostLanguages && hostLanguages.length > 0 && (
                       <p className="text-sm text-gray-500 mt-2">
-                        Speaks {host.languages.join(', ')}
+                        Speaks {hostLanguages.join(', ')}
                       </p>
                     )}
                   </div>

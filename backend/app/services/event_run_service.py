@@ -26,6 +26,7 @@ from app.schemas.event_run import (
     EventRunStats,
     EventRunFilterParams,
     ExploreEventRun,
+    HostEventRunBooking,
 )
 from app.services.experience_service import experience_service
 
@@ -242,6 +243,53 @@ class EventRunService:
             duration_minutes=experience.get("duration_minutes"),
             neighborhood=experience.get("neighborhood"),
         )
+
+    async def get_host_event_run_bookings(self, event_run_id: str) -> List[HostEventRunBooking]:
+        """
+        Get host-visible bookings for an event run (no phone/email).
+
+        Ownership is enforced at the API layer; this method only fetches and maps data.
+        """
+        service_client = self._get_service_client()
+
+        response = (
+            service_client.table("event_run_bookings")
+            .select(
+                """
+            id,
+            traveler_count,
+            booking_status,
+            special_travel_requests,
+            booking_created_at,
+            users!traveler_id (
+                full_name
+            )
+        """
+            )
+            .eq("event_run_id", event_run_id)
+            .order("booking_created_at", desc=True)
+            .execute()
+        )
+
+        bookings: List[HostEventRunBooking] = []
+        for row in response.data:
+            traveler_info = row.get("users") or {}
+            bookings.append(
+                HostEventRunBooking(
+                    id=row["id"],
+                    traveler_name=traveler_info.get("full_name") or "N/A",
+                    traveler_count=row.get("traveler_count") or 1,
+                    booking_status=row.get("booking_status") or "unknown",
+                    booked_at=datetime.fromisoformat(
+                        row["booking_created_at"].replace("Z", "+00:00")
+                    )
+                    if row.get("booking_created_at")
+                    else datetime.utcnow(),
+                    special_requests=row.get("special_travel_requests"),
+                )
+            )
+
+        return bookings
 
     async def get_host_event_runs(
         self,

@@ -54,6 +54,11 @@ export default function UserProfilePage() {
     staleTime: 2 * 60 * 1000,
   });
 
+  const normalizedPreviewExperience = useMemo(() => {
+    if (!previewExperience || !fullExperienceDetails) return null;
+    return normalizeHostExperience(previewExperience, fullExperienceDetails);
+  }, [previewExperience, fullExperienceDetails]);
+
   if (profileLoading) {
     return <ProfilePageSkeleton />;
   }
@@ -160,14 +165,10 @@ export default function UserProfilePage() {
       )}
 
       {/* Experience Preview Modal */}
-      {previewExperience && fullExperienceDetails && (
+      {previewExperience && fullExperienceDetails && normalizedPreviewExperience && (
         <ExperiencePreviewModal
-          experience={useMemo(() => 
-            normalizeHostExperience(previewExperience, fullExperienceDetails),
-            [previewExperience, fullExperienceDetails]
-          )}
+          experience={normalizedPreviewExperience}
           photos={convertPhotosToArray(previewPhotos)}
-          host={profile}
           onClose={() => {
             setPreviewExperience(null);
             setFullExperienceDetails(null);

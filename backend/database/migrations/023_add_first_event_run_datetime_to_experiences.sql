@@ -4,5 +4,3 @@
 ALTER TABLE experiences
 ADD COLUMN IF NOT EXISTS first_event_run_date DATE,
 ADD COLUMN IF NOT EXISTS first_event_run_time TIME;
-
-

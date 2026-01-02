@@ -9,8 +9,8 @@
  * Last used: Before migration to API-based booking system
  */
 
-// import { parseEther, formatEther } from 'viem';
-// import { useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
+import { parseEther, formatEther } from 'viem';
+import { useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
 
 // Simplified ABI for MayhouseBooking contract
 export const BOOKING_CONTRACT_ABI = [

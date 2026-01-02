@@ -5,6 +5,7 @@ import {
   EventRunAPI, 
   EventRunSummary, 
   EventRunStatus, 
+  HostEventRunBooking,
   formatDate, 
   formatTime, 
   getStatusColor,
@@ -28,6 +29,12 @@ const EventRunsList: React.FC<EventRunsListProps> = ({
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState<EventRunStatus | 'all'>('all');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  const [isBookingsOpen, setIsBookingsOpen] = useState(false);
+  const [selectedRun, setSelectedRun] = useState<EventRunSummary | null>(null);
+  const [bookings, setBookings] = useState<HostEventRunBooking[] | null>(null);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [bookingsError, setBookingsError] = useState<string>('');
 
   const fetchEventRuns = async () => {
     try {
@@ -70,6 +77,36 @@ const EventRunsList: React.FC<EventRunsListProps> = ({
       setError((err as { response?: { data?: { detail?: string } } }).response?.data?.detail || 'Failed to cancel event run');
     } finally {
       setCancellingId(null);
+    }
+  };
+
+  const closeBookings = () => {
+    setIsBookingsOpen(false);
+    setSelectedRun(null);
+    setBookings(null);
+    setBookingsError('');
+    setBookingsLoading(false);
+  };
+
+  const openBookings = async (run: EventRunSummary) => {
+    setSelectedRun(run);
+    setIsBookingsOpen(true);
+    setBookings(null);
+    setBookingsError('');
+    setBookingsLoading(true);
+
+    try {
+      const data = await EventRunAPI.getHostEventRunBookings(run.id);
+      setBookings(Array.isArray(data) ? data : []);
+    } catch (err: unknown) {
+      console.error('Error fetching event run bookings:', err);
+      const detail =
+        (err as { response?: { data?: { detail?: string } } }).response?.data?.detail ||
+        (err as { message?: string }).message ||
+        'Failed to fetch bookings';
+      setBookingsError(detail);
+    } finally {
+      setBookingsLoading(false);
     }
   };
 
@@ -219,7 +256,7 @@ const EventRunsList: React.FC<EventRunsListProps> = ({
                   )}
 
                   <button
-                    onClick={() => {/* TODO: View bookings */}}
+                    onClick={() => openBookings(eventRun)}
                     className="px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
                   >
                     View Details
@@ -260,6 +297,94 @@ const EventRunsList: React.FC<EventRunsListProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Bookings Modal */}
+      {isBookingsOpen && selectedRun && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+          onClick={closeBookings}
+        >
+          <div
+            className="bg-white w-full max-w-2xl rounded-lg shadow-xl border border-gray-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-gray-200 flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <h3 className="text-lg font-semibold text-black break-words">
+                  {selectedRun.experience_title}
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  {formatDate(selectedRun.start_datetime)} at {formatTime(selectedRun.start_datetime)}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Capacity: {selectedRun.max_capacity - selectedRun.available_spots}/{selectedRun.max_capacity} booked
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeBookings}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="px-6 py-4">
+              {bookingsLoading ? (
+                <div className="py-10 text-center text-gray-700">Loading bookings...</div>
+              ) : bookingsError ? (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                  {bookingsError}
+                </div>
+              ) : bookings && bookings.length === 0 ? (
+                <div className="py-10 text-center">
+                  <p className="text-black font-medium">No bookings yet</p>
+                  <p className="text-sm text-gray-600 mt-1">Share your event run link to drive bookings.</p>
+                </div>
+              ) : bookings ? (
+                <div className="space-y-3">
+                  {bookings.map((b) => {
+                    const bookedAt = b.booked_at ? new Date(b.booked_at) : null;
+                    return (
+                      <div
+                        key={b.id}
+                        className="border border-gray-200 rounded-lg p-4 flex items-start justify-between gap-4"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-semibold text-black break-words">
+                              {b.traveler_name || 'N/A'}
+                            </p>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                              {b.booking_status}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 mt-1">
+                            Seats: {b.traveler_count}
+                          </p>
+                          {b.special_requests ? (
+                            <p className="text-sm text-gray-700 mt-1 break-words">
+                              Special requests: {b.special_requests}
+                            </p>
+                          ) : null}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-xs text-gray-500">
+                            {bookedAt ? bookedAt.toLocaleString('en-IN') : ''}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1 font-mono">
+                            {b.id.substring(0, 8)}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
