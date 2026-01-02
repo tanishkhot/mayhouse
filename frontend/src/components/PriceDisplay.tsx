@@ -53,7 +53,7 @@ export default function PriceDisplay({
   if (layout === "inline") {
     return (
       <div className={`${className} flex items-center gap-1.5`}>
-        <span className={`${sizeClasses[size].inr} text-gray-900`}>{formatINR(priceINR)}</span>
+        <span className={`${sizeClasses[size].inr} text-foreground`}>{formatINR(priceINR)}</span>
       </div>
     );
   }
@@ -61,7 +61,7 @@ export default function PriceDisplay({
   // Stacked format (default): INR only
   return (
     <div className={className}>
-      <div className={`${sizeClasses[size].inr} text-gray-900`}>{formatINR(priceINR)}</div>
+      <div className={`${sizeClasses[size].inr} text-foreground`}>{formatINR(priceINR)}</div>
     </div>
   );
 }
@@ -86,13 +86,13 @@ export default function PriceDisplay({
 // if (layout === "inline") {
 //   return (
 //     <div className={`${className} flex items-center gap-1.5`}>
-//       <span className={`${sizeClasses[size].eth} text-gray-900`}>
+//       <span className={`${sizeClasses[size].eth} text-foreground`}>
 //         {formatETHPrice(priceETH)} ETH
 //       </span>
 //       {showINR && (
 //         <>
-//           <span className="text-gray-400">/</span>
-//           <span className={`${sizeClasses[size].inr} text-gray-600`}>
+//           <span className="text-muted-foreground">/</span>
+//           <span className={`${sizeClasses[size].inr} text-muted-foreground`}>
 //             {formatINR(priceINR)}
 //           </span>
 //         </>
@@ -103,11 +103,11 @@ export default function PriceDisplay({
 //
 // return (
 //   <div className={className}>
-//     <div className={`${sizeClasses[size].eth} text-gray-900`}>
+//     <div className={`${sizeClasses[size].eth} text-foreground`}>
 //       {formatETHPrice(priceETH)} ETH
 //     </div>
 //     {showINR && (
-//       <div className={`${sizeClasses[size].inr} text-gray-500`}>
+//       <div className={`${sizeClasses[size].inr} text-muted-foreground`}>
 //         {formatINR(priceINR)}
 //       </div>
 //     )}

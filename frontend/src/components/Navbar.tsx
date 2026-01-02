@@ -30,6 +30,7 @@ export default function Navbar() {
   
   // Check if we're on landing page (host/experiences)
   const isLandingPage = pathname === '/host/experiences';
+  const isExperienceRunDetailPage = /^\/experiences\/[^/]+\/runs\/[^/]+$/.test(pathname);
   const hideNavbar = pathname === '/login' || pathname === '/signup';
 
   useEffect(() => {
@@ -40,6 +41,12 @@ export default function Navbar() {
     });
   }, [pathname]);
 
+  // Run detail pages have their own contextual sticky header (back/share/favorite).
+  // Hide the global navbar entirely to avoid double headers and reduce cognitive load.
+  if (isExperienceRunDetailPage) {
+    return null;
+  }
+
   const handleDisconnect = () => {
     clearAuthData();
     setIsAuthenticated(false);
@@ -49,7 +56,7 @@ export default function Navbar() {
   // Show minimal navbar on auth pages
   if (hideNavbar) {
     return (
-      <header className="sticky top-0 bg-white border-b border-gray-200 z-50">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center h-16">
             <Link href="/" className="flex items-center gap-2">
@@ -75,7 +82,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo & Navigation */}

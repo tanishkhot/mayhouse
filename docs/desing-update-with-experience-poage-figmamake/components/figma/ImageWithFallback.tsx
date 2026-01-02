@@ -1,5 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
-// This component intentionally uses <img> for fallback functionality
 import React, { useState } from 'react'
 
 const ERROR_IMG_SRC =
@@ -16,7 +14,7 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
 
   return didError ? (
     <div
-      className={`inline-block bg-muted text-center align-middle ${className ?? ''}`}
+      className={`inline-block bg-gray-100 text-center align-middle ${className ?? ''}`}
       style={style}
     >
       <div className="flex items-center justify-center w-full h-full">
@@ -27,4 +25,3 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
     <img src={src} alt={alt} className={className} style={style} {...rest} onError={handleError} />
   )
 }
-

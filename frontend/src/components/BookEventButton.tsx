@@ -112,72 +112,72 @@ export default function BookEventButton({
   // Success modal with booking confirmation
   if (bookingSuccess && bookingData) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
+      <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-card text-card-foreground rounded-xl shadow-2xl max-w-lg w-full p-6 border border-border">
           {/* Success Header */}
           <div className="text-center mb-6">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mx-auto w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4 border border-border">
+              <svg className="w-8 h-8 text-chart-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Booking Confirmed!</h3>
-            <p className="text-gray-600">Your booking has been successfully created</p>
+            <h3 className="text-2xl font-bold text-foreground mb-2">Booking Confirmed!</h3>
+            <p className="text-muted-foreground">Your booking has been successfully created</p>
           </div>
 
           {/* Booking Details */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-3">
+          <div className="bg-muted rounded-lg p-4 mb-6 space-y-3 border border-border">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Booking ID</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Booking ID</p>
               <div className="flex items-center gap-2">
-                <code className="text-sm text-gray-900 font-mono bg-white px-3 py-2 rounded border border-gray-200 flex-1 overflow-x-auto">
+                <code className="text-sm text-foreground font-mono bg-background px-3 py-2 rounded border border-border flex-1 overflow-x-auto">
                   {bookingData.id}
                 </code>
                 <button
                   onClick={() => navigator.clipboard.writeText(bookingData.id)}
-                  className="p-2 hover:bg-gray-200 rounded transition-colors"
+                  className="p-2 hover:bg-accent rounded transition-all duration-300 active:scale-95 active:duration-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   title="Copy booking ID"
                 >
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-200">
+            <div className="grid grid-cols-2 gap-4 pt-3 border-t border-border">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Status</p>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
-                  <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Status</p>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-accent text-chart-1 text-sm font-medium rounded-full border border-border">
+                  <span className="w-2 h-2 bg-chart-1 rounded-full"></span>
                   Confirmed
                 </span>
               </div>
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Payment</p>
-                <p className="text-sm font-medium text-gray-900">{bookingData.payment?.status || 'Completed'}</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Payment</p>
+                <p className="text-sm font-medium text-foreground">{bookingData.payment?.status || 'Completed'}</p>
               </div>
             </div>
 
             {costData && (
-              <div className="pt-3 border-t border-gray-200">
-                <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Booking Details</p>
+              <div className="pt-3 border-t border-border">
+                <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Booking Details</p>
                 <div className="space-y-1.5 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Seats Booked:</span>
-                    <span className="font-medium text-gray-900">{seatCount}</span>
+                    <span className="text-muted-foreground">Seats Booked:</span>
+                    <span className="font-medium text-foreground">{seatCount}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Ticket Price:</span>
-                    <span className="font-medium text-gray-900">₹{costData.total_price_inr.toLocaleString('en-IN')}</span>
+                    <span className="text-muted-foreground">Ticket Price:</span>
+                    <span className="font-medium text-foreground">₹{costData.total_price_inr.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Refundable Deposit:</span>
-                    <span className="font-medium text-terracotta-600">₹{costData.stake_inr.toLocaleString('en-IN')}</span>
+                    <span className="text-muted-foreground">Refundable Deposit:</span>
+                    <span className="font-medium text-primary">₹{costData.stake_inr.toLocaleString('en-IN')}</span>
                   </div>
-                  <div className="flex justify-between pt-1.5 border-t border-gray-200">
-                    <span className="font-semibold text-gray-900">Total Paid:</span>
-                    <span className="font-bold text-gray-900">₹{costData.total_cost_inr.toLocaleString('en-IN')}</span>
+                  <div className="flex justify-between pt-1.5 border-t border-border">
+                    <span className="font-semibold text-foreground">Total Paid:</span>
+                    <span className="font-bold text-foreground">₹{costData.total_cost_inr.toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               </div>
@@ -192,16 +192,16 @@ export default function BookEventButton({
                 setBookingSuccess(false);
                 window.location.reload(); // Refresh to show updated bookings
               }}
-              className="block w-full text-center bg-terracotta-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-terracotta-600 transition-all"
+              className="block w-full text-center bg-primary text-primary-foreground py-3 px-4 rounded-lg font-semibold hover:bg-primary/90 transition-all duration-300 active:scale-95 active:duration-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50 disabled:pointer-events-none"
             >
               Close
             </button>
           </div>
 
           {/* Info Message */}
-          <div className="mt-4 bg-terracotta-50 border border-terracotta-200 rounded-lg p-3">
-            <p className="text-sm text-terracotta-800">
-              <span className="font-semibold">Important:</span> Your ₹{costData?.stake_inr.toLocaleString('en-IN') || '200'} refundable deposit will be returned after you attend the event. Don&apos;t forget to check in!
+          <div className="mt-4 bg-accent border border-border rounded-lg p-3">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">Important:</span> Your ₹{costData?.stake_inr.toLocaleString('en-IN') || '200'} refundable deposit will be returned after you attend the event. Don&apos;t forget to check in!
             </p>
           </div>
         </div>
@@ -219,26 +219,26 @@ export default function BookEventButton({
       <button
         onClick={handleOpenModal}
         disabled={availableSeats === 0}
-        className="w-full bg-terracotta-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-terracotta-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        className="w-full bg-primary text-primary-foreground py-3 px-6 rounded-lg font-semibold hover:bg-primary/90 transition-all duration-300 active:scale-95 active:duration-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50 disabled:pointer-events-none"
       >
         {availableSeats === 0 ? 'Sold Out' : 'Book Now'}
       </button>
 
       {/* Booking Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900">Book Event</h2>
+        <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card text-card-foreground rounded-xl shadow-2xl max-w-md w-full p-6 border border-border">
+            <h2 className="text-2xl font-bold mb-4 text-foreground">Book Event</h2>
 
             {/* Seat Selection */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Number of Seats
               </label>
               <select
                 value={seatCount}
                 onChange={(e) => setSeatCount(parseInt(e.target.value))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-terracotta-500 text-gray-900 bg-white"
+                className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground transition-all duration-300 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
               >
                 {Array.from({ length: Math.min(availableSeats, 4) }, (_, i) => i + 1).map((n) => (
                   <option key={n} value={n}>
@@ -250,36 +250,36 @@ export default function BookEventButton({
 
             {/* Cost Breakdown */}
             {loadingCost ? (
-              <div className="bg-gray-50 rounded-lg p-4 mb-4 text-center">
-                <p className="text-gray-600">Calculating cost...</p>
+              <div className="bg-muted rounded-lg p-4 mb-4 text-center border border-border">
+                <p className="text-muted-foreground">Calculating cost...</p>
               </div>
             ) : costData ? (
-              <div className="bg-gray-50 rounded-lg p-4 mb-4 space-y-2 text-sm">
+              <div className="bg-muted rounded-lg p-4 mb-4 space-y-2 text-sm border border-border">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Ticket Price:</span>
+                  <span className="text-muted-foreground">Ticket Price:</span>
                   <div className="text-right">
-                    <div className="font-semibold text-gray-900">
+                    <div className="font-semibold text-foreground">
                       ₹{costData.total_price_inr.toLocaleString('en-IN')}
                     </div>
                   </div>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Refundable Deposit (20%):</span>
+                  <span className="text-muted-foreground">Refundable Deposit (20%):</span>
                   <div className="text-right">
-                    <div className="font-semibold text-terracotta-600">
+                    <div className="font-semibold text-primary">
                       ₹{costData.stake_inr.toLocaleString('en-IN')}
                     </div>
                   </div>
                 </div>
-                <div className="border-t border-gray-200 pt-2 flex justify-between">
-                  <span className="font-semibold text-gray-900">Total to Pay:</span>
+                <div className="border-t border-border pt-2 flex justify-between">
+                  <span className="font-semibold text-foreground">Total to Pay:</span>
                   <div className="text-right">
-                    <div className="font-bold text-lg text-gray-900">
+                    <div className="font-bold text-lg text-foreground">
                       ₹{costData.total_cost_inr.toLocaleString('en-IN')}
                     </div>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-muted-foreground mt-2">
                   * You&apos;ll get your ₹{costData.stake_inr.toLocaleString('en-IN')} refundable deposit back after attending the event
                 </p>
               </div>
@@ -287,14 +287,14 @@ export default function BookEventButton({
 
             {/* Error Display */}
             {bookingError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <div className="bg-muted border border-destructive/30 rounded-lg p-4 mb-4 text-destructive">
                 <div className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-6 h-6 text-destructive flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-red-900 mb-1">Booking Error</h4>
-                    <p className="text-sm text-red-800 leading-relaxed">
+                    <h4 className="font-semibold text-foreground mb-1">Booking Error</h4>
+                    <p className="text-sm text-destructive leading-relaxed">
                       {bookingError}
                     </p>
                   </div>
@@ -306,7 +306,7 @@ export default function BookEventButton({
             <div className="flex gap-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-900 font-medium"
+                className="flex-1 px-4 py-2 border border-border rounded-lg bg-card text-foreground font-medium hover:bg-accent transition-all duration-300 active:scale-95 active:duration-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50 disabled:pointer-events-none"
                 disabled={isBooking}
               >
                 Cancel
@@ -314,7 +314,7 @@ export default function BookEventButton({
               <button
                 onClick={handleBook}
                 disabled={isBooking || !costData}
-                className="flex-1 bg-terracotta-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-terracotta-600 disabled:opacity-50 transition-all"
+                className="flex-1 bg-primary text-primary-foreground py-2 px-4 rounded-lg font-semibold hover:bg-primary/90 transition-all duration-300 active:scale-95 active:duration-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50 disabled:pointer-events-none"
               >
                 {isBooking ? 'Processing...' : 'Confirm & Pay'}
               </button>
