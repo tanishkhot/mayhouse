@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthAPI, getAccessToken } from '@/lib/api';
 
@@ -22,11 +22,7 @@ export default function ProtectedRoute({
   const [authorized, setAuthorized] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -85,7 +81,11 @@ export default function ProtectedRoute({
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, requiredRole]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   if (loading) {
     // Use custom skeleton if provided, otherwise use default loading screen

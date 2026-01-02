@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { BookingsAPI, BookingCostResponse, BookingResponse } from '@/lib/bookings-api';
 
 // Mock mode toggle - set to true to use mock booking functions for testing
@@ -69,6 +70,7 @@ export default function BookEventButton({
   eventTimestamp,
   priceINR = 0 // Default to 0 for legacy components
 }: BookEventButtonProps) {
+  const router = useRouter();
   const [seatCount, setSeatCount] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [costData, setCostData] = useState<BookingCostResponse | null>(null);
@@ -286,20 +288,27 @@ export default function BookEventButton({
           </div>
 
           {/* Action Buttons */}
-          <div className="space-y-3">
+          <div className="flex gap-3">
             <button
               onClick={() => {
                 setShowModal(false);
                 setBookingSuccess(false);
                 setBookingData(null);
-                // Don't reload in mock mode - just reset state
-                if (!USE_MOCK_BOOKING) {
-                  window.location.reload(); // Refresh to show updated bookings
-                }
               }}
-              className="block w-full text-center bg-primary text-primary-foreground py-3 px-4 rounded-lg font-semibold hover:bg-primary/90 transition-all duration-300 active:scale-95 active:duration-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50 disabled:pointer-events-none"
+              className="flex-1 text-center border border-border py-3 px-4 rounded-lg font-semibold hover:bg-accent transition-all duration-300 active:scale-95 active:duration-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50 disabled:pointer-events-none"
             >
               Close
+            </button>
+            <button
+              onClick={() => {
+                setShowModal(false);
+                setBookingSuccess(false);
+                setBookingData(null);
+                router.push('/my-bookings');
+              }}
+              className="flex-1 text-center bg-primary text-primary-foreground py-3 px-4 rounded-lg font-semibold hover:bg-primary/90 transition-all duration-300 active:scale-95 active:duration-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              View My Bookings
             </button>
           </div>
 

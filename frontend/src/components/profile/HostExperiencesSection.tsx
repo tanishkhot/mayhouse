@@ -1,7 +1,7 @@
 "use client";
 
 import { HostExperience } from "@/lib/api";
-import { MapPin, Star } from "lucide-react";
+import { MapPin } from "lucide-react";
 import Link from "next/link";
 
 interface HostExperiencesSectionProps {

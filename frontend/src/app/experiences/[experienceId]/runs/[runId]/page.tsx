@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { EventRunAPI } from "@/lib/event-run-api";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, startTransition } from "react";
 import {
   ArrowLeft,
   Calendar,
@@ -64,20 +64,15 @@ const formatDateTimeShort = (iso: string) => {
 export default function ExperienceRunDetailPage() {
   const params = useParams();
   const runId = typeof params?.runId === "string" ? params.runId : "";
-  const [isMounted, setIsMounted] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [selectedSessionIndex, setSelectedSessionIndex] = useState<number>(0);
   const bookingAnchorRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   // Fetch the specific event run details (includes experience info)
   const { data: eventRun, isLoading: eventRunLoading, error: eventRunError } = useQuery({
     queryKey: ["eventRun", runId],
     queryFn: () => EventRunAPI.getPublicEventRunDetails(runId),
-    enabled: isMounted && !!runId,
+    enabled: !!runId,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes (matches global default)
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
     refetchOnMount: false, // Use cached data if available
@@ -87,7 +82,7 @@ export default function ExperienceRunDetailPage() {
   // Note: We get all needed data from eventRun now, no need for separate experience fetch
   // The explore API only has mock data for exp_001 anyway
   
-  const isLoading = !isMounted || !runId || eventRunLoading;
+  const isLoading = !runId || eventRunLoading;
 
   // IMPORTANT: Hooks must run before any early returns. Keep selection state consistent
   // as eventRun loads/changes, without conditionally calling hooks.
@@ -97,12 +92,21 @@ export default function ExperienceRunDetailPage() {
       eventRun.booking_summary?.available_spots ?? eventRun.max_capacity ?? 0;
     const soldOut = available <= 0;
 
+    // Use startTransition to avoid synchronous setState in effect
     if (soldOut) {
-      if (selectedSessionIndex !== -1) setSelectedSessionIndex(-1);
+      if (selectedSessionIndex !== -1) {
+        startTransition(() => {
+          setSelectedSessionIndex(-1);
+        });
+      }
       return;
     }
 
-    if (selectedSessionIndex < 0) setSelectedSessionIndex(0);
+    if (selectedSessionIndex < 0) {
+      startTransition(() => {
+        setSelectedSessionIndex(0);
+      });
+    }
   }, [eventRun, selectedSessionIndex]);
 
   if (isLoading) {

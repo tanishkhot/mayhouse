@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   EventRunAPI, 
   EventRunSummary, 
@@ -36,7 +36,7 @@ const EventRunsList: React.FC<EventRunsListProps> = ({
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [bookingsError, setBookingsError] = useState<string>('');
 
-  const fetchEventRuns = async () => {
+  const fetchEventRuns = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -53,11 +53,11 @@ const EventRunsList: React.FC<EventRunsListProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter]);
 
   useEffect(() => {
     fetchEventRuns();
-  }, [statusFilter, refreshTrigger]);
+  }, [fetchEventRuns, refreshTrigger]);
 
   const handleCancelEventRun = async (eventRunId: string) => {
     if (!confirm('Are you sure you want to cancel this event run? This action cannot be undone.')) {

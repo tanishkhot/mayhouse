@@ -60,7 +60,7 @@ type ModeratorExperience = {
  */
 export function normalizeFormState(
   form: FormState,
-  photos: PhotoArray
+  photos: PhotoArray // eslint-disable-line @typescript-eslint/no-unused-vars
 ): NormalizedExperienceData {
   // Parse price string to number
   const price = parseFloat(form.price) || 0;
@@ -106,7 +106,7 @@ export function normalizeFormState(
  */
 export function normalizeExperienceResponse(
   exp: ExperienceResponse,
-  photos: ExperiencePhoto[]
+  photos: ExperiencePhoto[] // eslint-disable-line @typescript-eslint/no-unused-vars
 ): NormalizedExperienceData {
   return {
     id: exp.id,
@@ -153,7 +153,7 @@ export function normalizeExperienceResponse(
  */
 export function normalizeModeratorExperience(
   exp: ModeratorExperience,
-  photos: ExperiencePhoto[]
+  photos: ExperiencePhoto[] // eslint-disable-line @typescript-eslint/no-unused-vars
 ): NormalizedExperienceData {
   return {
     id: exp.id,

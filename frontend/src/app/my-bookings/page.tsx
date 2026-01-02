@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { BookingsAPI, BookingSummary } from '@/lib/bookings-api';
+import { BookingsAPI } from '@/lib/bookings-api';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BookingCard from '@/components/bookings/BookingCard';

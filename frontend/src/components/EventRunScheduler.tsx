@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { EventRunAPI, EventRunCreate } from '@/lib/event-run-api';
 import { experienceAPI, ExperienceResponse } from '@/lib/experience-api';
 
@@ -13,7 +13,7 @@ interface EventRunSchedulerProps {
 const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
   onSuccess,
   onCancel,
-  editingEventRunId = null
+  editingEventRunId: _editingEventRunId = null // eslint-disable-line @typescript-eslint/no-unused-vars
 }) => {
   // Form state
   const [selectedExperience, setSelectedExperience] = useState<string>('');
@@ -123,14 +123,19 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
     return options;
   };
 
-  const isTimeSelectable = (timeString: string): boolean => {
+  const isTimeSelectable = useCallback((timeString: string): boolean => {
     if (!timeString) return false;
     const options = getTimeOptions();
     return options.some((opt) => opt.value === timeString);
-  };
+  }, []);
+
+  // Get selected experience data (memoized to avoid recreation on every render)
+  const selectedExperienceData = useMemo(() => {
+    return experiences.find(exp => exp.id === selectedExperience);
+  }, [experiences, selectedExperience]);
 
   // Auto-calculate end time when start time or experience changes
-  const handleStartTimeChange = (newStartTime: string) => {
+  const handleStartTimeChange = useCallback((newStartTime: string) => {
     setStartTime(newStartTime);
     
     if (newStartTime && selectedExperienceData) {
@@ -146,7 +151,7 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
       const endTimeString = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
       setEndTime(endTimeString);
     }
-  };
+  }, [selectedExperienceData]);
 
   // Update end time when experience selection changes (if start time is already set)
   const handleExperienceChange = (newExperienceId: string) => {
@@ -183,7 +188,7 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
     if (!startTime && proposedTime && isTimeSelectable(proposedTime)) {
       handleStartTimeChange(proposedTime);
     }
-  }, [selectedExperienceData, selectedDate, startTime]);
+  }, [selectedExperienceData, selectedDate, startTime, handleStartTimeChange, isTimeSelectable]);
 
   // Validate form
   const validateForm = (): string | null => {
@@ -284,8 +289,6 @@ const EventRunScheduler: React.FC<EventRunSchedulerProps> = ({
       setSubmitting(false);
     }
   };
-
-  const selectedExperienceData = experiences.find(exp => exp.id === selectedExperience);
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-6">

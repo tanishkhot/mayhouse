@@ -3,12 +3,12 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useSignMessage, useChainId } from 'wagmi';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { WalletAPI } from '@/lib/wallet-api';
-import { setAccessToken, AuthAPI } from '@/lib/api';
+import { setAccessToken } from '@/lib/api';
 import { useWalletDetection } from '@/hooks/useWalletDetection';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address, isConnected, chain } = useAccount();
@@ -73,7 +73,7 @@ export default function LoginPage() {
     try {
       // Step 1: Request nonce from backend
       console.log('Requesting nonce for address:', address);
-      const { nonce, message } = await WalletAPI.requestNonce(address);
+      const { message } = await WalletAPI.requestNonce(address);
       
       // Step 2: Sign the message with wallet
       console.log('Signing message...');
@@ -183,8 +183,6 @@ export default function LoginPage() {
                       {({
                         account,
                         chain,
-                        openAccountModal,
-                        openChainModal,
                         openConnectModal,
                         authenticationStatus,
                         mounted,
@@ -381,5 +379,24 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center p-6 bg-terracotta-50">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
+            <div className="text-center space-y-2">
+              <h1 className="text-3xl font-bold text-gray-900"><span className="font-brand">Mayhouse</span></h1>
+              <p className="text-gray-600">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

@@ -16,7 +16,6 @@ import { toast } from 'sonner';
  */
 export default function ExperienceSaveTest() {
   const [testStep, setTestStep] = useState<'idle' | 'generating' | 'saving' | 'verifying' | 'complete'>('idle');
-  const [generatedData, setGeneratedData] = useState<any>(null);
   const [savedExperience, setSavedExperience] = useState<ExperienceResponse | null>(null);
   const [testResults, setTestResults] = useState<string[]>([]);
 
@@ -62,7 +61,6 @@ export default function ExperienceSaveTest() {
       // Generate experience from Q&A
       addTestResult('Generating experience from Q&A answers...', true);
       const generated = await DesignExperienceAPI.generateFromQA(sampleQAAnswers);
-      setGeneratedData(generated);
       addTestResult('Experience generated successfully', true);
       addTestResult(`Generated title: ${generated.title}`, true);
       addTestResult(`Generated domain: ${generated.domain}`, true);
