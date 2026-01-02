@@ -5,6 +5,7 @@ import Providers from "./providers";
 import Navbar from "@/components/Navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { RoutePrefetcher } from "@/components/RoutePrefetcher";
+import { WebVitalsReporter } from "@/components/WebVitalsReporter";
 
 const lora = Lora({
   variable: "--font-lora",
@@ -46,6 +47,7 @@ export default function RootLayout({
       <body className={`${lora.variable} ${lato.variable} font-sans antialiased`}>
         <Providers>
           <RoutePrefetcher />
+          <WebVitalsReporter />
           <Navbar />
           {children}
         </Providers>
