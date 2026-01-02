@@ -61,8 +61,14 @@ export const BlockchainAPI = {
   /**
    * Get current ETH price in INR
    */
-  getETHPrice: () =>
-    api.get<ETHPriceResponse>('/blockchain/eth-price').then((r) => r.data),
+  // NOTE: ETH pricing is intentionally disabled for the INR-only flow.
+  // The original implementation is preserved below (commented out).
+  //
+  // getETHPrice: () =>
+  //   api.get<ETHPriceResponse>('/blockchain/eth-price').then((r) => r.data),
+  getETHPrice: () => {
+    throw new Error('BlockchainAPI.getETHPrice is disabled: INR-only pricing is enabled and eth-price endpoint is not used.');
+  },
 
   // NOTE: Other web3 endpoints can be re-enabled if full Web3 integration is restored
 

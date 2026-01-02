@@ -1,7 +1,8 @@
 "use client";
 
-import { formatETH, formatINR } from "@/lib/blockchain-api";
-import { useINRtoETH } from "@/hooks/useETHPrice";
+import { formatINR } from "@/lib/blockchain-api";
+// import { formatETH, formatINR } from "@/lib/blockchain-api";
+// import { useINRtoETH } from "@/hooks/useETHPrice";
 
 interface PriceDisplayProps {
   priceINR: number;
@@ -22,63 +23,94 @@ export default function PriceDisplay({
   size = "medium",
   layout = "stacked",
 }: PriceDisplayProps) {
-  const priceETH = useINRtoETH(priceINR);
+  // INR-only mode: ETH conversion is intentionally disabled.
+  // const priceETH = useINRtoETH(priceINR);
 
   const sizeClasses = {
     small: {
-      eth: "text-base font-semibold",
-      inr: "text-xs",
+      inr: "text-sm font-semibold",
     },
     medium: {
-      eth: "text-xl font-bold",
-      inr: "text-sm",
+      inr: "text-xl font-bold",
     },
     large: {
-      eth: "text-3xl font-bold",
-      inr: "text-base",
+      inr: "text-3xl font-bold",
     },
-  };
+  } as const;
 
-  // Format ETH to show appropriate decimal places
-  const formatETHPrice = (eth: number) => {
-    const weiValue = eth * 1e18;
-    const ethString = formatETH(weiValue);
-    // Remove the " ETH" suffix and format nicely
-    return ethString.replace(' ETH', '');
-  };
+  // NOTE: ETH formatting + conversion intentionally preserved below (commented out)
+  // so it can be restored later if Web3 is re-enabled.
+  //
+  // const formatETHPrice = (eth: number) => {
+  //   const weiValue = eth * 1e18;
+  //   const ethString = formatETH(weiValue);
+  //   return ethString.replace(" ETH", "");
+  // };
 
-  // Inline format: "0.005 ETH / ₹1,000"
+  if (!showINR) return null;
+
+  // Inline format: "INR"
   if (layout === "inline") {
     return (
       <div className={`${className} flex items-center gap-1.5`}>
-        <span className={`${sizeClasses[size].eth} text-gray-900`}>
-          {formatETHPrice(priceETH)} ETH
-        </span>
-        {showINR && (
-          <>
-            <span className="text-gray-400">/</span>
-            <span className={`${sizeClasses[size].inr} text-gray-600`}>
-              {formatINR(priceINR)}
-            </span>
-          </>
-        )}
+        <span className={`${sizeClasses[size].inr} text-gray-900`}>{formatINR(priceINR)}</span>
       </div>
     );
   }
 
-  // Stacked format (default)
+  // Stacked format (default): INR only
   return (
     <div className={className}>
-      <div className={`${sizeClasses[size].eth} text-gray-900`}>
-        {formatETHPrice(priceETH)} ETH
-      </div>
-      {showINR && (
-        <div className={`${sizeClasses[size].inr} text-gray-500`}>
-          {formatINR(priceINR)}
-        </div>
-      )}
+      <div className={`${sizeClasses[size].inr} text-gray-900`}>{formatINR(priceINR)}</div>
     </div>
   );
 }
 
+// ======= Previous ETH+INR UI (preserved, but disabled) =======
+// NOTE: Do NOT wrap JSX-containing examples in /* ... */ because JSX comments contain */ and will break parsing.
+//
+// const priceETH = useINRtoETH(priceINR);
+//
+// const sizeClasses = {
+//   small: { eth: "text-base font-semibold", inr: "text-xs" },
+//   medium: { eth: "text-xl font-bold", inr: "text-sm" },
+//   large: { eth: "text-3xl font-bold", inr: "text-base" },
+// };
+//
+// const formatETHPrice = (eth: number) => {
+//   const weiValue = eth * 1e18;
+//   const ethString = formatETH(weiValue);
+//   return ethString.replace(" ETH", "");
+// };
+//
+// if (layout === "inline") {
+//   return (
+//     <div className={`${className} flex items-center gap-1.5`}>
+//       <span className={`${sizeClasses[size].eth} text-gray-900`}>
+//         {formatETHPrice(priceETH)} ETH
+//       </span>
+//       {showINR && (
+//         <>
+//           <span className="text-gray-400">/</span>
+//           <span className={`${sizeClasses[size].inr} text-gray-600`}>
+//             {formatINR(priceINR)}
+//           </span>
+//         </>
+//       )}
+//     </div>
+//   );
+// }
+//
+// return (
+//   <div className={className}>
+//     <div className={`${sizeClasses[size].eth} text-gray-900`}>
+//       {formatETHPrice(priceETH)} ETH
+//     </div>
+//     {showINR && (
+//       <div className={`${sizeClasses[size].inr} text-gray-500`}>
+//         {formatINR(priceINR)}
+//       </div>
+//     )}
+//   </div>
+// );
 

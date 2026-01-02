@@ -7,8 +7,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { wagmiConfig } from '@/lib/wagmi-config';
 import { ReactNode, useEffect } from 'react';
 import { setQueryClient } from '@/lib/prefetch';
-import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
+// React Query persistence is intentionally disabled to avoid SSR/CSR divergence.
+// The original implementation is preserved below (commented out) so it can be restored later.
+//
+// import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+// import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,16 +32,24 @@ export function Web3Providers({ children }: { children: ReactNode }) {
     setQueryClient(queryClient);
   }, []);
 
-  const isClient = typeof window !== 'undefined';
-  const persister = isClient
-    ? createSyncStoragePersister({
-        storage: window.localStorage,
-        key: 'mayhouse_rq_cache_v1',
-      })
-    : null;
+  // const isClient = typeof window !== 'undefined';
+  // const persister = isClient
+  //   ? createSyncStoragePersister({
+  //       storage: window.localStorage,
+  //       key: 'mayhouse_rq_cache_v1',
+  //     })
+  //   : null;
 
   return (
     <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>{children}</RainbowKitProvider>
+      </QueryClientProvider>
+
+      {/*
+      NOTE: React Query persistence is disabled for now.
+      To re-enable, uncomment imports above and this block, and restore persister creation.
+
       {persister ? (
         <PersistQueryClientProvider
           client={queryClient}
@@ -65,6 +76,7 @@ export function Web3Providers({ children }: { children: ReactNode }) {
           <RainbowKitProvider>{children}</RainbowKitProvider>
         </QueryClientProvider>
       )}
+      */}
     </WagmiProvider>
   );
 }

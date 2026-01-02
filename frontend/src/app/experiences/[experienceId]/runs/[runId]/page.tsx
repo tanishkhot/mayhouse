@@ -4,19 +4,25 @@ import { useQuery } from "@tanstack/react-query";
 import { EventRunAPI } from "@/lib/event-run-api";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Heart, MapPin, Clock, Users, Star } from "lucide-react";
 import BookEventButton from "@/components/BookEventButton";
 import PriceDisplay from "@/components/PriceDisplay";
 
 export default function ExperienceRunDetailPage() {
   const params = useParams();
-  const runId = params.runId as string;
+  const runId = typeof params?.runId === "string" ? params.runId : "";
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Fetch the specific event run details (includes experience info)
   const { data: eventRun, isLoading: eventRunLoading, error: eventRunError } = useQuery({
     queryKey: ["eventRun", runId],
     queryFn: () => EventRunAPI.getPublicEventRunDetails(runId),
-    enabled: !!runId,
+    enabled: isMounted && !!runId,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes (matches global default)
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
     refetchOnMount: false, // Use cached data if available
@@ -26,7 +32,7 @@ export default function ExperienceRunDetailPage() {
   // Note: We get all needed data from eventRun now, no need for separate experience fetch
   // The explore API only has mock data for exp_001 anyway
   
-  const isLoading = eventRunLoading;
+  const isLoading = !isMounted || !runId || eventRunLoading;
 
   if (isLoading) {
     return (
