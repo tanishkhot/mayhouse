@@ -203,7 +203,12 @@ class EventRunService:
                 neighborhood,
                 price_inr,
                 duration_minutes,
-                host_id
+                host_id,
+                latitude,
+                longitude,
+                meeting_landmark,
+                meeting_point_details,
+                route_data
             )
         """
             )
@@ -249,6 +254,13 @@ class EventRunService:
             available_spots=available_spots,
         )
 
+        # Extract location fields from experience
+        latitude = experience.get("latitude")
+        longitude = experience.get("longitude")
+        meeting_landmark = experience.get("meeting_landmark")
+        meeting_point_details = experience.get("meeting_point_details")
+        route_data = experience.get("route_data")
+
         return EventRunResponse(
             id=run["id"],
             experience_id=run["experience_id"],
@@ -275,6 +287,11 @@ class EventRunService:
             price_inr=Decimal(str(effective_price)),
             duration_minutes=experience.get("duration_minutes"),
             neighborhood=experience.get("neighborhood"),
+            latitude=Decimal(str(latitude)) if latitude is not None else None,
+            longitude=Decimal(str(longitude)) if longitude is not None else None,
+            meeting_landmark=meeting_landmark,
+            meeting_point_details=meeting_point_details,
+            route_data=route_data,
         )
 
     async def get_host_event_run_bookings(self, event_run_id: str) -> List[HostEventRunBooking]:

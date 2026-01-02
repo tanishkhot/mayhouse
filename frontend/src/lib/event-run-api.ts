@@ -66,6 +66,11 @@ export type EventRunResponse = {
   price_inr?: number | null;
   duration_minutes?: number | null;
   neighborhood?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  meeting_landmark?: string | null;
+  meeting_point_details?: string | null;
+  route_data?: { waypoints?: Array<{lat: number, lng: number, name: string}> } | null;
 };
 
 export type EventRunSummary = {

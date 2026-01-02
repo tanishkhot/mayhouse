@@ -25,6 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { MapPicker } from "@/components/ui/map-picker";
 
 const formatCategoryLabel = (domain?: string | null) => {
   if (!domain) return "Experience";
@@ -400,11 +401,45 @@ export default function ExperienceRunDetailPage() {
                   Meeting point and logistics
                 </CardTitle>
               </CardHeader>
-              <CardContent className="px-6 pb-6 space-y-3">
+              <CardContent className="px-6 pb-6 space-y-4">
                 <div className="flex items-start gap-3 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <span>{eventRun.neighborhood || "Location TBA"}</span>
                 </div>
+
+                {eventRun.meeting_landmark && (
+                  <div className="text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground mb-1">Meeting landmark</p>
+                    <p>{eventRun.meeting_landmark}</p>
+                  </div>
+                )}
+
+                {eventRun.meeting_point_details && (
+                  <div className="text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground mb-1">Meeting details</p>
+                    <p className="whitespace-pre-line">{eventRun.meeting_point_details}</p>
+                  </div>
+                )}
+
+                {eventRun.latitude != null && 
+                 eventRun.longitude != null && 
+                 typeof eventRun.latitude === 'number' && 
+                 typeof eventRun.longitude === 'number' &&
+                 !isNaN(eventRun.latitude) &&
+                 !isNaN(eventRun.longitude) && (
+                  <div className="w-full">
+                    <MapPicker
+                      value={{
+                        lat: eventRun.latitude,
+                        lng: eventRun.longitude,
+                        name: eventRun.meeting_landmark || eventRun.neighborhood || "Meeting point",
+                      }}
+                      readOnly={true}
+                      height="300px"
+                      className="rounded-lg border border-border"
+                    />
+                  </div>
+                )}
 
                 <Separator />
 
@@ -512,9 +547,9 @@ export default function ExperienceRunDetailPage() {
                     priceINR={hasPrice ? priceINR : 0}
                   />
 
-                  <p className="text-xs text-muted-foreground text-center">
+                  {/* <p className="text-xs text-muted-foreground text-center">
                     Includes 20% refundable stake
-                  </p>
+                  </p> */}
                 </div>
 
                 <Separator />

@@ -6,7 +6,7 @@ They handle capacity management, pricing, and availability tracking.
 """
 
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from decimal import Decimal
 from enum import Enum
 
@@ -184,30 +184,51 @@ class EventRunResponse(BaseModel):
     host_meeting_instructions: Optional[str] = Field(
         None, description="Meeting instructions from host"
     )
-    group_pairing_enabled: bool = Field(..., description="Whether group pairing is enabled")
+    group_pairing_enabled: bool = Field(
+        ..., description="Whether group pairing is enabled"
+    )
     created_at: datetime = Field(..., description="When event run was created")
     updated_at: datetime = Field(..., description="When event run was last updated")
-    
+
     # Booking summary
     booking_summary: Optional[EventRunBookingSummary] = Field(
         None, description="Booking statistics"
     )
-    
+
     # Experience info (for convenience)
     experience_title: Optional[str] = Field(None, description="Experience title")
     experience_domain: Optional[str] = Field(None, description="Experience domain")
-    
+
     # Host info
     host_id: Optional[str] = Field(None, description="Host user ID")
     host_name: Optional[str] = Field(None, description="Host's full name")
     host_wallet_address: Optional[str] = Field(
         None, description="Host's Ethereum wallet address for payments"
     )
-    
+
     # Pricing and details
     price_inr: Optional[Decimal] = Field(None, description="Effective price in INR")
-    duration_minutes: Optional[int] = Field(None, description="Experience duration in minutes")
+    duration_minutes: Optional[int] = Field(
+        None, description="Experience duration in minutes"
+    )
     neighborhood: Optional[str] = Field(None, description="Experience neighborhood")
+
+    # Location fields from experience
+    latitude: Optional[Decimal] = Field(
+        None, description="Meeting point latitude coordinate"
+    )
+    longitude: Optional[Decimal] = Field(
+        None, description="Meeting point longitude coordinate"
+    )
+    meeting_landmark: Optional[str] = Field(
+        None, description="Well-known meeting landmark"
+    )
+    meeting_point_details: Optional[str] = Field(
+        None, description="Detailed meeting point instructions"
+    )
+    route_data: Optional[Dict[str, Any]] = Field(
+        None, description="Route waypoints and geometry (JSONB)"
+    )
 
     # Additional computed fields
     detailed_bookings: Optional[List[dict]] = Field(
