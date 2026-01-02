@@ -74,6 +74,8 @@ async def calculate_booking_cost(
 
     All amounts in INR only.
     """
+    print(f"[BOOKINGS_API] calculate_booking_cost called with event_run_id={request.event_run_id}, seat_count={request.seat_count}")
+    
     # Get event run from database
     service_client = get_service_client()
     response = (
@@ -84,11 +86,13 @@ async def calculate_booking_cost(
     )
 
     if not response.data:
+        print(f"[BOOKINGS_API] Event run not found: {request.event_run_id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Event run not found"
         )
 
     event_run = response.data[0]
+    print(f"[BOOKINGS_API] Event run found: {event_run.get('id')}, status: {event_run.get('status')}")
 
     # Get price (special pricing or base price)
     price_per_seat_inr = Decimal(
@@ -103,7 +107,9 @@ async def calculate_booking_cost(
     stake_inr = total_price_inr * Decimal("0.20")  # 20% refundable deposit
     total_cost_inr = total_price_inr + stake_inr
 
-    return BookingCostResponse(
+    print(f"[BOOKINGS_API] Cost calculation: price_per_seat={price_per_seat_inr}, total_price={total_price_inr}, stake={stake_inr}, total_cost={total_cost_inr}")
+
+    result = BookingCostResponse(
         event_run_id=request.event_run_id,
         seat_count=request.seat_count,
         price_per_seat_inr=price_per_seat_inr,
@@ -111,6 +117,9 @@ async def calculate_booking_cost(
         stake_inr=stake_inr,
         total_cost_inr=total_cost_inr,
     )
+    
+    print(f"[BOOKINGS_API] Returning cost response: {result}")
+    return result
 
 
 @router.post(
@@ -137,6 +146,10 @@ async def create_booking(
     - Booking confirmation with payment details
     """
     user_id = get_user_id_from_auth(authorization)
+    
+    print(f"[BOOKINGS_API] create_booking endpoint called")
+    print(f"[BOOKINGS_API] Request data: event_run_id={booking_data.event_run_id}, seat_count={booking_data.seat_count}")
+    print(f"[BOOKINGS_API] Authenticated user_id: {user_id}")
 
     try:
         booking = await booking_service.create_booking(
@@ -145,10 +158,15 @@ async def create_booking(
             user_id=user_id,
         )
 
+        print(f"[BOOKINGS_API] Booking created successfully: {booking.get('id')}")
         return BookingResponse(**booking)
-    except HTTPException:
+    except HTTPException as e:
+        print(f"[BOOKINGS_API] HTTPException: {e.status_code} - {e.detail}")
         raise
     except Exception as e:
+        print(f"[BOOKINGS_API] Exception during booking creation: {type(e).__name__}: {str(e)}")
+        import traceback
+        print(f"[BOOKINGS_API] Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create booking: {str(e)}",

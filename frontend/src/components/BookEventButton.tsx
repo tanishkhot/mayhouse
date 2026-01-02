@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { BookingsAPI, BookingCostResponse, BookingResponse } from '@/lib/bookings-api';
 
 // Mock mode toggle - set to true to use mock booking functions for testing
-const USE_MOCK_BOOKING = true; // Change to false to use real API
+const USE_MOCK_BOOKING = false; // Change to false to use real API
 
 interface BookEventButtonProps {
   eventRunId: string;  // Database ID (UUID)
@@ -151,10 +151,16 @@ export default function BookEventButton({
         booking = await mockCreateBooking(eventRunId, seatCount, costData);
         console.log('[BOOKING] Mock booking created:', booking);
       } else {
-        booking = await BookingsAPI.createBooking({
+        const requestPayload = {
           event_run_id: eventRunId,
           seat_count: seatCount,
-        });
+        };
+        console.log('[BOOKING] Calling real API with payload:', requestPayload);
+        console.log('[BOOKING] API endpoint: POST /bookings');
+        
+        booking = await BookingsAPI.createBooking(requestPayload);
+        
+        console.log('[BOOKING] Real API response received:', booking);
       }
       
       console.log('[BOOKING] Success! Booking created:', booking);
@@ -167,7 +173,18 @@ export default function BookEventButton({
         error: err,
         message: err.message,
         response: err.response?.data,
+        status: err.response?.status,
+        statusText: err.response?.statusText,
       });
+      
+      // Log full error response for debugging
+      if (err.response) {
+        console.error('[BOOKING] Full error response:', {
+          status: err.response.status,
+          headers: err.response.headers,
+          data: err.response.data,
+        });
+      }
       
       // Parse the error to show user-friendly message
       let errorMessage = 'Failed to book event';

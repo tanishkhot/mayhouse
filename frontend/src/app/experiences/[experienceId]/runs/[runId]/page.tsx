@@ -448,14 +448,6 @@ export default function ExperienceRunDetailPage() {
                     <Shield className="h-4 w-4 text-terracotta-600 mt-0.5 flex-shrink-0" />
                     <span>Full refund up to 24h before</span>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <Shield className="h-4 w-4 text-terracotta-600 mt-0.5 flex-shrink-0" />
-                    <span>Secure payment escrow</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Shield className="h-4 w-4 text-terracotta-600 mt-0.5 flex-shrink-0" />
-                    <span>20% refundable stake held until completion</span>
-                  </div>
                 </div>
               </CardContent>
             </Card>

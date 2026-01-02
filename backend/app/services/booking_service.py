@@ -34,6 +34,7 @@ class BookingService:
         Returns:
             Dictionary with booking details including payment information
         """
+        print(f"[BOOKING_SERVICE] create_booking called with event_run_id={event_run_id}, seat_count={seat_count}, user_id={user_id}")
         service_client = self._get_service_client()
 
         # 1. Validate event run exists and get details
@@ -90,6 +91,12 @@ class BookingService:
         total_price_inr = price_per_seat_inr * seat_count
         stake_inr = total_price_inr * Decimal("0.20")  # 20% refundable deposit
         total_cost_inr = total_price_inr + stake_inr
+        
+        # Calculate platform fee (typically 5% of total price, before stake)
+        mayhouse_platform_fee_inr = total_price_inr * Decimal("0.05")  # 5% platform fee
+        
+        # Calculate host earnings (total price minus platform fee)
+        host_earnings_inr = total_price_inr - mayhouse_platform_fee_inr
 
         # 5. Process payment (dummy)
         payment_result = await payment_service.process_booking_payment(
@@ -97,21 +104,31 @@ class BookingService:
         )
 
         # 6. Create booking record
+        # booking_type: "solo_traveler" for single traveler bookings
         booking_data = {
             "event_run_id": event_run_id,
             "traveler_id": user_id,
             "traveler_count": seat_count,
             "total_experience_cost_inr": float(total_cost_inr),
+            "mayhouse_platform_fee_inr": float(mayhouse_platform_fee_inr),
+            "host_earnings_inr": float(host_earnings_inr),
             "booking_status": "confirmed",
-            "booking_type": "solo",  # Default, can be updated later
+            "booking_type": "solo_traveler",  # Valid enum value from database
             "booking_created_at": datetime.utcnow().isoformat(),
         }
+
+        print(f"[BOOKING_SERVICE] Creating booking with data: {booking_data}")
+        print(f"[BOOKING_SERVICE] Event run ID: {event_run_id}, User ID: {user_id}, Seat count: {seat_count}")
+        print(f"[BOOKING_SERVICE] Total cost: {total_cost_inr}, Price per seat: {price_per_seat_inr}")
+        print(f"[BOOKING_SERVICE] Platform fee: {mayhouse_platform_fee_inr}, Host earnings: {host_earnings_inr}, Stake: {stake_inr}")
 
         booking_response = (
             service_client.table("event_run_bookings")
             .insert(booking_data)
             .execute()
         )
+
+        print(f"[BOOKING_SERVICE] Booking insert response: {booking_response.data if booking_response.data else 'No data returned'}")
 
         if not booking_response.data:
             raise HTTPException(
