@@ -73,3 +73,9 @@ WHERE table_schema = 'public'
 
 ## Follow-up (later)
 Use these fields to prefill or auto-suggest the first EventRun in the scheduler after approval.
+
+## Performance scratchpad: Explore page
+
+### Next steps (pick one first, then measure)
+- Backend latency reduction: Add short TTL caching for GET /explore (e.g., 30-60 seconds) and optimize event_run_service.explore_upcoming_event_runs query and indexes.
+- Perceived speed: Render placeholder experience cards immediately on /explore so TimeToFirstExperienceCardRendered improves even when API is slow; swap in real cards when data arrives.
