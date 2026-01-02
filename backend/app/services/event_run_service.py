@@ -38,6 +38,39 @@ class EventRunService:
         """Get database service client."""
         return get_service_client()
 
+    def _get_booked_spots_by_event_run_ids(self, event_run_ids: List[str]) -> Dict[str, int]:
+        """
+        Batch fetch booked traveler counts for many event runs.
+
+        Only counts bookings in statuses that occupy capacity.
+        Returns a dict keyed by event_run_id with total booked traveler_count.
+        """
+        if not event_run_ids:
+            return {}
+
+        service_client = self._get_service_client()
+        response = (
+            service_client.table("event_run_bookings")
+            .select("event_run_id, traveler_count")
+            .in_("event_run_id", event_run_ids)
+            .in_("booking_status", ["confirmed", "experience_completed"])
+            .execute()
+        )
+
+        booked_by_run_id: Dict[str, int] = {}
+        for row in response.data or []:
+            run_id = row.get("event_run_id")
+            if not run_id:
+                continue
+            traveler_count = row.get("traveler_count") or 0
+            try:
+                traveler_count_int = int(traveler_count)
+            except Exception:
+                traveler_count_int = 0
+            booked_by_run_id[run_id] = booked_by_run_id.get(run_id, 0) + traveler_count_int
+
+        return booked_by_run_id
+
     async def create_event_run(
         self, event_run_data: EventRunCreate, host_id: str
     ) -> EventRunResponse:
@@ -868,6 +901,14 @@ class EventRunService:
 
         response = query.execute()
 
+        run_ids: List[str] = []
+        for run in response.data or []:
+            run_id = run.get("id")
+            if run_id:
+                run_ids.append(run_id)
+
+        booked_by_run_id = self._get_booked_spots_by_event_run_ids(run_ids)
+
         # Build explore results
         explore_runs = []
         for run in response.data:
@@ -881,9 +922,14 @@ class EventRunService:
                     continue  # Skip if host data is missing
 
                 # Calculate available spots
-                available_spots = await self._calculate_available_spots(
-                    run["id"], run["max_capacity"]
-                )
+                run_id = run.get("id")
+                max_capacity = run.get("max_capacity") or 0
+                booked_spots = booked_by_run_id.get(run_id, 0) if run_id else 0
+                try:
+                    max_capacity_int = int(max_capacity)
+                except Exception:
+                    max_capacity_int = 0
+                available_spots = max(0, max_capacity_int - booked_spots)
 
                 # Calculate effective price (special pricing overrides base price)
                 effective_price = run.get("special_pricing_inr") or experience.get(
