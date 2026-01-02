@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { ImageWithFallback } from './ImageWithFallback';
+import { useRouter } from 'next/navigation';
 
 export interface ExperienceCardProps {
   id: string;
@@ -62,6 +63,7 @@ export function ExperienceCard({
   ctaIcon,
   ctaClassName,
 }: ExperienceCardProps) {
+  const router = useRouter();
   const numericPrice = Number(price);
   const formattedPrice = Number.isFinite(numericPrice)
     ? `${currencySymbol}${numericPrice.toLocaleString(priceLocale, {
@@ -69,6 +71,19 @@ export function ExperienceCard({
         maximumFractionDigits: 0,
       })}`
     : `${currencySymbol}${price}`;
+
+  const maybePrefetchEventRunFromHref = (href?: string) => {
+    if (!href) return;
+    const match = href.match(/\/experiences\/([^\/]+)\/runs\/([^\/]+)/);
+    if (!match) return;
+
+    const runId = match[2];
+    import('@/lib/prefetch')
+      .then(({ prefetchEventRun }) => {
+        prefetchEventRun(runId);
+      })
+      .catch(() => {});
+  };
 
   const handleCtaClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -79,16 +94,24 @@ export function ExperienceCard({
     }
 
     if (ctaHref) {
-      if (typeof window !== 'undefined') {
-        window.location.href = ctaHref;
-      }
+      maybePrefetchEventRunFromHref(ctaHref);
+      // Use client-side navigation so prefetched React Query cache can be reused.
+      router.push(ctaHref);
+
+      // Previous full reload navigation (preserved):
+      // if (typeof window !== 'undefined') {
+      //   window.location.href = ctaHref;
+      // }
     }
   };
 
   return (
     <Card 
       className="group overflow-hidden cursor-pointer hover:shadow-xl transition-shadow !p-0 !py-0 !gap-0 !shadow-none"
-      onClick={() => onSelect?.(id)}
+      onClick={() => {
+        maybePrefetchEventRunFromHref(ctaHref);
+        onSelect?.(id);
+      }}
       onMouseEnter={() => {
         // Prefetch data when hovering over the card
         if (ctaHref) {

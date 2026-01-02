@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ExperienceCard, type ExperienceCardProps } from './ExperienceCard';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 type ExperienceListItem = Omit<ExperienceCardProps, 'onSelect'>;
 
@@ -127,6 +128,7 @@ interface ExperiencesSectionProps {
 }
 
 export function ExperiencesSection({ onExperienceSelect, additionalExperiences = [] }: ExperiencesSectionProps) {
+  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   const combinedExperiences = useMemo(
@@ -175,7 +177,11 @@ export function ExperiencesSection({ onExperienceSelect, additionalExperiences =
                 {...experience}
                 onSelect={(id) => {
                   if (isDynamicExperience && experience.ctaHref && typeof window !== 'undefined') {
-                    window.location.href = experience.ctaHref;
+                    // Use client-side navigation to preserve prefetched cache and avoid full reload.
+                    router.push(experience.ctaHref);
+
+                    // Previous full reload navigation (preserved):
+                    // window.location.href = experience.ctaHref;
                     return;
                   }
                   onExperienceSelect?.(id);
