@@ -220,11 +220,10 @@ export default function Navbar() {
 
                 {/* Mobile: Wallet + Menu */}
                 <div className="sm:hidden flex items-center gap-2">
-                  <ConnectButton 
-                    showBalance={false}
-                    chainStatus="icon"
-                    accountStatus="avatar"
-                  />
+                  {/*
+                    Web3 is disabled. When users are authenticated via Google/email, do not show Connect Wallet.
+                    If wallet auth is re-enabled later, move this into the logged-out branch only.
+                  */}
                   <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
                     <SheetTrigger asChild>
                       <Button variant="ghost" size="icon">
@@ -281,14 +280,20 @@ export default function Navbar() {
               <>
                 {/* Not Authenticated */}
                 {!isLandingPage && (
-                  <Link href="/login">
-                    <Button 
-                      variant="default"
-                      className="bg-black hover:bg-gray-900 text-white"
-                    >
-                      Sign in
-                    </Button>
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    {/* Show wallet connect only when logged out (optional auth method). */}
+                    <div className="sm:hidden">
+                      <ConnectButton showBalance={false} chainStatus="icon" accountStatus="avatar" />
+                    </div>
+                    <Link href="/login">
+                      <Button 
+                        variant="default"
+                        className="bg-black hover:bg-gray-900 text-white"
+                      >
+                        Sign in
+                      </Button>
+                    </Link>
+                  </div>
                 )}
                 
                 {/* Mobile Menu for Landing Page */}
