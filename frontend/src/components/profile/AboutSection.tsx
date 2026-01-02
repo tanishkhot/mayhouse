@@ -1,14 +1,16 @@
 "use client";
 
 import { PublicProfile } from "@/lib/api";
-import { Briefcase, Globe, Languages, CheckCircle, Wallet, Copy, Check } from "lucide-react";
+import { Briefcase, Globe, Languages, CheckCircle, Wallet, Copy, Check, Mail } from "lucide-react";
 import { useState } from "react";
 
 interface AboutSectionProps {
   profile: PublicProfile;
+  isOwnProfile?: boolean;
+  email?: string;
 }
 
-export function AboutSection({ profile }: AboutSectionProps) {
+export function AboutSection({ profile, isOwnProfile = false, email }: AboutSectionProps) {
   const [copied, setCopied] = useState(false);
 
   const copyWalletAddress = () => {
@@ -35,6 +37,26 @@ export function AboutSection({ profile }: AboutSectionProps) {
 
       {/* Details List */}
       <div className="space-y-4">
+        {/* Email (only for own profile) */}
+        {isOwnProfile && email && (
+          <div className="flex items-start space-x-3">
+            <Mail className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900 mb-1">Email</p>
+              <div className="bg-gray-50 border border-gray-300 rounded-lg px-4 py-2">
+                <input
+                  type="email"
+                  value={email}
+                  readOnly
+                  disabled
+                  className="w-full bg-transparent text-gray-700 text-sm font-mono cursor-not-allowed outline-none"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+            </div>
+          </div>
+        )}
+
         {/* Work/Background */}
         {profile.host_application?.hosting_experience && (
           <div className="flex items-start space-x-3">

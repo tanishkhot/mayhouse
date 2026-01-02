@@ -99,7 +99,11 @@ export default function UserProfilePage() {
           {/* Right Column - About Section & Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* About Section */}
-            <AboutSection profile={profile} />
+            <AboutSection 
+              profile={profile} 
+              isOwnProfile={isOwnProfile}
+              email={currentUser?.email || profile.email}
+            />
 
             {/* Host Experiences Section */}
             {profile.role === "host" && experiencesData && (

@@ -89,6 +89,29 @@ Use these fields to prefill or auto-suggest the first EventRun in the scheduler 
 - Backend latency reduction: Add short TTL caching for GET /explore (e.g., 30-60 seconds) and optimize event_run_service.explore_upcoming_event_runs query and indexes.
 - Perceived speed: Render placeholder experience cards immediately on /explore so TimeToFirstExperienceCardRendered improves even when API is slow; swap in real cards when data arrives.
 
+## Performance: Sign-in Button Load Time Optimization
+
+### Problem
+
+There is significant delay on sign-in button on first time load. Need to find a strategy to load it faster.
+
+### Potential Strategies to Investigate
+
+- [ ] **Code splitting**: Lazy load authentication components/modals only when needed
+- [ ] **Preload auth state**: Check authentication status early in app lifecycle (before render)
+- [ ] **Optimize auth API calls**: Reduce initial auth check latency (caching, parallel requests)
+- [ ] **Progressive enhancement**: Show static sign-in button immediately, enhance with auth state after load
+- [ ] **Bundle size**: Analyze what's causing the delay (large dependencies, unnecessary imports)
+- [ ] **SSR/Hydration**: If using SSR, optimize hydration for auth components
+- [ ] **Measure first**: Add performance metrics to identify bottleneck (API call, component render, bundle size)
+
+### Investigation Steps
+
+1. Measure current load time and identify bottleneck (Network tab, React DevTools Profiler, Performance API)
+2. Check if auth state check is blocking initial render
+3. Review authentication flow and identify heavy operations on first load
+4. Test strategies above and measure improvements
+
 ## Experience run detail redesign (plan + execution tasks)
 
 ---

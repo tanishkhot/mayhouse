@@ -71,9 +71,13 @@ export default function ExplorePage() {
         // neighborhood: selectedNeighborhood,
         limit: pageSize,
         offset: pageParam,
+      }).then((result) => {
+        // Double-check: ensure we always return an array
+        return Array.isArray(result) ? result : [];
       }),
     getNextPageParam: (lastPage, allPages) => {
-      if (!Array.isArray(lastPage)) return undefined;
+      // Explicit null/undefined check first
+      if (!lastPage || !Array.isArray(lastPage)) return undefined;
       if (lastPage.length < pageSize) return undefined;
       return allPages.length * pageSize;
     },
@@ -86,7 +90,8 @@ export default function ExplorePage() {
 
   const eventRuns = useMemo(() => {
     const pages = data?.pages ?? [];
-    return pages.flat();
+    // Filter out any non-array values and flatten
+    return pages.filter(Array.isArray).flat();
   }, [data]);
 
   // Dynamic metric: mount -> data ready (first non-empty response)

@@ -289,7 +289,9 @@ export const ExploreAPI = {
         });
 
         console.log('✅ Explore API response:', r.data?.length || 0, 'event runs');
-        return r.data;
+        // Ensure we always return an array
+        const result = r.data;
+        return Array.isArray(result) ? result : [];
       })
       .catch((error) => {
         const endedAt = typeof performance !== "undefined" ? performance.now() : Date.now();
