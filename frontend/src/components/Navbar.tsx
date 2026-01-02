@@ -144,21 +144,6 @@ export default function Navbar() {
                 >
                   About
                 </Link>
-                {isAuthenticated && (
-                  <>
-                    <Link 
-                      href="/host-dashboard" 
-                      onClick={() => {
-                        try {
-                          console.log('[FLOW] Navbar Host link clicked', { from: pathname, to: '/host-dashboard', ts: new Date().toISOString() });
-                        } catch {}
-                      }}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
-                    >
-                      Host
-                    </Link>
-                  </>
-                )}
               </nav>
             )}
           </div>
