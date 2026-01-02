@@ -199,6 +199,12 @@ export default function Navbar() {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
+                        <Link href="/my-bookings">
+                          <Calendar className="mr-2 h-4 w-4" />
+                          My Bookings
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
                         <Link 
                           href="/host-dashboard" 
                           onClick={() => { try { console.log('[FLOW] Account menu -> Manage Experiences', { from: pathname, to: '/host-dashboard', ts: new Date().toISOString() }); } catch {} }}
@@ -252,6 +258,13 @@ export default function Navbar() {
                           className="text-lg font-medium"
                         >
                           Profile
+                        </Link>
+                        <Link 
+                          href="/my-bookings"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="text-lg font-medium"
+                        >
+                          My Bookings
                         </Link>
                         <Link 
                           href="/host-dashboard"
