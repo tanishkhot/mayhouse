@@ -96,8 +96,7 @@ export function ExperienceCard({
           if (match) {
             const [, experienceId, runId] = match;
             // Dynamically import to avoid circular dependencies
-            import('@/lib/prefetch').then(({ prefetchEventRun, prefetchExperience }) => {
-              prefetchExperience(experienceId);
+            import('@/lib/prefetch').then(({ prefetchEventRun }) => {
               prefetchEventRun(runId);
             });
           }
@@ -214,8 +213,7 @@ export function ExperienceCard({
                 if (match) {
                   const [, experienceId, runId] = match;
                   // Dynamically import to avoid circular dependencies
-                  import('@/lib/prefetch').then(({ prefetchEventRun, prefetchExperience }) => {
-                    prefetchExperience(experienceId);
+                  import('@/lib/prefetch').then(({ prefetchEventRun }) => {
                     prefetchEventRun(runId);
                   });
                 }

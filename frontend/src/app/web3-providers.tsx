@@ -7,6 +7,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { wagmiConfig } from '@/lib/wagmi-config';
 import { ReactNode, useEffect } from 'react';
 import { setQueryClient } from '@/lib/prefetch';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,13 +29,42 @@ export function Web3Providers({ children }: { children: ReactNode }) {
     setQueryClient(queryClient);
   }, []);
 
+  const isClient = typeof window !== 'undefined';
+  const persister = isClient
+    ? createSyncStoragePersister({
+        storage: window.localStorage,
+        key: 'mayhouse_rq_cache_v1',
+      })
+    : null;
+
   return (
     <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>
-          {children}
-        </RainbowKitProvider>
-      </QueryClientProvider>
+      {persister ? (
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{
+            persister,
+            maxAge: 10 * 60 * 1000,
+            dehydrateOptions: {
+              shouldDehydrateQuery: (query) => query.queryKey?.[0] === 'explore',
+            },
+          }}
+          onSuccess={() => {
+            try {
+              console.log('[RQ_PERSIST]', {
+                restored: true,
+                key: 'mayhouse_rq_cache_v1',
+              });
+            } catch {}
+          }}
+        >
+          <RainbowKitProvider>{children}</RainbowKitProvider>
+        </PersistQueryClientProvider>
+      ) : (
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider>{children}</RainbowKitProvider>
+        </QueryClientProvider>
+      )}
     </WagmiProvider>
   );
 }

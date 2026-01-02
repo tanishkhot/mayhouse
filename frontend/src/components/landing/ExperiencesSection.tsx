@@ -130,7 +130,7 @@ export function ExperiencesSection({ onExperienceSelect, additionalExperiences =
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   const combinedExperiences = useMemo(
-    () => [...baseExperiences, ...additionalExperiences],
+    () => [...additionalExperiences, ...baseExperiences],
     [additionalExperiences]
   );
 

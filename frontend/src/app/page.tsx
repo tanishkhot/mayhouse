@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ExploreAPI, ExploreEventRun } from "@/lib/api";
 import { ExperiencesSection } from "@/components/landing/ExperiencesSection";
@@ -44,6 +44,18 @@ const buildEventRunTags = (eventRun: ExploreEventRun) => {
 };
 
 export default function ExplorePage() {
+  const pageMountedAtMsRef = useRef<number | null>(null);
+  const dataReadyLoggedRef = useRef<boolean>(false);
+  const firstCardRenderedLoggedRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (typeof performance === "undefined") return;
+    // Stable start timestamp for this page load (guarded for Strict Mode).
+    if (pageMountedAtMsRef.current === null) {
+      pageMountedAtMsRef.current = performance.now();
+    }
+  }, []);
+
   const pageSize = 16;
   const {
     data,
@@ -76,6 +88,22 @@ export default function ExplorePage() {
     const pages = data?.pages ?? [];
     return pages.flat();
   }, [data]);
+
+  // Dynamic metric: mount -> data ready (first non-empty response)
+  useEffect(() => {
+    if (dataReadyLoggedRef.current) return;
+    if (!eventRuns || eventRuns.length === 0) return;
+    if (typeof performance === "undefined") return;
+    if (pageMountedAtMsRef.current === null) return;
+
+    dataReadyLoggedRef.current = true;
+    const ms = Math.round(performance.now() - pageMountedAtMsRef.current);
+    console.log("[EXPLORE_RENDER_METRIC]", {
+      metric: "TimeToExploreDataReady",
+      ms,
+      count: eventRuns.length,
+    });
+  }, [eventRuns]);
   
   // Categories and neighborhoods commented out for now
   // const { data: categoriesData } = useQuery({
@@ -121,6 +149,27 @@ export default function ExplorePage() {
       };
     });
   }, [eventRuns]);
+
+  // Dynamic metric: mount -> first card rendered (post-commit)
+  useEffect(() => {
+    if (firstCardRenderedLoggedRef.current) return;
+    if (!liveExperienceCards || liveExperienceCards.length === 0) return;
+    if (typeof performance === "undefined") return;
+    if (pageMountedAtMsRef.current === null) return;
+
+    const firstId = liveExperienceCards[0]?.id;
+    requestAnimationFrame(() => {
+      if (firstCardRenderedLoggedRef.current) return;
+      firstCardRenderedLoggedRef.current = true;
+
+      const ms = Math.round(performance.now() - pageMountedAtMsRef.current!);
+      console.log("[EXPLORE_RENDER_METRIC]", {
+        metric: "TimeToFirstExperienceCardRendered",
+        ms,
+        firstId,
+      });
+    });
+  }, [liveExperienceCards]);
 
   return (
     <div className="min-h-screen bg-white">
