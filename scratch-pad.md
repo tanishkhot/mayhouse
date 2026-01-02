@@ -237,3 +237,27 @@ Notes:
   - `docs/desing-update-with-experience-poage-figmamake/guidelines/ColorStateQuickRef.md`
   - `docs/desing-update-with-experience-poage-figmamake/guidelines/ExperienceDetailSpec.md`
   - `docs/desing-update-with-experience-poage-figmamake/components/ExperienceDetailRefined.tsx`
+
+---
+
+## Route Visualization & Testing (Phase 2)
+
+### Status: Phase 1 Complete - Basic Map Display
+
+Phase 1 (completed): Added interactive map to experience run detail page showing meeting point location when coordinates are available.
+
+### Phase 2 Tasks: Route Flow End-to-End Testing
+
+- [ ] **Test complete route flow end-to-end:**
+  - [ ] Verify route data (`route_data` with waypoints) is properly stored in experience creation flow
+  - [ ] Test route data retrieval from backend API (`/event-runs/{id}` endpoint)
+  - [ ] Verify route waypoints are correctly parsed and displayed on map
+  - [ ] Test route polyline rendering between waypoints
+  - [ ] Verify route visualization appears correctly on experience run detail page
+  - [ ] Test with multiple waypoints (start, stops, end)
+  - [ ] Test edge cases: single waypoint, no route data, invalid coordinates
+  - [ ] Ensure route visualization works on mobile and desktop
+  - [ ] Verify route data persists through experience updates
+  - [ ] Test route display matches design specifications
+
+**Goal:** Complete end-to-end testing of the route creation → storage → retrieval → visualization flow until routes are fully functional and displayed on the experience run detail page.

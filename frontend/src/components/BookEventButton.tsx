@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BookingsAPI } from '@/lib/bookings-api';
+import { BookingsAPI, BookingCostResponse, BookingResponse } from '@/lib/bookings-api';
+
+// Mock mode toggle - set to true to use mock booking functions for testing
+const USE_MOCK_BOOKING = true; // Change to false to use real API
 
 interface BookEventButtonProps {
   eventRunId: string;  // Database ID (UUID)
@@ -10,6 +13,54 @@ interface BookEventButtonProps {
   eventTimestamp?: string; // Event start time
   priceINR?: number; // Price in INR (optional for legacy components)
 }
+
+// Mock functions for testing
+const mockCalculateCost = async (eventRunId: string, seatCount: number, pricePerSeat: number): Promise<BookingCostResponse> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Calculate costs
+  const totalPrice = pricePerSeat * seatCount;
+  const stake = Math.round(totalPrice * 0.2); // 20% refundable deposit
+  const totalCost = totalPrice + stake;
+  
+  return {
+    event_run_id: eventRunId,
+    seat_count: seatCount,
+    price_per_seat_inr: pricePerSeat,
+    total_price_inr: totalPrice,
+    stake_inr: stake,
+    total_cost_inr: totalCost,
+  };
+};
+
+const mockCreateBooking = async (eventRunId: string, seatCount: number, costData: BookingCostResponse): Promise<BookingResponse> => {
+  // Simulate API delay (2 seconds to simulate processing)
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  // Generate mock booking ID
+  const mockBookingId = `mock-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const mockPaymentId = `pay-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const mockTransactionId = `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  return {
+    id: mockBookingId,
+    event_run_id: eventRunId,
+    user_id: 'mock-user-id',
+    seat_count: seatCount,
+    total_amount_inr: costData.total_cost_inr,
+    booking_status: 'confirmed',
+    payment: {
+      payment_id: mockPaymentId,
+      status: 'completed',
+      amount_inr: costData.total_cost_inr,
+      transaction_id: mockTransactionId,
+      timestamp: new Date().toISOString(),
+      payment_method: 'mock_payment',
+    },
+    created_at: new Date().toISOString(),
+  };
+};
 
 export default function BookEventButton({ 
   eventRunId, 
@@ -20,13 +71,20 @@ export default function BookEventButton({
 }: BookEventButtonProps) {
   const [seatCount, setSeatCount] = useState(1);
   const [showModal, setShowModal] = useState(false);
-  const [costData, setCostData] = useState<any>(null);
+  const [costData, setCostData] = useState<BookingCostResponse | null>(null);
   const [loadingCost, setLoadingCost] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [isBooking, setIsBooking] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
-  const [bookingData, setBookingData] = useState<any>(null);
+  const [bookingData, setBookingData] = useState<BookingResponse | null>(null);
   
+  // Log mock mode status on mount
+  useEffect(() => {
+    if (USE_MOCK_BOOKING) {
+      console.log('[BOOKING] MOCK MODE ENABLED - Using mock booking functions for testing');
+    }
+  }, []);
+
   // Reset booking state when modal opens
   useEffect(() => {
     if (showModal) {
@@ -36,17 +94,26 @@ export default function BookEventButton({
     }
   }, [showModal]);
 
-  // Fetch cost from backend API
+  // Fetch cost from backend API or mock
   useEffect(() => {
     if (!showModal) return;
     
     const fetchCost = async () => {
       setLoadingCost(true);
       try {
-        const response = await BookingsAPI.calculateCost({
-          event_run_id: eventRunId,
-          seat_count: seatCount
-        });
+        let response: BookingCostResponse;
+        
+        if (USE_MOCK_BOOKING) {
+          console.log('[BOOKING] Using mock calculateCost');
+          const pricePerSeat = priceINR > 0 ? priceINR : 500; // Use priceINR prop or default to 500
+          response = await mockCalculateCost(eventRunId, seatCount, pricePerSeat);
+        } else {
+          response = await BookingsAPI.calculateCost({
+            event_run_id: eventRunId,
+            seat_count: seatCount
+          });
+        }
+        
         setCostData(response);
       } catch (err) {
         console.error('Failed to fetch booking cost:', err);
@@ -57,7 +124,7 @@ export default function BookEventButton({
     };
 
     fetchCost();
-  }, [eventRunId, seatCount, showModal]);
+  }, [eventRunId, seatCount, showModal, priceINR]);
 
   const handleBook = async () => {
     setBookingError(null);
@@ -74,13 +141,21 @@ export default function BookEventButton({
         eventRunId,
         seatCount,
         costData,
+        mockMode: USE_MOCK_BOOKING,
       });
       
-      // Call the backend API to create booking
-      const booking = await BookingsAPI.createBooking({
-        event_run_id: eventRunId,
-        seat_count: seatCount,
-      });
+      let booking: BookingResponse;
+      
+      if (USE_MOCK_BOOKING) {
+        console.log('[BOOKING] Using mock createBooking');
+        booking = await mockCreateBooking(eventRunId, seatCount, costData);
+        console.log('[BOOKING] Mock booking created:', booking);
+      } else {
+        booking = await BookingsAPI.createBooking({
+          event_run_id: eventRunId,
+          seat_count: seatCount,
+        });
+      }
       
       console.log('[BOOKING] Success! Booking created:', booking);
       
@@ -114,10 +189,19 @@ export default function BookEventButton({
     return (
       <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50 p-4">
         <div className="bg-card text-card-foreground rounded-xl shadow-2xl max-w-lg w-full p-6 border border-border">
+          {/* Mock Mode Indicator */}
+          {USE_MOCK_BOOKING && (
+            <div className="mb-4 p-2 bg-accent border border-terracotta-600 rounded-lg">
+              <p className="text-xs font-semibold text-terracotta-600 text-center">
+                MOCK MODE: This is a test booking
+              </p>
+            </div>
+          )}
+          
           {/* Success Header */}
           <div className="text-center mb-6">
             <div className="mx-auto w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4 border border-border">
-              <svg className="w-8 h-8 text-chart-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-8 h-8 text-terracotta-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
@@ -148,8 +232,8 @@ export default function BookEventButton({
             <div className="grid grid-cols-2 gap-4 pt-3 border-t border-border">
               <div>
                 <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Status</p>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-accent text-chart-1 text-sm font-medium rounded-full border border-border">
-                  <span className="w-2 h-2 bg-chart-1 rounded-full"></span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-accent text-terracotta-600 text-sm font-medium rounded-full border border-border">
+                  <span className="w-2 h-2 bg-terracotta-600 rounded-full"></span>
                   Confirmed
                 </span>
               </div>
@@ -190,7 +274,11 @@ export default function BookEventButton({
               onClick={() => {
                 setShowModal(false);
                 setBookingSuccess(false);
-                window.location.reload(); // Refresh to show updated bookings
+                setBookingData(null);
+                // Don't reload in mock mode - just reset state
+                if (!USE_MOCK_BOOKING) {
+                  window.location.reload(); // Refresh to show updated bookings
+                }
               }}
               className="block w-full text-center bg-primary text-primary-foreground py-3 px-4 rounded-lg font-semibold hover:bg-primary/90 transition-all duration-300 active:scale-95 active:duration-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50 disabled:pointer-events-none"
             >
@@ -216,6 +304,15 @@ export default function BookEventButton({
 
   return (
     <>
+      {/* Mock Mode Indicator on Button */}
+      {USE_MOCK_BOOKING && (
+        <div className="mb-2 p-1.5 bg-accent border border-terracotta-600 rounded text-center">
+          <p className="text-xs font-semibold text-terracotta-600">
+            MOCK MODE: Test booking enabled
+          </p>
+        </div>
+      )}
+      
       <button
         onClick={handleOpenModal}
         disabled={availableSeats === 0}
@@ -228,6 +325,15 @@ export default function BookEventButton({
       {showModal && (
         <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50 p-4">
           <div className="bg-card text-card-foreground rounded-xl shadow-2xl max-w-md w-full p-6 border border-border">
+            {/* Mock Mode Indicator in Modal */}
+            {USE_MOCK_BOOKING && (
+              <div className="mb-4 p-2 bg-accent border border-terracotta-600 rounded-lg">
+                <p className="text-xs font-semibold text-terracotta-600 text-center">
+                  MOCK MODE: Using test booking functions
+                </p>
+              </div>
+            )}
+            
             <h2 className="text-2xl font-bold mb-4 text-foreground">Book Event</h2>
 
             {/* Seat Selection */}

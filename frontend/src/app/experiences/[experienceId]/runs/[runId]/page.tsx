@@ -297,7 +297,7 @@ export default function ExperienceRunDetailPage() {
                 ) : (
                   <Badge
                     variant="outline"
-                    className="border-chart-1 text-chart-1 bg-background/90 backdrop-blur-sm gap-1"
+                    className="border-primary text-primary bg-background/90 backdrop-blur-sm gap-1"
                   >
                     <CheckCircle2 className="h-3 w-3" />
                     {availableSpots} spots left
@@ -325,7 +325,7 @@ export default function ExperienceRunDetailPage() {
                   <span className="hidden sm:inline">|</span>
 
                   <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-chart-1 text-chart-1" />
+                    <Star className="h-4 w-4 fill-primary text-primary" />
                     <span>New</span>
                   </div>
                 </div>
@@ -363,7 +363,7 @@ export default function ExperienceRunDetailPage() {
                       <p className="font-medium text-foreground truncate">
                         {eventRun.host_name || "Host"}
                       </p>
-                      <Shield className="h-4 w-4 text-chart-1 flex-shrink-0" />
+                      <Shield className="h-4 w-4 text-terracotta-600 flex-shrink-0" />
                     </div>
 
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -445,15 +445,15 @@ export default function ExperienceRunDetailPage() {
 
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-start gap-3">
-                    <Shield className="h-4 w-4 text-chart-1 mt-0.5 flex-shrink-0" />
+                    <Shield className="h-4 w-4 text-terracotta-600 mt-0.5 flex-shrink-0" />
                     <span>Full refund up to 24h before</span>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Shield className="h-4 w-4 text-chart-1 mt-0.5 flex-shrink-0" />
+                    <Shield className="h-4 w-4 text-terracotta-600 mt-0.5 flex-shrink-0" />
                     <span>Secure payment escrow</span>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Shield className="h-4 w-4 text-chart-1 mt-0.5 flex-shrink-0" />
+                    <Shield className="h-4 w-4 text-terracotta-600 mt-0.5 flex-shrink-0" />
                     <span>20% refundable stake held until completion</span>
                   </div>
                 </div>
@@ -556,11 +556,11 @@ export default function ExperienceRunDetailPage() {
 
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-start gap-3">
-                    <Shield className="h-4 w-4 text-chart-1 mt-0.5 flex-shrink-0" />
+                    <Shield className="h-4 w-4 text-terracotta-600 mt-0.5 flex-shrink-0" />
                     <span>Full refund up to 24h before</span>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Shield className="h-4 w-4 text-chart-1 mt-0.5 flex-shrink-0" />
+                    <Shield className="h-4 w-4 text-terracotta-600 mt-0.5 flex-shrink-0" />
                     <span>Host verified</span>
                   </div>
                 </div>
