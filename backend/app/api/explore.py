@@ -7,7 +7,8 @@ information about available experiences in Mumbai.
 """
 
 from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, Query, Request, HTTPException, status
+from time import perf_counter
+from fastapi import APIRouter, Query, Request, HTTPException, status, Response
 from app.middleware.auth_middleware import get_user_from_request, is_authenticated
 from app.schemas.user import UserResponse
 from app.schemas.event_run import ExploreEventRun
@@ -26,6 +27,7 @@ router = APIRouter(prefix="/explore", tags=["Explore"])
 )
 async def explore_upcoming_experiences(
     request: Request,
+    response: Response,
     domain: Optional[str] = Query(
         None, description="Filter by experience domain (food, art, culture, etc.)"
     ),
@@ -60,9 +62,15 @@ async def explore_upcoming_experiences(
     """
     try:
         # Use the singleton event_run_service instance
+        started_at = perf_counter()
         upcoming_runs = await event_run_service.explore_upcoming_event_runs(
             limit=limit, offset=offset, domain=domain, neighborhood=neighborhood
         )
+
+        dur_ms = (perf_counter() - started_at) * 1000.0
+        # Expose server-side processing time for root-cause analysis (server vs network vs render)
+        response.headers["Server-Timing"] = f"explore;dur={dur_ms:.1f}"
+        response.headers["X-Explore-Server-Ms"] = f"{dur_ms:.1f}"
 
         return upcoming_runs
 

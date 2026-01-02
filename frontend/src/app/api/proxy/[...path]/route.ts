@@ -93,6 +93,12 @@ async function handleRequest(
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        ...(response.headers.get('server-timing')
+          ? { 'Server-Timing': response.headers.get('server-timing') as string }
+          : {}),
+        ...(response.headers.get('x-explore-server-ms')
+          ? { 'X-Explore-Server-Ms': response.headers.get('x-explore-server-ms') as string }
+          : {}),
       },
     });
   } catch (error) {

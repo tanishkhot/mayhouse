@@ -274,13 +274,35 @@ export const ExploreAPI = {
     const queryString = searchParams.toString();
     const url = `/explore/${queryString ? `?${queryString}` : ""}`;
     console.log('🔍 Fetching explore data from:', url);
-    return api.get<ExploreEventRun[]>(url).then((r) => {
-      console.log('✅ Explore API response:', r.data?.length || 0, 'event runs');
-      return r.data;
-    }).catch((error) => {
-      console.error('❌ Explore API error:', error.response?.data || error.message);
-      throw error;
-    });
+    const startedAt = typeof performance !== "undefined" ? performance.now() : Date.now();
+    return api
+      .get<ExploreEventRun[]>(url)
+      .then((r) => {
+        const endedAt = typeof performance !== "undefined" ? performance.now() : Date.now();
+        const durationMs = Math.round(endedAt - startedAt);
+        const serverTiming = (r.headers as any)?.["server-timing"];
+        console.log("[EXPLORE_FETCH_METRIC]", {
+          url,
+          durationMs,
+          count: r.data?.length || 0,
+          serverTiming,
+        });
+
+        console.log('✅ Explore API response:', r.data?.length || 0, 'event runs');
+        return r.data;
+      })
+      .catch((error) => {
+        const endedAt = typeof performance !== "undefined" ? performance.now() : Date.now();
+        const durationMs = Math.round(endedAt - startedAt);
+        console.log("[EXPLORE_FETCH_METRIC]", {
+          url,
+          durationMs,
+          error: true,
+        });
+
+        console.error('❌ Explore API error:', error.response?.data || error.message);
+        throw error;
+      });
   },
   getCategories: () =>
     api.get<Record<string, any>>("/explore/categories").then((r) => r.data),
