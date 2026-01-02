@@ -2,18 +2,54 @@
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { HostOnlyRoute } from '@/components/ProtectedRoute';
 import { HostDashboardSkeleton } from '@/components/skeletons';
-import EventRunsList from '@/components/EventRunsList';
-import EventRunScheduler from '@/components/EventRunScheduler';
 import { ExperienceCard } from '@/components/landing/ExperienceCard';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, AuthAPI, UserResponse } from '@/lib/api';
-import DesignExperienceV2 from '@/components/design-experience-v2/DesignExperienceV2';
-import { ExperiencePreviewModal } from '@/components/experience-preview';
 import { normalizeExperienceResponse, convertPhotosToArray } from '@/lib/experience-preview-normalizer';
-import { ExperienceResponse, experienceAPI } from '@/lib/experience-api';
+import { ExperienceResponse } from '@/lib/experience-api';
+
+const EventRunsList = dynamic(() => import('@/components/EventRunsList'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center py-12">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terracotta-500"></div>
+      <p className="ml-4 text-foreground">Loading event runs...</p>
+    </div>
+  ),
+});
+
+const EventRunScheduler = dynamic(() => import('@/components/EventRunScheduler'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center py-12">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terracotta-500"></div>
+      <p className="ml-4 text-foreground">Loading scheduler...</p>
+    </div>
+  ),
+});
+
+const DesignExperienceV2 = dynamic(
+  () => import('@/components/design-experience-v2/DesignExperienceV2'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terracotta-500"></div>
+        <p className="ml-4 text-foreground">Loading editor...</p>
+      </div>
+    ),
+  }
+);
+
+const ExperiencePreviewModal = dynamic(
+  () =>
+    import('@/components/experience-preview').then((m) => m.ExperiencePreviewModal),
+  { ssr: false }
+);
 
 // Add custom styles for text clamping
 const textClampStyles = `
@@ -91,7 +127,6 @@ const HostDashboardContent = () => {
   const [filter, setFilter] = useState<'all' | 'draft' | 'submitted' | 'approved' | 'rejected'>('all');
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
   const [allExperiences, setAllExperiences] = useState<Experience[]>([]);
-  const [experiencePhotos, setExperiencePhotos] = useState<Record<string, string>>({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   
@@ -126,27 +161,6 @@ const HostDashboardContent = () => {
     whatToBring: '',
   });
 
-  // Fetch cover photos for experiences
-  const fetchExperiencePhotos = useCallback(async (experienceIds: string[]) => {
-    const photosMap: Record<string, string> = {};
-    
-    for (const expId of experienceIds) {
-      try {
-        const photosResponse = await api.get(`/experiences/${expId}/photos`);
-        const photos: ExperiencePhoto[] = photosResponse.data;
-        const coverPhoto = photos.find(p => p.is_cover_photo) || photos[0];
-        if (coverPhoto) {
-          photosMap[expId] = coverPhoto.photo_url;
-        }
-      } catch (err) {
-        // Photo not found or not uploaded yet - use placeholder
-        console.log(`No photos found for experience ${expId}`);
-      }
-    }
-    
-    setExperiencePhotos(prev => ({ ...prev, ...photosMap }));
-  }, []);
-
   // Define fetch functions before useEffect
   const fetchExperiences = useCallback(async () => {
     try {
@@ -164,9 +178,6 @@ const HostDashboardContent = () => {
       const allData = allResponse.data;
       setAllExperiences(allData);
       
-      // Fetch cover photos for all experiences
-      fetchExperiencePhotos(allData.map((exp: Experience) => exp.id));
-      
       // Filter experiences based on current filter and exclude archived ones
       const nonArchivedData = allData.filter((exp: Experience) => exp.status !== 'archived');
       if (filter === 'all') {
@@ -181,7 +192,7 @@ const HostDashboardContent = () => {
     } finally {
       setLoading(false);
     }
-  }, [filter, fetchExperiencePhotos]);
+  }, [filter]);
 
   // Fetch current user on mount
   useEffect(() => {
@@ -189,8 +200,8 @@ const HostDashboardContent = () => {
       try {
         const user = await AuthAPI.me();
         setCurrentUser(user);
-      } catch (err) {
-        console.error('Failed to fetch current user:', err);
+      } catch {
+        console.error('Failed to fetch current user');
         // Continue without user data
       }
     };
@@ -219,10 +230,10 @@ const HostDashboardContent = () => {
         photos = photosResponse.data as ExperiencePhoto[];
       } catch (err) {
         // Fallback: create photo object from URL if available
-        if (experiencePhotos[experience.id]) {
+        if (experience.cover_photo_url) {
           photos = [{
             id: experience.id,
-            photo_url: experiencePhotos[experience.id],
+            photo_url: experience.cover_photo_url,
             is_cover_photo: true,
             display_order: 0
           }];
@@ -770,7 +781,7 @@ const HostDashboardContent = () => {
                                 name: 'You', // TODO: Get actual host name from user profile
                                 verified: true,
                               }}
-                              image={experiencePhotos[exp.id] || placeholderImage}
+                              image={exp.cover_photo_url || placeholderImage}
                               category={exp.experience_domain}
                               duration={formatDuration(exp.duration_minutes)}
                               groupSize={`${exp.traveler_max_capacity || 4} people`}

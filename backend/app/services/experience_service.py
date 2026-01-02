@@ -138,7 +138,16 @@ class ExperienceService:
             # Build query
             query = (
                 service_client.table("experiences")
-                .select("*")
+                .select(
+                    """
+                    *,
+                    experience_photos!experience_photos_experience_id_fkey (
+                        photo_url,
+                        is_cover_photo,
+                        display_order
+                    )
+                    """
+                )
                 .eq("host_id", host_id)
                 .order("updated_at", desc=True)
             )
@@ -572,6 +581,28 @@ class ExperienceService:
 
     def _map_to_experience_summary(self, data: dict) -> ExperienceSummary:
         """Map database record to ExperienceSummary."""
+        cover_photo_url = None
+        photos = data.get("experience_photos") or []
+        if isinstance(photos, list) and photos:
+            for photo in photos:
+                if photo.get("is_cover_photo"):
+                    cover_photo_url = photo.get("photo_url")
+                    break
+            if not cover_photo_url:
+                # Sort by display_order if present; otherwise keep original order
+                try:
+                    photos_sorted = sorted(
+                        photos,
+                        key=lambda p: (
+                            p.get("display_order")
+                            if p.get("display_order") is not None
+                            else 10**9
+                        ),
+                    )
+                    cover_photo_url = (photos_sorted[0] or {}).get("photo_url")
+                except Exception:
+                    cover_photo_url = (photos[0] or {}).get("photo_url")
+
         return ExperienceSummary(
             id=data["id"],
             host_id=data["host_id"],
@@ -580,6 +611,7 @@ class ExperienceService:
             experience_domain=data["experience_domain"] or "unknown",
             city=data["city"] or "Unknown City",
             neighborhood=data.get("neighborhood"),
+            cover_photo_url=cover_photo_url,
             route_data=data.get("route_data"),
             first_event_run_date=data.get("first_event_run_date"),
             first_event_run_time=data.get("first_event_run_time"),

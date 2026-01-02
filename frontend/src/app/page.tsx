@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { ExploreAPI, ExploreEventRun } from "@/lib/api";
 import { ExperiencesSection } from "@/components/landing/ExperiencesSection";
 import { type ExperienceCardProps } from "@/components/landing/ExperienceCard";
@@ -44,20 +44,38 @@ const buildEventRunTags = (eventRun: ExploreEventRun) => {
 };
 
 export default function ExplorePage() {
-  const { data: eventRuns = [] } = useQuery({
-    queryKey: ["explore"], // Removed filter dependencies for now
-    queryFn: () => ExploreAPI.getUpcomingExperiences({
-      // domain: selectedDomain,
-      // neighborhood: selectedNeighborhood,
-      limit: 50
-    }),
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes (matches global default)
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-    refetchOnWindowFocus: false, // Don't refetch on window focus
-    refetchOnMount: false, // Use cached data if available
-    retry: 1, // Only retry once
-    placeholderData: (previousData) => previousData, // Show previous data while refetching
+  const pageSize = 16;
+  const {
+    data,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["explore"],
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) =>
+      ExploreAPI.getUpcomingExperiences({
+        // domain: selectedDomain,
+        // neighborhood: selectedNeighborhood,
+        limit: pageSize,
+        offset: pageParam,
+      }),
+    getNextPageParam: (lastPage, allPages) => {
+      if (!Array.isArray(lastPage)) return undefined;
+      if (lastPage.length < pageSize) return undefined;
+      return allPages.length * pageSize;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    retry: 1,
   });
+
+  const eventRuns = useMemo(() => {
+    const pages = data?.pages ?? [];
+    return pages.flat();
+  }, [data]);
   
   // Categories and neighborhoods commented out for now
   // const { data: categoriesData } = useQuery({
@@ -116,6 +134,18 @@ export default function ExplorePage() {
       
       {/* Curated Experiences Section - Starting directly with filters and cards */}
       <ExperiencesSection additionalExperiences={liveExperienceCards} />
+      {hasNextPage ? (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex justify-center">
+          <button
+            type="button"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="inline-flex items-center justify-center rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition hover:bg-foreground/90 disabled:opacity-60"
+          >
+            {isFetchingNextPage ? "Loading..." : "Load more"}
+          </button>
+        </div>
+      ) : null}
 
       {/* Explore Footer Navigation */}
       <div className="border-t border-border/60 bg-gradient-to-b from-white via-white to-orange-50/40">

@@ -237,6 +237,7 @@ class ExperienceSummary(BaseModel):
     experience_domain: str
     city: str
     neighborhood: Optional[str]
+    cover_photo_url: Optional[str] = None
     route_data: Optional[Dict[str, Any]] = None
     first_event_run_date: Optional[date] = None
     first_event_run_time: Optional[time] = None
