@@ -1,6 +1,6 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -53,6 +53,9 @@ export default function BookingDetailModal({
           <DialogTitle className="text-2xl">
             {experience?.title || 'Booking Details'}
           </DialogTitle>
+          <DialogDescription>
+            View full details of your booking including event information and payment details.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">
