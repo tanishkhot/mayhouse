@@ -6,7 +6,7 @@ import { mapFormToCardProps } from '@/lib/experience-preview-mapper';
 import { FormState } from '@/lib/experience-mapper';
 import { UserResponse } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
-import { Edit3 } from 'lucide-react';
+import { Edit3, Sparkles, ArrowRight } from 'lucide-react';
 import Icon from '../ui/icon';
 
 interface ExperiencePreviewCardProps {
@@ -16,6 +16,8 @@ interface ExperiencePreviewCardProps {
   onEdit?: () => void;
   onSubmit?: () => void;
   onPreview?: () => void;
+  onOpenChat?: () => void;
+  isChatOpen?: boolean;
 }
 
 export default function ExperiencePreviewCard({
@@ -25,6 +27,8 @@ export default function ExperiencePreviewCard({
   onEdit,
   onSubmit,
   onPreview,
+  onOpenChat,
+  isChatOpen = false,
 }: ExperiencePreviewCardProps) {
   const [rotateY, setRotateY] = useState(0);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -82,34 +86,60 @@ export default function ExperiencePreviewCard({
   }
 
   return (
-    <div 
-      className="perspective-1000"
-      style={{ perspective: '1000px' }}
-    >
+    <div className="space-y-4">
+      {/* AI Chat Prompt - Show only if chat is closed */}
+      {!isChatOpen && onOpenChat && (
+        <div className="bg-gradient-to-r from-terracotta-50 to-orange-50 border-2 border-terracotta-200 rounded-xl p-4 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-full bg-terracotta-500 flex items-center justify-center shrink-0">
+              <Icon as={Sparkles} size={20} className="text-white" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-semibold text-gray-900 mb-1">Refine with AI Assistant</h4>
+              <p className="text-sm text-gray-700 mb-3">
+                Chat with our AI to improve your experience description, get suggestions, and make changes naturally.
+              </p>
+              <button
+                onClick={onOpenChat}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 transition-colors text-sm font-medium"
+              >
+                Open AI Chat
+                <Icon as={ArrowRight} size={16} className="text-white" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div 
-        ref={cardRef}
-        className="relative transition-transform duration-300 ease-out"
-        style={{ 
-          transform: `rotateY(${rotateY}deg)`,
-          transformStyle: 'preserve-3d',
-        }}
+        className="perspective-1000"
+        style={{ perspective: '1000px' }}
       >
-      {/* Preview Badge */}
-      <div className="absolute top-4 right-4 z-10">
-        <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
-          Preview
-        </Badge>
-      </div>
-      
-      {/* Experience Card */}
-      <ExperienceCard
-        {...cardProps}
-        onSelect={onPreview || (() => {})} // Call onPreview when card clicked
-        ctaLabel="Edit Experience"
-        onCtaClick={onEdit || (() => {})} // Call onEdit when CTA clicked
-        ctaIcon={<Icon as={Edit3} size={16} className="text-white" />}
-        ctaClassName="bg-black hover:bg-black/90 text-white"
-      />
+        <div 
+          ref={cardRef}
+          className="relative transition-transform duration-300 ease-out"
+          style={{ 
+            transform: `rotateY(${rotateY}deg)`,
+            transformStyle: 'preserve-3d',
+          }}
+        >
+        {/* Preview Badge */}
+        <div className="absolute top-4 right-4 z-10">
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+            Preview
+          </Badge>
+        </div>
+        
+        {/* Experience Card */}
+        <ExperienceCard
+          {...cardProps}
+          onSelect={onPreview || (() => {})} // Call onPreview when card clicked
+          ctaLabel="Manual Edit"
+          onCtaClick={onEdit || (() => {})} // Call onEdit when CTA clicked
+          ctaIcon={<Icon as={Edit3} size={16} className="text-white" />}
+          ctaClassName="bg-gray-600 hover:bg-gray-700 text-white text-sm"
+        />
+        </div>
       </div>
       
       {/* Submit Button - Below the card (outside rotating container) */}
