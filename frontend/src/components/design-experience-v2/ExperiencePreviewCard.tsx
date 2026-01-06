@@ -76,10 +76,20 @@ export default function ExperiencePreviewCard({
   if (!hasMinimumData) {
     return (
       <div className="bg-white rounded-xl border shadow-sm p-8">
-        <div className="text-center py-12">
+        <div className="text-center py-12 space-y-4">
           <p className="text-gray-500 text-sm">
-            Fill in the title and description to see a preview
+            Fill in the title and description to see a preview.
           </p>
+
+          {onEdit ? (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="inline-flex items-center justify-center rounded-lg bg-terracotta-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-terracotta-600 transition-colors"
+            >
+              Manual Edit
+            </button>
+          ) : null}
         </div>
       </div>
     );
@@ -141,7 +151,7 @@ export default function ExperiencePreviewCard({
         />
         </div>
       </div>
-      
+        
       {/* Submit Button - Below the card (outside rotating container) */}
       {onSubmit && (
         <div className="mt-4 flex justify-center">

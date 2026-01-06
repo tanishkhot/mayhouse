@@ -40,7 +40,7 @@ describe('Route Service', () => {
     const result = await getWalkingRoute(waypoints);
 
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('10,10;11,11')
+      expect.stringContaining('10%2C10%3B11%2C11')
     );
     expect(result).toEqual({
       geometry: mockResponse.routes[0].geometry,
@@ -64,6 +64,7 @@ describe('Route Service', () => {
     expect(result).toBeNull();
   });
 });
+
 
 
 

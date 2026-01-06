@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { X, Heart, Share2 } from 'lucide-react';
 import { NormalizedExperienceData, PhotoArray } from '@/lib/experience-preview-types';
 import type { PublicProfile, UserResponse } from '@/lib/api';
-import { ExperienceStatus } from '@/lib/experience-api';
-import ExperiencePreviewContent from './ExperiencePreviewContent';
+import type { ExperienceStatus } from '@/lib/experience-api';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import ExperiencePreviewDetail from './ExperiencePreviewDetail';
 
 type PreviewHost = UserResponse | PublicProfile;
 
@@ -32,70 +34,126 @@ export default function ExperiencePreviewModal({
   isLoading = false,
   error,
 }: ExperiencePreviewModalProps) {
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const lastActiveElementRef = useRef<HTMLElement | null>(null);
 
-  // Focus trap and ESC key handling
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
+    lastActiveElementRef.current =
+      typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null;
 
+    const prevOverflow = typeof document !== 'undefined' ? document.body.style.overflow : '';
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = 'hidden';
+    }
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     document.addEventListener('keydown', handleEscape);
+
+    // Focus close button (accessibility)
+    closeButtonRef.current?.focus();
+
     return () => {
       document.removeEventListener('keydown', handleEscape);
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = prevOverflow;
+      }
+      lastActiveElementRef.current?.focus?.();
     };
   }, [onClose]);
 
-  // Focus first focusable element when modal opens
-  useEffect(() => {
-    if (closeButtonRef.current) {
-      closeButtonRef.current.focus();
-    }
-  }, []);
-
   return (
-    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent
-        className="max-w-6xl max-h-[90vh] overflow-hidden p-0 sm:max-w-6xl"
-        showCloseButton={true}
-        onEscapeKeyDown={onClose}
-        onPointerDownOutside={onClose}
-        aria-labelledby="modal-title"
-        aria-describedby="modal-description"
-      >
-        <div className="flex flex-col h-full max-h-[90vh]">
+    <div className="fixed inset-0 z-50 bg-background">
+      {/* Backdrop click-to-close region (subtle) */}
+      <button
+        type="button"
+        aria-label="Close preview"
+        className="absolute inset-0 bg-background/20"
+        onClick={onClose}
+      />
+
+      <div className="absolute inset-0 flex flex-col">
+        <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <Button
+              ref={closeButtonRef}
+              type="button"
+              variant="ghost"
+              className="gap-2 transition-all duration-300 hover:bg-accent active:scale-95 active:duration-100 focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              onClick={onClose}
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+              <span className="text-sm">Close</span>
+            </Button>
+
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="transition-all duration-300 hover:bg-accent active:scale-95 active:duration-100 focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                aria-label="Share"
+                onClick={() => {}}
+              >
+                <Share2 className="h-5 w-5" />
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="transition-all duration-300 hover:bg-accent active:scale-95 active:duration-100 focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                aria-label="Favorite"
+                onClick={() => {}}
+              >
+                <Heart className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto">
           {isLoading ? (
-            <div className="flex items-center justify-center h-96">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+            <div className="min-h-[60vh] flex items-center justify-center px-4">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-foreground" />
             </div>
           ) : error ? (
-            <div className="flex flex-col items-center justify-center h-96 p-8">
-              <div className="text-red-600 text-lg font-semibold mb-2">Error</div>
-              <div className="text-gray-600 text-center">{error}</div>
-              <button
-                onClick={onClose}
-                className="mt-4 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800"
-              >
-                Close
-              </button>
+            <div className="min-h-[60vh] flex items-center justify-center px-4">
+              <Card className="max-w-md w-full py-0">
+                <CardHeader className="px-6 pt-6 pb-0">
+                  <CardTitle className="text-foreground">Error</CardTitle>
+                </CardHeader>
+                <CardContent className="px-6 pb-6">
+                  <p className="text-sm text-muted-foreground">{error}</p>
+                  <div className="mt-5">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="transition-all duration-300 active:scale-95 focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                      onClick={onClose}
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           ) : (
-            <div className="overflow-y-auto flex-1">
-              <ExperiencePreviewContent
-                experience={experience}
-                photos={photos}
-                host={host}
-                mode={mode}
-                showStatus={showStatus}
-                status={status}
-              />
-            </div>
+            <ExperiencePreviewDetail
+              experience={experience}
+              photos={photos}
+              host={host}
+              mode={mode}
+              showStatus={showStatus}
+              status={status}
+              showBookingPreview={true}
+            />
           )}
-        </div>
-      </DialogContent>
-    </Dialog>
+        </main>
+      </div>
+    </div>
   );
 }
 

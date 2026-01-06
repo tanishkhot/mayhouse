@@ -11,6 +11,9 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: jest.fn(),
   }),
+  useSearchParams: () => ({
+    get: jest.fn().mockReturnValue(null),
+  }),
 }));
 
 // Mock API modules
@@ -75,6 +78,7 @@ describe('DesignExperienceV2 Route Planning Integration', () => {
 
   const fillBasicForm = async () => {
     // Wait for the form to be visible (it might be in a sidebar)
+    fireEvent.click(await screen.findByText(/Manual Edit/i));
     const titleInput = await screen.findByPlaceholderText(/e.g., Mumbai Street Food Adventure/i);
     
     // Helper to get past step 1 validation

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import ExperiencePreviewContent from '../ExperiencePreviewContent';
+import ExperiencePreviewDetail from '../ExperiencePreviewDetail';
 import { NormalizedExperienceData, PhotoArray } from '@/lib/experience-preview-types';
 
 // Mock MapPicker to avoid Leaflet initialization issues
@@ -24,7 +24,7 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
 };
 
-describe('ExperiencePreviewContent - Route Visualization', () => {
+describe('ExperiencePreviewDetail - Route Visualization', () => {
   const baseExperience: NormalizedExperienceData = {
     id: 'exp-123',
     title: 'Test Experience',
@@ -50,10 +50,10 @@ describe('ExperiencePreviewContent - Route Visualization', () => {
       },
     };
 
-    render(<ExperiencePreviewContent experience={experienceWithRoute} photos={mockPhotos} />);
+    render(<ExperiencePreviewDetail experience={experienceWithRoute} photos={mockPhotos} />);
 
-    // Assert: "Walking Route" heading is present
-    expect(screen.getByText('Walking Route')).toBeInTheDocument();
+    // Assert: Route heading is present
+    expect(screen.getByText(/Walking route/i)).toBeInTheDocument();
 
     // Assert: MapPicker component is rendered
     const mapPicker = screen.getByTestId('mock-map-picker');
@@ -69,10 +69,10 @@ describe('ExperiencePreviewContent - Route Visualization', () => {
       // No routeData
     };
 
-    render(<ExperiencePreviewContent experience={experienceWithoutRoute} photos={mockPhotos} />);
+    render(<ExperiencePreviewDetail experience={experienceWithoutRoute} photos={mockPhotos} />);
 
-    // Assert: "Walking Route" heading is NOT present
-    expect(screen.queryByText('Walking Route')).not.toBeInTheDocument();
+    // Assert: Route heading is NOT present
+    expect(screen.queryByText(/Walking route/i)).not.toBeInTheDocument();
 
     // Assert: MapPicker is NOT rendered
     expect(screen.queryByTestId('mock-map-picker')).not.toBeInTheDocument();
@@ -86,10 +86,10 @@ describe('ExperiencePreviewContent - Route Visualization', () => {
       },
     };
 
-    render(<ExperiencePreviewContent experience={experienceWithEmptyRoute} photos={mockPhotos} />);
+    render(<ExperiencePreviewDetail experience={experienceWithEmptyRoute} photos={mockPhotos} />);
 
     // Assert: Route section is not rendered
-    expect(screen.queryByText('Walking Route')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Walking route/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId('mock-map-picker')).not.toBeInTheDocument();
   });
 
@@ -104,7 +104,7 @@ describe('ExperiencePreviewContent - Route Visualization', () => {
       },
     };
 
-    render(<ExperiencePreviewContent experience={experienceWithRoute} photos={mockPhotos} />);
+    render(<ExperiencePreviewDetail experience={experienceWithRoute} photos={mockPhotos} />);
 
     const mapPicker = screen.getByTestId('mock-map-picker');
 
@@ -134,16 +134,14 @@ describe('ExperiencePreviewContent - Route Visualization', () => {
       },
     };
 
-    render(
-      <ExperiencePreviewContent experience={experienceWithSingleWaypoint} photos={mockPhotos} />
-    );
+    render(<ExperiencePreviewDetail experience={experienceWithSingleWaypoint} photos={mockPhotos} />);
 
     // Note: Single waypoint might not render route (needs 2+ for a route), but if it does:
     // This test verifies the text uses singular form
     // However, based on the component logic, route visualization requires waypoints.length > 0
     // But a single waypoint doesn't make a route, so this might not render
     // Let's check if it renders or not
-    const routeSection = screen.queryByText('Walking Route');
+    const routeSection = screen.queryByText(/Walking route/i);
     if (routeSection) {
       expect(screen.getByText(/This route includes 1 waypoint/)).toBeInTheDocument();
     }
@@ -162,9 +160,7 @@ describe('ExperiencePreviewContent - Route Visualization', () => {
       },
     };
 
-    render(
-      <ExperiencePreviewContent experience={experienceWithMultipleWaypoints} photos={mockPhotos} />
-    );
+    render(<ExperiencePreviewDetail experience={experienceWithMultipleWaypoints} photos={mockPhotos} />);
 
     // Assert: Uses plural form
     expect(screen.getByText(/This route includes 4 waypoints/)).toBeInTheDocument();
@@ -182,9 +178,7 @@ describe('ExperiencePreviewContent - Route Visualization', () => {
       },
     };
 
-    render(
-      <ExperiencePreviewContent experience={experienceWithRouteAndCoords} photos={mockPhotos} />
-    );
+    render(<ExperiencePreviewDetail experience={experienceWithRouteAndCoords} photos={mockPhotos} />);
 
     // Should use first waypoint, not fallback coordinates
     const defaultCenter = screen.getByTestId('map-default-center');
@@ -204,12 +198,12 @@ describe('ExperiencePreviewContent - Route Visualization', () => {
       },
     };
 
-    render(<ExperiencePreviewContent experience={experienceWithRoute} photos={mockPhotos} />);
+    render(<ExperiencePreviewDetail experience={experienceWithRoute} photos={mockPhotos} />);
 
     // Assert: Other content still renders
     expect(screen.getByText('Test Experience')).toBeInTheDocument();
     expect(screen.getAllByText('Test description').length).toBeGreaterThan(0);
-    expect(screen.getByText('Walking Route')).toBeInTheDocument();
+    expect(screen.getByText(/Walking route/i)).toBeInTheDocument();
   });
 });
 

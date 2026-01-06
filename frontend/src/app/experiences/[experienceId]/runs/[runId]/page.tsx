@@ -26,6 +26,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MapPicker } from "@/components/ui/map-picker";
+import { BookingSidebar, MobileBookingBar } from "@/components/experience-preview/BookingSidebar";
 
 const formatCategoryLabel = (domain?: string | null) => {
   if (!domain) return "Experience";
@@ -457,149 +458,35 @@ export default function ExperienceRunDetailPage() {
             </Card>
           </div>
 
-          <div className="lg:col-span-1">
-            <div ref={bookingAnchorRef} />
-            <Card className="py-0 lg:sticky lg:top-24 shadow-lg">
-              <CardContent className="px-6 py-6 space-y-6">
-                <div>
-                  {hasPrice ? (
-                    <PriceDisplay
-                      priceINR={priceINR}
-                      size="large"
-                      layout="stacked"
-                      className="flex flex-col items-start"
-                    />
-                  ) : (
-                    <p className="text-2xl font-semibold text-foreground">
-                      Price TBA
-                    </p>
-                  )}
-                  <p className="mt-1 text-sm text-muted-foreground">per person</p>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-foreground">Choose a date</p>
-
-                  <div className="grid gap-2">
-                    {sessions.map((s, idx) => {
-                      const isSelected = selectedSessionIndex === idx;
-                      const isDisabled = s.isDisabled;
-
-                      const base =
-                        "w-full rounded-lg p-3 text-left transition-all duration-300 active:scale-95 active:duration-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
-                      const state = isDisabled
-                        ? "bg-muted text-muted-foreground opacity-60 cursor-not-allowed"
-                        : isSelected
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "bg-card border border-border hover:bg-accent hover:border-ring";
-
-                      return (
-                        <button
-                          key={s.dateTimeIso}
-                          type="button"
-                          disabled={isDisabled}
-                          className={`${base} ${state}`}
-                          onClick={() => {
-                            if (isDisabled) return;
-                            setSelectedSessionIndex(idx);
-                          }}
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-medium">{s.label}</p>
-                              <p className="text-xs opacity-90">
-                                {isDisabled
-                                  ? "Sold out"
-                                  : `${s.availableSpots} spots available`}
-                              </p>
-                            </div>
-                            {hasPrice ? (
-                              <PriceDisplay
-                                priceINR={priceINR}
-                                size="small"
-                                layout="inline"
-                                className="text-sm"
-                              />
-                            ) : null}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <BookEventButton
-                    eventRunId={runId}
-                    availableSeats={
-                      selectedSession?.availableSpots ?? availableSpots
-                    }
-                    hostWalletAddress={eventRun.host_wallet_address || undefined}
-                    eventTimestamp={
-                      selectedSession?.dateTimeIso ?? eventRun.start_datetime
-                    }
-                    priceINR={hasPrice ? priceINR : 0}
-                  />
-
-                  {/* <p className="text-xs text-muted-foreground text-center">
-                    Includes 20% refundable stake
-                  </p> */}
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div className="flex items-start gap-3">
-                    <Shield className="h-4 w-4 text-terracotta-600 mt-0.5 flex-shrink-0" />
-                    <span>Full refund up to 24h before</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Shield className="h-4 w-4 text-terracotta-600 mt-0.5 flex-shrink-0" />
-                    <span>Host verified</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <BookingSidebar
+            runId={runId}
+            sessions={sessions}
+            selectedSessionIndex={selectedSessionIndex}
+            setSelectedSessionIndex={setSelectedSessionIndex}
+            availableSpotsFallback={availableSpots}
+            hostWalletAddress={eventRun.host_wallet_address || undefined}
+            startDateTimeFallbackIso={eventRun.start_datetime}
+            priceINR={priceINR}
+            hasPrice={hasPrice}
+            bookingAnchorRef={bookingAnchorRef}
+          />
         </div>
       </div>
 
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">From</p>
-            {hasPrice ? (
-              <p className="text-base font-semibold text-foreground truncate">
-                {new Intl.NumberFormat("en-IN", {
-                  style: "currency",
-                  currency: "INR",
-                  maximumFractionDigits: 0,
-                }).format(priceINR)}
-              </p>
-            ) : (
-              <p className="text-base font-semibold text-foreground">Price TBA</p>
-            )}
-          </div>
-
-          <Button
-            type="button"
-            className="flex-1 transition-all duration-300 active:scale-95 active:duration-100 focus-visible:ring-[3px] focus-visible:ring-ring/50"
-            onClick={() => {
-              if (!isSoldOut && selectedSessionIndex < 0) {
-                setSelectedSessionIndex(0);
-              }
-              bookingAnchorRef.current?.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-              });
-            }}
-          >
-            Book
-          </Button>
-        </div>
-      </div>
+      <MobileBookingBar
+        hasPrice={hasPrice}
+        priceINR={priceINR}
+        isSoldOut={isSoldOut}
+        ensureSessionSelected={() => {
+          if (selectedSessionIndex < 0) setSelectedSessionIndex(0);
+        }}
+        onScrollToBooking={() => {
+          bookingAnchorRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }}
+      />
     </div>
   );
 }

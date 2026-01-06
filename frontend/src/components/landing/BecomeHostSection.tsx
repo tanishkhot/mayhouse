@@ -10,7 +10,7 @@ const benefits = [
   {
     icon: TrendingUp,
     title: 'Earn meaningful income',
-    description: 'Set your own prices and keep 70-80% of booking revenue. Top hosts earn $2,000+/month.',
+    description: 'Set your own prices and keep 70-80% of booking revenue. Top hosts earn ₹1,65,000+/month.',
   },
   {
     icon: Users,
@@ -41,7 +41,7 @@ export function BecomeHostSection() {
               />
             </div>
             <div className="absolute -bottom-6 -right-6 bg-terracotta-500 text-white rounded-2xl p-6 shadow-xl max-w-xs">
-              <p className="text-3xl mb-1">$45-$85</p>
+              <p className="text-3xl mb-1">₹3,500–₹7,000</p>
               <p className="text-sm opacity-90">Average host earnings per experience</p>
             </div>
           </div>

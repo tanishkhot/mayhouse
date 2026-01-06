@@ -55,8 +55,21 @@ export default function AuthCallbackPage() {
             tokenLen: accessToken.length,
           });
           
-          // Redirect to homepage - use window.location for reliable redirect
-          window.location.href = '/';
+          // Redirect to homepage
+          // Prefer Next router for SPA navigation; in production, keep a hard fallback
+          // (some OAuth flows can leave the router in a weird state).
+          router.replace('/');
+          if (process.env.NODE_ENV !== 'test') {
+            setTimeout(() => {
+              try {
+                if (window.location.pathname.startsWith('/auth/callback')) {
+                  window.location.href = '/';
+                }
+              } catch {
+                // ignore
+              }
+            }, 50);
+          }
         } else {
           console.log('[OAUTH] frontend callback: missing token', {
             tokenType,

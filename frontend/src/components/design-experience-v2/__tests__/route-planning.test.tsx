@@ -7,6 +7,9 @@ import { searchLocation, reverseGeocode } from '@/lib/osm-geocoding';
 // Mocks
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn() }),
+  useSearchParams: () => ({
+    get: jest.fn().mockReturnValue(null),
+  }),
 }));
 
 jest.mock('@/lib/route-service', () => ({
@@ -86,18 +89,19 @@ describe('DesignExperienceV2 Route Planning', () => {
     });
   });
 
-  const fillStep1 = () => {
+  const fillStep1 = async () => {
     fireEvent.click(screen.getByText('Start from scratch instead'));
     
-    // Sidebar opens automatically now
+    // Step 1 keeps the form panel closed by default; open it via Manual Edit.
+    fireEvent.click(await screen.findByText(/Manual Edit/i));
     
     // Title
-    fireEvent.change(screen.getByPlaceholderText(/e.g., Mumbai Street Food/i), {
+    fireEvent.change(await screen.findByPlaceholderText(/e.g., Mumbai Street Food/i), {
       target: { value: 'Test Experience Title That Is Long Enough' },
     });
     
     // Description
-    fireEvent.change(screen.getByPlaceholderText(/Describe what makes your experience unique/i), {
+    fireEvent.change(await screen.findByPlaceholderText(/Describe what makes your experience unique/i), {
       target: { value: 'This is a test description that is definitely longer than one hundred characters. It needs to be very descriptive to pass the validation check. almost there... done.' },
     });
     
@@ -115,7 +119,7 @@ describe('DesignExperienceV2 Route Planning', () => {
     });
 
     // 1. Navigate to Step 2
-    fillStep1();
+    await fillStep1();
     
     // Verify we are on Step 2
     expect(screen.getByText('Experience Details')).toBeInTheDocument();
@@ -149,6 +153,7 @@ describe('DesignExperienceV2 Route Planning', () => {
     });
   });
 });
+
 
 
 

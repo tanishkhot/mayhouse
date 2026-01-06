@@ -90,6 +90,7 @@ export default function DesignExperienceV2() {
   const [isSaving, setIsSaving] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [hasMovedToStepOne, setHasMovedToStepOne] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
@@ -412,6 +413,26 @@ export default function DesignExperienceV2() {
       console.log('[FLOW] DesignExperienceV2 step change', { step, ts: new Date().toISOString() });
     } catch {}
   }, [step]);
+
+  // Auto-open AI chat and close form panel when moving to step 1 (editing phase)
+  useEffect(() => {
+    if (step === 1 && !hasMovedToStepOne) {
+      setHasMovedToStepOne(true);
+      setChatOpen(true); // Open AI chat by default
+      setFormOpen(false); // Keep form panel closed
+      
+      // Add a welcoming message to guide the user
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: `assistant-welcome-${Date.now()}`,
+          role: 'assistant',
+          content: "Great start! I can see your experience is taking shape. I'm here to help you refine it. You can:\n\n• Ask me to improve any section\n• Request changes to specific fields\n• Get suggestions for better descriptions\n• Or just chat naturally about what you want to change\n\nWhat would you like to work on first?",
+          timestamp: new Date(),
+        },
+      ]);
+    }
+  }, [step, hasMovedToStepOne]);
 
   // Keyboard shortcut: Cmd+Enter (Mac) or Ctrl+Enter (Windows) to generate experience
   useEffect(() => {
@@ -1528,6 +1549,8 @@ export default function DesignExperienceV2() {
                       toast.error('Please fill in title and description (min 10 and 50 characters) to preview');
                     }
                   }}
+                  onOpenChat={() => setChatOpen(true)}
+                  isChatOpen={chatOpen}
                 />
               )}
             </div>

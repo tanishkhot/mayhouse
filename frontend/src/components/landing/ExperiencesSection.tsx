@@ -21,12 +21,14 @@ const baseExperiences: ExperienceListItem[] = [
     category: 'Culture',
     duration: '3 hours',
     groupSize: '6-8 people',
-    price: 45,
+    price: 4500,
+    priceLocale: 'en-IN',
+    currencySymbol: '₹',
     rating: 4.9,
     reviews: 127,
     location: 'Barcelona, Spain',
     tags: ['History', 'Walking', 'Local insights'],
-    ctaHref: '/explore',
+    ctaHref: '/experiences/mock/1',
   },
   {
     id: '2',
@@ -39,12 +41,14 @@ const baseExperiences: ExperienceListItem[] = [
     category: 'Food',
     duration: '4 hours',
     groupSize: '4-6 people',
-    price: 38,
+    price: 3800,
+    priceLocale: 'en-IN',
+    currencySymbol: '₹',
     rating: 5.0,
     reviews: 89,
     location: 'Hanoi, Vietnam',
     tags: ['Culinary', 'Street food', 'Family recipes'],
-    ctaHref: '/explore',
+    ctaHref: '/experiences/mock/2',
   },
   {
     id: '3',
@@ -57,12 +61,14 @@ const baseExperiences: ExperienceListItem[] = [
     category: 'Arts',
     duration: '2.5 hours',
     groupSize: '3-5 people',
-    price: 65,
+    price: 6500,
+    priceLocale: 'en-IN',
+    currencySymbol: '₹',
     rating: 4.8,
     reviews: 54,
     location: 'Kyoto, Japan',
     tags: ['Hands-on', 'Traditional craft', 'Artisan'],
-    ctaHref: '/explore',
+    ctaHref: '/experiences/mock/3',
   },
   {
     id: '4',
@@ -75,12 +81,14 @@ const baseExperiences: ExperienceListItem[] = [
     category: 'Culture',
     duration: '2 hours',
     groupSize: '5-8 people',
-    price: 40,
+    price: 4000,
+    priceLocale: 'en-IN',
+    currencySymbol: '₹',
     rating: 4.9,
     reviews: 92,
     location: 'New York, USA',
     tags: ['History', 'Music', 'Civil rights'],
-    ctaHref: '/explore',
+    ctaHref: '/experiences/mock/4',
   },
   {
     id: '5',
@@ -93,12 +101,14 @@ const baseExperiences: ExperienceListItem[] = [
     category: 'Food',
     duration: '5 hours',
     groupSize: '4-6 people',
-    price: 55,
+    price: 5500,
+    priceLocale: 'en-IN',
+    currencySymbol: '₹',
     rating: 5.0,
     reviews: 108,
     location: 'Jaipur, India',
     tags: ['Early morning', 'Cooking', 'Market'],
-    ctaHref: '/explore',
+    ctaHref: '/experiences/mock/5',
   },
   {
     id: '6',
@@ -111,12 +121,14 @@ const baseExperiences: ExperienceListItem[] = [
     category: 'Nature',
     duration: '3 hours',
     groupSize: '6-10 people',
-    price: 35,
+    price: 3500,
+    priceLocale: 'en-IN',
+    currencySymbol: '₹',
     rating: 4.7,
     reviews: 43,
     location: 'Paris, France',
     tags: ['Sustainability', 'Hands-on', 'Community'],
-    ctaHref: '/explore',
+    ctaHref: '/experiences/mock/6',
   },
 ];
 
@@ -153,7 +165,7 @@ export function ExperiencesSection({ onExperienceSelect, additionalExperiences =
   );
 
   return (
-    <section id="experiences" className="pt-6 pb-20 lg:pt-8 lg:pb-32 bg-gradient-to-b from-white to-orange-50/30">
+    <section id="experiences" className="pt-6 pb-20 lg:pt-8 lg:pb-32 bg-linear-to-b from-white to-orange-50/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex justify-center">
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -182,6 +194,10 @@ export function ExperiencesSection({ onExperienceSelect, additionalExperiences =
 
                     // Previous full reload navigation (preserved):
                     // window.location.href = experience.ctaHref;
+                    return;
+                  }
+                  if (experience.ctaHref) {
+                    router.push(experience.ctaHref);
                     return;
                   }
                   onExperienceSelect?.(id);

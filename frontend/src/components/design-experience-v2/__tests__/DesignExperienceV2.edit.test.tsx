@@ -145,6 +145,16 @@ describe('DesignExperienceV2 Edit Mode', () => {
   });
 
   const fillBasicForm = async () => {
+    // Ensure the sidebar form is open (create mode opens it directly; preview mode needs Manual Edit).
+    if (!screen.queryByPlaceholderText(/e.g., Mumbai Street Food Adventure/i)) {
+      try {
+        await screen.findByPlaceholderText(/e.g., Mumbai Street Food Adventure/i, {}, { timeout: 1500 });
+      } catch {
+        const manualEditBtn = await screen.findByText(/Manual Edit/i);
+        fireEvent.click(manualEditBtn);
+      }
+    }
+
     const titleInput = await screen.findByPlaceholderText(/e.g., Mumbai Street Food Adventure/i);
     fireEvent.change(titleInput, { target: { value: 'Mumbai Heritage Walk Test Experience' } });
     fireEvent.change(screen.getByPlaceholderText(/Describe what makes your experience/i), { 
@@ -153,6 +163,27 @@ describe('DesignExperienceV2 Edit Mode', () => {
     fireEvent.change(screen.getByRole('combobox'), { target: { value: 'culture' } });
     const nextButtons = screen.getAllByText('Next');
     fireEvent.click(nextButtons[0]);
+  };
+
+  const openFormSidebarIfClosed = async () => {
+    if (screen.queryByPlaceholderText(/e.g., Mumbai Street Food Adventure/i)) return;
+    if (screen.queryByDisplayValue("Test Experience")) return;
+
+    // Create mode opens sidebar via "Start from scratch instead" (no Manual Edit button).
+    // Edit/preview mode might require clicking Manual Edit.
+    try {
+      await screen.findByPlaceholderText(/e.g., Mumbai Street Food Adventure/i, {}, { timeout: 1500 });
+      return;
+    } catch {
+      // no-op
+    }
+
+    try {
+      const manualEditBtn = await screen.findByText(/Manual Edit/i, {}, { timeout: 1500 });
+      fireEvent.click(manualEditBtn);
+    } catch {
+      // ignore
+    }
   };
 
   describe('Edit Mode Detection & Loading', () => {
@@ -190,6 +221,7 @@ describe('DesignExperienceV2 Edit Mode', () => {
       });
 
       // Check that form fields are populated
+      await openFormSidebarIfClosed();
       await waitFor(() => {
         const titleInput = screen.getByDisplayValue('Test Experience');
         expect(titleInput).toBeInTheDocument();
@@ -211,6 +243,7 @@ describe('DesignExperienceV2 Edit Mode', () => {
       });
 
       // Wait for form to load and sidebar to open
+      await openFormSidebarIfClosed();
       await waitFor(() => {
         expect(screen.getByDisplayValue('Test Experience')).toBeInTheDocument();
       });
@@ -250,6 +283,7 @@ describe('DesignExperienceV2 Edit Mode', () => {
       });
 
       // Wait for form to load
+      await openFormSidebarIfClosed();
       await waitFor(() => {
         expect(screen.getByDisplayValue('Test Experience')).toBeInTheDocument();
       });
@@ -334,6 +368,7 @@ describe('DesignExperienceV2 Edit Mode', () => {
       });
 
       // Wait for form to be loaded
+      await openFormSidebarIfClosed();
       await waitFor(() => {
         expect(screen.getByDisplayValue('Test Experience')).toBeInTheDocument();
       });
@@ -441,6 +476,7 @@ describe('DesignExperienceV2 Edit Mode', () => {
       });
 
       // Wait for form to load
+      await openFormSidebarIfClosed();
       await waitFor(() => {
         expect(screen.getByDisplayValue('Test Experience')).toBeInTheDocument();
       });
@@ -472,6 +508,7 @@ describe('DesignExperienceV2 Edit Mode', () => {
       }
 
       // Wait for form to be ready
+      await openFormSidebarIfClosed();
       await waitFor(() => {
         expect(screen.getByDisplayValue('Test Experience')).toBeInTheDocument();
       });
@@ -510,6 +547,7 @@ describe('DesignExperienceV2 Edit Mode', () => {
         fireEvent.click(startFromScratch);
       }
 
+      await openFormSidebarIfClosed();
       await waitFor(() => {
         expect(screen.getByDisplayValue('Test Experience')).toBeInTheDocument();
       });
@@ -552,6 +590,7 @@ describe('DesignExperienceV2 Edit Mode', () => {
       });
 
       // Wait for form to load - this confirms loadExperience completed and sidebar is open
+      await openFormSidebarIfClosed();
       await waitFor(() => {
         expect(screen.getByDisplayValue('Test Experience')).toBeInTheDocument();
       }, { timeout: 5000 });
@@ -573,6 +612,7 @@ describe('DesignExperienceV2 Edit Mode', () => {
       // Skip kickstart
       fireEvent.click(screen.getByText('Start from scratch instead'));
 
+      await openFormSidebarIfClosed();
       await waitFor(() => {
         expect(screen.getByText('Create Experience')).toBeInTheDocument();
       });
@@ -593,6 +633,7 @@ describe('DesignExperienceV2 Edit Mode', () => {
       });
 
       // Wait for form to be loaded - check for title in input field
+      await openFormSidebarIfClosed();
       await waitFor(() => {
         const titleInput = screen.queryByDisplayValue('Test Experience');
         expect(titleInput).toBeInTheDocument();
@@ -774,6 +815,7 @@ describe('DesignExperienceV2 Edit Mode', () => {
         fireEvent.click(startFromScratch);
       }
 
+      await openFormSidebarIfClosed();
       await waitFor(() => {
         expect(screen.getByDisplayValue('Test Experience')).toBeInTheDocument();
       });
@@ -831,6 +873,7 @@ describe('DesignExperienceV2 Edit Mode', () => {
         fireEvent.click(startFromScratch);
       }
 
+      await openFormSidebarIfClosed();
       await waitFor(() => {
         expect(screen.getByDisplayValue('Test Experience')).toBeInTheDocument();
       });
