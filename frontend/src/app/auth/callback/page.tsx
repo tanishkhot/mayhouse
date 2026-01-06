@@ -55,8 +55,8 @@ export default function AuthCallbackPage() {
             tokenLen: accessToken.length,
           });
           
-          // Redirect to homepage
-          router.replace('/');
+          // Redirect to homepage - use window.location for reliable redirect
+          window.location.href = '/';
         } else {
           console.log('[OAUTH] frontend callback: missing token', {
             tokenType,
