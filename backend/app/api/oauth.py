@@ -61,11 +61,16 @@ async def google_oauth_login(request: Request):
                 detail="Google OAuth not configured"
             )
         
-        # Get frontend URL from request or use default
-        frontend_url = request.headers.get("Referer") or "http://localhost:3000"
-        # Extract base URL (remove path)
-        if "/" in frontend_url.split("://")[1]:
-            frontend_url = frontend_url.split("/")[0] + "//" + frontend_url.split("://")[1].split("/")[0]
+        # Get frontend URL from request or use production default
+        referer = request.headers.get("Referer")
+        if referer and ("mayhouse.in" in referer or "localhost" in referer):
+            frontend_url = referer
+            # Extract base URL (remove path)
+            if "/" in frontend_url.split("://")[1]:
+                frontend_url = frontend_url.split("/")[0] + "//" + frontend_url.split("://")[1].split("/")[0]
+        else:
+            # Default to production frontend
+            frontend_url = "https://mayhouse.in"
         
         # Generate OAuth URL with state
         state = _build_oauth_state(frontend_url)
@@ -102,7 +107,8 @@ async def google_oauth_callback(
     try:
         settings = get_settings()
         state_frontend_url = _parse_oauth_state(state)
-        frontend_url = state_frontend_url or (settings.cors_origins[0] if settings.cors_origins else "http://localhost:3000")
+        # Default to production frontend if state parsing fails
+        frontend_url = state_frontend_url or "https://mayhouse.in"
         print(f"[OAUTH] google/callback: received error_present={bool(error)} code_present={bool(code)} state_present={bool(state)} frontend_url={frontend_url}")
         
         # Check for OAuth errors
