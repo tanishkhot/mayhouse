@@ -92,12 +92,7 @@ export const ExperiencePhotoUpload: React.FC<ExperiencePhotoUploadProps> = ({
         // Upload
         const response = await api.post(
           `/experiences/${experienceId}/photos`,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          }
+          formData
         );
 
         uploadedCount++;

@@ -770,7 +770,7 @@ const HostDashboardContent = () => {
                           };
 
                           // Use placeholder image if no cover photo
-                          const placeholderImage = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmF2ZWwlMjBleHBlcmllbmNlfGVufDF8fHx8MTc2MjM2MTU3MHww&ixlib=rb-4.1.0&q=80&w=1080';
+                          const placeholderImage = '/experience-placeholder.png';
                           
                           return (
                             <ExperienceCard

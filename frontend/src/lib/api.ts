@@ -123,6 +123,12 @@ export const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = getAccessToken();
   config.headers = config.headers || {};
+  
+  // Don't override Content-Type for FormData - browser sets boundary automatically
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
+  
   if (token) {
     config.headers["Authorization"] = `Bearer ${token}`;
   } else {

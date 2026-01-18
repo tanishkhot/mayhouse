@@ -30,7 +30,7 @@ class PhotoUploadService:
             supabase_url += '/'
         self.supabase: Client = get_service_client()
     
-    def _validate_file(self, file: UploadFile) -> None:
+    async def _validate_file(self, file: UploadFile) -> None:
         """Validate uploaded file."""
         
         # Check file extension
@@ -41,8 +41,11 @@ class PhotoUploadService:
                 detail=f"Invalid file type. Allowed: {', '.join(self.ALLOWED_EXTENSIONS)}"
             )
         
-        # Check file size (if content_length is available)
-        if hasattr(file, 'size') and file.size and file.size > self.MAX_FILE_SIZE:
+        # Read content to check size (reset position after)
+        content = await file.read()
+        await file.seek(0)  # Reset for upload
+        
+        if len(content) > self.MAX_FILE_SIZE:
             raise HTTPException(
                 status_code=400,
                 detail=f"File too large. Maximum size: {self.MAX_FILE_SIZE / (1024*1024)}MB"
@@ -73,8 +76,8 @@ class PhotoUploadService:
             Public URL of the uploaded photo
         """
         
-        # Validate file
-        self._validate_file(file)
+        # Validate file (now async)
+        await self._validate_file(file)
         
         # Generate unique filename
         storage_path = self._generate_unique_filename(file.filename, experience_id)

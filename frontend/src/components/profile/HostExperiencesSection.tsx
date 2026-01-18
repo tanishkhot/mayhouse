@@ -59,18 +59,12 @@ export function HostExperiencesSection({
               <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
                 {/* Cover Image */}
                 <div className="relative h-48 bg-gray-200">
-                  {exp.cover_photo_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={exp.cover_photo_url}
-                      alt={exp.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-terracotta-100 flex items-center justify-center">
-                      <span className="text-gray-400 text-sm">No image</span>
-                    </div>
-                  )}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={exp.cover_photo_url || '/experience-placeholder.png'}
+                    alt={exp.title}
+                    className="w-full h-full object-cover"
+                  />
                   {/* Domain Badge */}
                   <div className="absolute top-3 left-3">
                     <span className="px-2 py-1 bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 rounded">

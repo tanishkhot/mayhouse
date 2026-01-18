@@ -79,6 +79,7 @@ export default function ExplorePage() {
       // Explicit null/undefined check first
       if (!lastPage || !Array.isArray(lastPage)) return undefined;
       if (lastPage.length < pageSize) return undefined;
+      if (!allPages || !Array.isArray(allPages)) return undefined;
       return allPages.length * pageSize;
     },
     staleTime: 5 * 60 * 1000,
@@ -109,18 +110,18 @@ export default function ExplorePage() {
       count: eventRuns.length,
     });
   }, [eventRuns]);
-  
+
   // Categories and neighborhoods commented out for now
   // const { data: categoriesData } = useQuery({
   //   queryKey: ["categories"],
   //   queryFn: ExploreAPI.getCategories
   // });
-  
+
   // const categories: Category[] = categoriesData?.categories || [];
-  
+
   // Get unique neighborhoods from current event runs
   // const neighborhoods = [...new Set(eventRuns.map(run => run.neighborhood).filter(Boolean))] as string[];
-  
+
   const formatDuration = (minutes: number) => {
     if (minutes < 60) return `${minutes} min`;
     const hours = Math.floor(minutes / 60);
@@ -128,7 +129,7 @@ export default function ExplorePage() {
     if (remainingMinutes === 0) return `${hours} hr${hours > 1 ? 's' : ''}`;
     return `${hours}h ${remainingMinutes}m`;
   };
-  
+
   const liveExperienceCards = useMemo<ExperienceSectionItem[]>(() => {
     return eventRuns.map((eventRun) => {
       const price = parseFloat(eventRun.price_inr);
@@ -139,7 +140,7 @@ export default function ExplorePage() {
           name: eventRun.host_name,
           verified: true,
         },
-        image: eventRun.cover_photo_url ?? undefined,
+        image: eventRun.cover_photo_url || '/experience-placeholder.png',
         category: formatCategoryLabel(eventRun.experience_domain),
         duration: formatDuration(eventRun.duration_minutes),
         groupSize: `${eventRun.max_capacity} people`,
@@ -180,12 +181,12 @@ export default function ExplorePage() {
     <div className="min-h-screen bg-white">
       {/* Server Debug Info - Commented out for now */}
       {/* {process.env.NODE_ENV === 'development' && <ServerDebug />} */}
-      
+
       {/* Header removed - now using global Navbar component */}
-      
+
       {/* Search Bar (temporarily disabled) */}
       {/* <SearchBar /> */}
-      
+
       {/* Curated Experiences Section - Starting directly with filters and cards */}
       <ExperiencesSection additionalExperiences={liveExperienceCards} />
       {hasNextPage ? (

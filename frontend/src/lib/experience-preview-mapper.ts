@@ -128,7 +128,7 @@ export function mapFormToCardProps(
   coverImage?: string | null
 ): ExperienceCardProps {
   // Get cover image from photos array or use provided coverImage, or default placeholder
-  const image = coverImage || '/pool-image.jpg';
+  const image = coverImage || '/experience-placeholder.png';
   
   // Format host data
   const hostData = {
