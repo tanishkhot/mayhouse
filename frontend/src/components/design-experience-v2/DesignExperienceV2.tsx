@@ -782,7 +782,7 @@ export default function DesignExperienceV2() {
                   </div>
                   <div className="font-medium text-black mb-1">Describe Your Experience</div>
                   <div className="text-sm text-black/70">
-                    Tell us in your own words. We'll handle the structure.
+                    Tell us in your own words. We&apos;ll handle the structure.
                   </div>
                 </button>
 
@@ -798,7 +798,7 @@ export default function DesignExperienceV2() {
                   </div>
                   <div className="font-medium text-black mb-1">Answer Guided Questions</div>
                   <div className="text-sm text-black/70">
-                    We'll ask specific questions to build your listing.
+                    We&apos;ll ask specific questions to build your listing.
                   </div>
                 </button>
               </div>

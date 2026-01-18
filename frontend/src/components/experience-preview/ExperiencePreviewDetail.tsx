@@ -88,7 +88,7 @@ export default function ExperiencePreviewDetail({
       url: p.url,
       alt: experience.title,
     }));
-  }, [photos, cover?.id, cover?.url, experience.title]);
+  }, [photos, cover, experience.title]);
 
   const hostName = host?.full_name || "Host";
   const hostInitial = (hostName || "H").slice(0, 1).toUpperCase();

@@ -24,11 +24,6 @@ export default function ImageGallery({
     return Math.max(0, Math.min(initialIndex, safeImages.length - 1));
   });
 
-  useEffect(() => {
-    if (!safeImages.length) return;
-    setIndex((prev) => Math.max(0, Math.min(prev, safeImages.length - 1)));
-  }, [safeImages.length]);
-
   const goPrev = useCallback(() => {
     setIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
   }, [safeImages.length]);
