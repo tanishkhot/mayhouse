@@ -115,6 +115,9 @@ export default function DesignExperienceV2() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoadingExperience, setIsLoadingExperience] = useState(false);
   
+  // Session Management
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  
   // Route Planner State
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
   const [activeWaypointId, setActiveWaypointId] = useState<string | null>(null);
@@ -420,23 +423,33 @@ export default function DesignExperienceV2() {
     } catch {}
   }, [step]);
 
+  // Create or get session when moving to step 1 or when form is populated
+  useEffect(() => {
+    const initializeSession = async () => {
+      // Only create session if we don't have one and we're in editing phase or have form data
+      if (!sessionId && (step === 1 || (form.title && form.description))) {
+        try {
+          const user = currentUser || await AuthAPI.me();
+          if (user && user.id) {
+            const session = await DesignExperienceAPI.startSession(isEditMode && experienceId ? experienceId : undefined);
+            setSessionId(session.session_id);
+          }
+        } catch (error) {
+          console.error('Failed to create session:', error);
+          // Continue without session - chat will work but won't persist
+        }
+      }
+    };
+    
+    initializeSession();
+  }, [step, form.title, form.description, sessionId, currentUser, isEditMode, experienceId]);
+
   // Auto-open AI chat and close form panel when moving to step 1 (editing phase)
   useEffect(() => {
     if (step === 1 && !hasMovedToStepOne) {
       setHasMovedToStepOne(true);
       setChatOpen(true); // Open AI chat by default
       setFormOpen(false); // Keep form panel closed
-      
-      // Add a welcoming message to guide the user
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          id: `assistant-welcome-${Date.now()}`,
-          role: 'assistant',
-          content: "Great start! I can see your experience is taking shape. I'm here to help you refine it. You can:\n\n• Ask me to improve any section\n• Request changes to specific fields\n• Get suggestions for better descriptions\n• Or just chat naturally about what you want to change\n\nWhat would you like to work on first?",
-          timestamp: new Date(),
-        },
-      ]);
     }
   }, [step, hasMovedToStepOne]);
 
@@ -1486,6 +1499,7 @@ export default function DesignExperienceV2() {
               <div className="lg:col-span-1">
                 <div className="sticky top-24">
                   <AIChatSidebar
+                    sessionId={sessionId}
                     formState={form}
                     updateFormState={(updates) => setForm((p) => ({ ...p, ...updates }))}
                     currentStep={step}

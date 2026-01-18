@@ -115,3 +115,52 @@ class QAGenerationRequest(BaseModel):
     )
 
 
+class ChatMessage(BaseModel):
+    """Schema for a single chat message in conversation history."""
+    role: str = Field(..., description="Message role: 'user' or 'assistant'")
+    content: str = Field(..., description="Message content")
+    timestamp: Optional[str] = Field(None, description="ISO timestamp")
+
+
+class ChatMessageRequest(BaseModel):
+    """Request schema for chat endpoint."""
+    message: str = Field(..., min_length=1, max_length=2000, description="User's chat message")
+    conversation_history: Optional[List[ChatMessage]] = Field(
+        default_factory=list, 
+        description="Previous messages in conversation"
+    )
+    form_context: Optional[Dict[str, Any]] = Field(
+        None, 
+        description="Current form state for context"
+    )
+
+
+class FieldSuggestionResponse(BaseModel):
+    """Structured suggestion for a form field."""
+    field: str = Field(..., description="Form field name (what_to_expect, description, title, etc.)")
+    current_value: Any = Field(..., description="Current value in the form")
+    suggested_value: Any = Field(..., description="Suggested new value")
+    reasoning: str = Field(..., description="Why this suggestion is made")
+    confidence: float = Field(..., ge=0, le=1, description="Confidence score 0-1")
+    auto_apply_safe: bool = Field(default=False, description="Whether this can be auto-applied")
+    change_type: str = Field(default="replace", description="replace, append, refine, generate")
+
+
+class ChatResponse(BaseModel):
+    """Response schema for chat endpoint."""
+    response: str = Field(..., description="Natural language response")
+    suggestions: Optional[List[FieldSuggestionResponse]] = Field(
+        default_factory=list, 
+        description="Structured field suggestions"
+    )
+    applied_changes: Optional[List[Dict[str, Any]]] = Field(
+        default_factory=list, 
+        description="Auto-applied changes if any"
+    )
+    confidence: float = Field(..., ge=0, le=1, description="Overall confidence score")
+    reasoning: Optional[str] = Field(None, description="Explanation for suggestions")
+    next_steps: Optional[List[str]] = Field(default_factory=list, description="Proactive suggestions")
+    intent: Optional[str] = Field(None, description="Detected intent: READ, MODIFY, GENERATE, ADVICE, VALIDATE, NAVIGATION")
+    detected_fields: Optional[List[str]] = Field(default_factory=list, description="Fields mentioned in query")
+
+

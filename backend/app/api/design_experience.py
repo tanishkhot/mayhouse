@@ -19,6 +19,9 @@ from app.schemas.design_experience import (
     QASaveRequest,
     QAGenerationRequest,
     QAAnswer,
+    ChatMessageRequest,
+    ChatResponse,
+    FieldSuggestionResponse,
 )
 
 router = APIRouter(prefix="/design-experience", tags=["Design Experience"])
@@ -203,5 +206,44 @@ async def generate_from_qa(
         body.qa_answers
     )
     return ExperienceGenerationResponse(**generated)
+
+
+@router.post("/session/{session_id}/chat", response_model=ChatResponse)
+async def chat(
+    session_id: str,
+    body: ChatMessageRequest,
+    authorization: str = Header(None),
+    anonymous_user_id: str | None = Header(None, alias="X-Anonymous-User-Id"),
+):
+    """
+    Conversational chat endpoint for experience refinement.
+    Supports multi-turn conversations with context awareness.
+    """
+    user_id = await _get_user_id_from_auth(authorization, anonymous_user_id)
+    
+    result = await design_experience_service.chat(
+        session_id=session_id,
+        host_id=user_id,
+        message=body.message,
+        conversation_history=[msg.model_dump() for msg in body.conversation_history] if body.conversation_history else None,
+        form_context=body.form_context,
+    )
+    
+    # Convert suggestions to response format
+    suggestions = None
+    if result.get("suggestions"):
+        suggestions = [
+            FieldSuggestionResponse(**s) for s in result["suggestions"]
+        ]
+    
+    return ChatResponse(
+        response=result.get("natural_response", ""),
+        suggestions=suggestions,
+        confidence=result.get("confidence", 0.8),
+        reasoning=result.get("reasoning"),
+        next_steps=result.get("proactive_suggestions", []),
+        intent=result.get("intent"),
+        detected_fields=result.get("detected_fields", []),
+    )
 
 

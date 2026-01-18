@@ -31,6 +31,48 @@ export type QAAnswer = {
   character_count?: number;
 };
 
+export type ChatMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp?: string;
+};
+
+export type ChatRequest = {
+  message: string;
+  conversation_history?: ChatMessage[];
+  form_context?: Record<string, any>;
+};
+
+export type FieldSuggestionResponse = {
+  field: string;
+  current_value: any;
+  suggested_value: any;
+  reasoning: string;
+  confidence: number;
+  auto_apply_safe: boolean;
+  change_type: 'replace' | 'append' | 'refine' | 'generate';
+};
+
+export type ChatResponse = {
+  response: string;
+  suggestions?: FieldSuggestionResponse[];
+  applied_changes?: any[];
+  confidence: number;
+  reasoning?: string;
+  next_steps?: string[];
+  intent?: string;
+  detected_fields?: string[];
+};
+
+export type DesignSessionStartResponse = {
+  session_id: string;
+  experience_id: string;
+  step: number;
+  incomplete_fields: Record<string, string[]>;
+  created_at: string;
+  updated_at: string;
+};
+
 // Design Experience API
 export const DesignExperienceAPI = {
   /**
@@ -57,5 +99,20 @@ export const DesignExperienceAPI = {
     api.post<ExperienceGenerationResponse>('/design-experience/generate-from-qa', {
       qa_answers: qaAnswers,
     }).then((r) => r.data),
+
+  /**
+   * Start a new design session
+   */
+  startSession: (experienceId?: string) =>
+    api.post<DesignSessionStartResponse>('/design-experience/session', {
+      experience_id: experienceId || null,
+    }).then((r) => r.data),
+
+  /**
+   * Send chat message to AI assistant
+   */
+  sendChatMessage: (sessionId: string, request: ChatRequest) =>
+    api.post<ChatResponse>(`/design-experience/session/${sessionId}/chat`, request)
+      .then((r) => r.data),
 };
 

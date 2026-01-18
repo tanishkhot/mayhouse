@@ -32,6 +32,7 @@ export default function Navbar() {
   const isLandingPage = pathname === '/host/experiences';
   const isExperienceRunDetailPage = /^\/experiences\/[^/]+\/runs\/[^/]+$/.test(pathname);
   const isMockExperienceDetailPage = /^\/experiences\/mock\/[^/]+$/.test(pathname);
+  const isDesignExperiencePage = pathname?.startsWith('/design-experience') || false;
   const hideNavbar = pathname === '/login' || pathname === '/signup';
 
   useEffect(() => {
@@ -44,7 +45,8 @@ export default function Navbar() {
 
   // Run detail pages have their own contextual sticky header (back/share/favorite).
   // Hide the global navbar entirely to avoid double headers and reduce cognitive load.
-  if (isExperienceRunDetailPage || isMockExperienceDetailPage) {
+  // Design experience page also has its own header, so hide global navbar there too.
+  if (isExperienceRunDetailPage || isMockExperienceDetailPage || isDesignExperiencePage) {
     return null;
   }
 
