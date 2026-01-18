@@ -109,8 +109,23 @@ function LoginContent() {
   const handleGoogleAuth = () => {
     // For OAuth, we need to redirect directly to the backend (bypassing the proxy)
     // because the backend returns a redirect response that the proxy can't handle
-    // Use NEXT_PUBLIC_API_BASE_URL if set, otherwise default to localhost for dev
-    const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+    const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    
+    if (!backendUrl) {
+      // Only allow localhost fallback in development
+      if (process.env.NODE_ENV === 'development') {
+        const fallback = 'http://localhost:8000';
+        console.warn(`[OAUTH] NEXT_PUBLIC_API_BASE_URL not set, using fallback: ${fallback} - set NEXT_PUBLIC_API_BASE_URL in .env.local`);
+        const oauthUrl = `${fallback}/auth/oauth/google/login`;
+        window.location.href = oauthUrl;
+        return;
+      } else {
+        console.error('[OAUTH] NEXT_PUBLIC_API_BASE_URL not set in production!');
+        alert('Configuration error: Backend URL not configured. Please contact support.');
+        return;
+      }
+    }
+    
     const oauthUrl = `${backendUrl}/auth/oauth/google/login`;
     try {
       console.log('[OAUTH] start google oauth', {

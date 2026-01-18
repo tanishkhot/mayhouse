@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+// Backend URL must be set via environment variable
+function getBackendUrl(): string {
+  const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  
+  if (!backendUrl) {
+    // Only allow localhost fallback in development
+    if (process.env.NODE_ENV === 'development') {
+      const fallback = 'http://localhost:8000';
+      console.warn('[EXPERIENCES API] NEXT_PUBLIC_API_BASE_URL not set, using localhost fallback - set NEXT_PUBLIC_API_BASE_URL in .env.local');
+      return fallback;
+    } else {
+      throw new Error('NEXT_PUBLIC_API_BASE_URL must be set in production');
+    }
+  }
+  
+  return backendUrl;
+}
+
+const BACKEND_URL = getBackendUrl();
 
 export async function POST(request: NextRequest) {
   try {

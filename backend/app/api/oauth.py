@@ -61,9 +61,15 @@ async def google_oauth_login(request: Request):
                 detail="Google OAuth not configured"
             )
         
-        # Get frontend URL from request or use production default
+        # Get frontend URL from request headers (prefer Origin, fallback to Referer)
+        # This ensures proper detection without hardcoded domain checks
+        origin = request.headers.get("Origin")
         referer = request.headers.get("Referer")
-        if referer and ("mayhouse.in" in referer or "localhost" in referer):
+        
+        # Extract frontend URL from origin or referer
+        if origin and origin.startswith(("http://", "https://")):
+            frontend_url = origin
+        elif referer and referer.startswith(("http://", "https://")):
             frontend_url = referer
             # Extract base URL (remove path)
             if "/" in frontend_url.split("://")[1]:
@@ -148,7 +154,22 @@ async def google_oauth_callback(
     except Exception as e:
         logger.error(f"Error in OAuth callback: {e}", exc_info=True)
         settings = get_settings()
-        frontend_url = settings.cors_origins[0] if settings.cors_origins else "http://localhost:3000"
+        # Parse state again in case it wasn't parsed earlier
+        state_frontend_url = _parse_oauth_state(state)
+        # Never fall back to localhost in production - use state or production URL
+        if state_frontend_url:
+            frontend_url = state_frontend_url
+        else:
+            # Try to extract from CORS origins, but prefer production domains
+            cors_origins = settings.cors_origins if settings.cors_origins else []
+            production_origins = [origin for origin in cors_origins if 'mayhouse.in' in origin]
+            if production_origins:
+                frontend_url = production_origins[0]
+            elif cors_origins:
+                frontend_url = cors_origins[0]
+            else:
+                # Last resort: production URL (never localhost)
+                frontend_url = "https://mayhouse.in"
         error_url = f"{frontend_url}/auth/callback?error=oauth_failed"
         print(f"[OAUTH] google/callback: failure redirect_base={frontend_url}/auth/callback error=oauth_failed")
         return RedirectResponse(url=error_url)

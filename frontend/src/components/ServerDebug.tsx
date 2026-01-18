@@ -12,8 +12,38 @@ export default function ServerDebug() {
 
   useEffect(() => {
     const checkServer = async () => {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+      // Backend URL must be set via environment variable (same pattern as other API routes)
+      function getBackendUrl(): string | null {
+        const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+        
+        if (!backendUrl) {
+          // Only allow localhost fallback in development
+          if (process.env.NODE_ENV === 'development') {
+            const fallback = 'http://localhost:8000';
+            console.warn('[SERVER DEBUG] NEXT_PUBLIC_API_BASE_URL not set, using localhost fallback');
+            return fallback;
+          } else {
+            console.error('[SERVER DEBUG] NEXT_PUBLIC_API_BASE_URL must be set in production');
+            return null; // Don't make request if URL not configured
+          }
+        }
+        
+        return backendUrl;
+      }
+
+      const apiBaseUrl = getBackendUrl();
       const environment = process.env.NODE_ENV || 'development';
+      
+      // Handle missing URL in production
+      if (!apiBaseUrl) {
+        setServerInfo({
+          apiBaseUrl: 'Not configured',
+          environment,
+          isServerReachable: false,
+          serverResponse: 'NEXT_PUBLIC_API_BASE_URL not set in production',
+        });
+        return;
+      }
       
       try {
         // Test server connectivity

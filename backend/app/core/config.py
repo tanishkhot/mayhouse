@@ -58,7 +58,9 @@ class Settings(BaseSettings):
     # OAuth settings (optional)
     google_client_id: str = ""
     google_client_secret: str = ""
-    oauth_redirect_uri: str = "http://localhost:8000/auth/oauth/google/callback"
+    # oauth_redirect_uri should be set via environment variable
+    # No default - must be configured for production (e.g., https://api.mayhouse.in/auth/oauth/google/callback)
+    oauth_redirect_uri: str = ""
 
     # AI/LLM settings
     groq_api_key: str = ""

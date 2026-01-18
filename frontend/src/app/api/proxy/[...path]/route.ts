@@ -1,10 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Use localhost in development, EC2 in production
-const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
-  (process.env.NODE_ENV === 'production' 
-    ? 'http://ec2-18-223-166-226.us-east-2.compute.amazonaws.com:8000'
-    : 'http://localhost:8000');
+// Backend URL must be set via environment variable
+// In production (Vercel), NEXT_PUBLIC_API_BASE_URL should be set to https://api.mayhouse.in
+// In local dev, NEXT_PUBLIC_API_BASE_URL should be set to http://localhost:8000
+function getBackendBaseUrl(): string {
+  const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  
+  if (!backendUrl) {
+    // Only allow localhost fallback in development
+    if (process.env.NODE_ENV === 'development') {
+      const fallback = 'http://localhost:8000';
+      console.warn('[PROXY] NEXT_PUBLIC_API_BASE_URL not set, using localhost fallback - set NEXT_PUBLIC_API_BASE_URL in .env.local');
+      return fallback;
+    } else {
+      throw new Error('NEXT_PUBLIC_API_BASE_URL must be set in production');
+    }
+  }
+  
+  return backendUrl;
+}
+
+const BACKEND_BASE_URL = getBackendBaseUrl();
 
 export async function GET(
   request: NextRequest,

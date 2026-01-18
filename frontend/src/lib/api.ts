@@ -1,7 +1,9 @@
 import axios from "axios";
 
 // Base API URL - always use Next.js API proxy to avoid CORS issues
-// The proxy handles routing to the correct backend (localhost in dev, EC2 in prod)
+// The proxy handles routing to the correct backend based on NEXT_PUBLIC_API_BASE_URL
+// In production: https://api.mayhouse.in
+// In development: http://localhost:8000 (or value from .env.local)
 const BASE_URL = "/api/proxy";
 
 // Debug logs removed for production
